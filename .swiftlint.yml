@@ -1,0 +1,65 @@
+included:
+  - FeedLab
+  - FeedLabTests
+
+excluded:
+  - build
+  - DerivedData
+
+opt_in_rules:
+  - force_unwrapping
+  - empty_count
+  - explicit_init
+  - first_where
+  - last_where
+  - contains_over_first_not_nil
+  - redundant_nil_coalescing
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - closure_spacing
+  - collection_alignment
+  - literal_expression_end_indentation
+  - operator_usage_whitespace
+  - sorted_first_last
+  - yoda_condition
+
+analyzer_rules:
+  - unused_import
+
+# Force-unwrapping is banned in app code (CLAUDE.md) but is fine in tests, where a
+# nil is a test failure and `!` reads better than a guard-let dance.
+force_unwrapping:
+  severity: error
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+  ignores_urls: true
+
+identifier_name:
+  min_length:
+    warning: 2
+  excluded:
+    - id
+    - t0
+    - t1
+    - x
+    - y
+
+type_body_length:
+  warning: 300
+  error: 400
+
+file_length:
+  warning: 500
+  error: 700
+
+custom_rules:
+  no_print:
+    name: "No print()"
+    regex: '(^|[^\w.])print\s*\('
+    message: "Use the logging/signpost facility, not print() — see CLAUDE.md."
+    severity: error
+    match_kinds:
+      - identifier

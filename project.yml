@@ -1,0 +1,84 @@
+name: FeedLab
+options:
+  bundleIdPrefix: dev.emanuelazage
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    CLANG_ENABLE_MODULES: YES
+    SWIFT_EMIT_LOC_STRINGS: NO
+
+targets:
+  FeedLab:
+    type: application
+    platform: iOS
+    sources:
+      - path: FeedLab
+        excludes:
+          - "**/.gitkeep"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.emanuelazage.FeedLab
+        PRODUCT_NAME: FeedLab
+        TARGETED_DEVICE_FAMILY: "1"
+    # Written out explicitly rather than via GENERATE_INFOPLIST_FILE. The generated
+    # scene manifest emits an empty UISceneConfigurations, which is correct for a
+    # SwiftUI-lifecycle app but leaves a UIKit AppDelegate/SceneDelegate app with no
+    # scene delegate class — UIKit then never creates a window and the app renders
+    # black with no error. The wiring is load-bearing, so it is stated, not inferred.
+    info:
+      path: FeedLab/App/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UIApplicationSupportsIndirectInputEvents: true
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        # A full-screen video surface owns its own light-on-dark chrome and must not
+        # be recoloured by the system appearance.
+        UIUserInterfaceStyle: Dark
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+
+  FeedLabTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: FeedLabTests
+    dependencies:
+      - target: FeedLab
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.emanuelazage.FeedLabTests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  FeedLab:
+    build:
+      targets:
+        FeedLab: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - FeedLabTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

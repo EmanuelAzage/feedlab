@@ -1,0 +1,182 @@
+{
+  "id": "short-form",
+  "title": "Short-form mixed",
+  "items": [
+    {
+      "id": "apple-bipbop-16x9",
+      "title": "BipBop 16:9",
+      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_16x9/bipbop_16x9_variant.m3u8",
+      "source": "Apple Inc.",
+      "license": "Apple developer test asset",
+      "attribution": "Apple HLS example stream — developer.apple.com"
+    },
+    {
+      "id": "apple-bipbop-4x3",
+      "title": "BipBop 4:3",
+      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8",
+      "source": "Apple Inc.",
+      "license": "Apple developer test asset",
+      "attribution": "Apple HLS example stream — developer.apple.com"
+    },
+    {
+      "id": "apple-bipbop-fmp4",
+      "title": "BipBop Advanced (fMP4)",
+      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
+      "source": "Apple Inc.",
+      "license": "Apple developer test asset",
+      "attribution": "Apple HLS example stream — developer.apple.com"
+    },
+    {
+      "id": "apple-adv-dv-atmos",
+      "title": "Dolby Vision / Atmos Example",
+      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/adv_dv_atmos/main.m3u8",
+      "source": "Apple Inc.",
+      "license": "Apple developer test asset",
+      "attribution": "Apple HLS example stream — developer.apple.com"
+    },
+    {
+      "id": "mux-test-asset",
+      "title": "Mux Test Asset",
+      "url": "https://stream.mux.com/v69RSHhFelSm4701snP22dYz2jICy4E4FUyk02rW4gxRM.m3u8",
+      "source": "Mux, Inc.",
+      "license": "Mux public test asset",
+      "attribution": "Mux public test stream — mux.com"
+    },
+    {
+      "id": "tos-unified-streaming",
+      "title": "Tears of Steel",
+      "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+      "source": "Blender Foundation",
+      "license": "CC BY 3.0",
+      "attribution": "(CC) Blender Foundation — mango.blender.org | hosted by Unified Streaming"
+    },
+    {
+      "id": "tos-mux-ismc",
+      "title": "Tears of Steel (alternate packaging)",
+      "url": "https://test-streams.mux.dev/tos_ismc/main.m3u8",
+      "source": "Blender Foundation",
+      "license": "CC BY 3.0",
+      "attribution": "(CC) Blender Foundation — mango.blender.org | hosted by Mux"
+    },
+    {
+      "id": "nasa-aurora-steve",
+      "title": "The Aurora Named STEVE",
+      "url": "https://images-assets.nasa.gov/video/GSFC_20180314_Aurora_m12865_Steve/GSFC_20180314_Aurora_m12865_Steve~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Goddard Space Flight Center"
+    },
+    {
+      "id": "nasa-solar-flare-trio",
+      "title": "April 2017 Solar Flare Trio",
+      "url": "https://images-assets.nasa.gov/video/GSFC_20170403_Trio_m12563_SolarFlares/GSFC_20170403_Trio_m12563_SolarFlares~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Goddard Space Flight Center"
+    },
+    {
+      "id": "nasa-top5-solar-3",
+      "title": "Top 5 Solar Discoveries, No. 3",
+      "url": "https://images-assets.nasa.gov/video/GSFC_20090318_SED_m10411_Top_5_No_3/GSFC_20090318_SED_m10411_Top_5_No_3~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Goddard Space Flight Center"
+    },
+    {
+      "id": "nasa-gpm-launch",
+      "title": "GPM Launch and Deploy Animation",
+      "url": "https://images-assets.nasa.gov/video/GSFC_20121101_GPM_m11129_Launch/GSFC_20121101_GPM_m11129_Launch~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Goddard Space Flight Center"
+    },
+    {
+      "id": "nasa-gpm-launch-nomusic",
+      "title": "GPM Launch and Deploy (no music)",
+      "url": "https://images-assets.nasa.gov/video/GSFC_20121101_GPM_m11129_Launch_nomusic/GSFC_20121101_GPM_m11129_Launch_nomusic~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Goddard Space Flight Center"
+    },
+    {
+      "id": "nasa-spacewalk-83",
+      "title": "U.S. Spacewalk 83 Animation",
+      "url": "https://images-assets.nasa.gov/video/jsc2022m000290_U.S._Spacewalk_83_Animation_221221/jsc2022m000290_U.S._Spacewalk_83_Animation_221221~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Johnson Space Center"
+    },
+    {
+      "id": "nasa-spacewalk-esa",
+      "title": "Russian, ESA Spacewalk Animation",
+      "url": "https://images-assets.nasa.gov/video/jsc2022m000176_Russian_European_Space_Agency_Spacewalk_Animation/jsc2022m000176_Russian_European_Space_Agency_Spacewalk_Animation~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Johnson Space Center"
+    },
+    {
+      "id": "nasa-boeing-cft-rollout",
+      "title": "Boeing CFT Rollout for Launch (drone)",
+      "url": "https://images-assets.nasa.gov/video/KSC-20240504-MH-MTD01-0001-Boeing_CFT_Rollout_for_Launch_DRONE-M6517/KSC-20240504-MH-MTD01-0001-Boeing_CFT_Rollout_for_Launch_DRONE-M6517~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Kennedy Space Center"
+    },
+    {
+      "id": "nasa-whats-up-june-2026",
+      "title": "What's Up: June 2026 Skywatching",
+      "url": "https://images-assets.nasa.gov/video/JPL-20260529-WHATSUf-0001-Whats_Up_June_2026/JPL-20260529-WHATSUf-0001-Whats_Up_June_2026~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/JPL-Caltech"
+    },
+    {
+      "id": "nasa-whats-up-august-2025",
+      "title": "What's Up: August 2025 Skywatching",
+      "url": "https://images-assets.nasa.gov/video/JPL-20250801-WHATSUf-0001-Whats_Up_August_2025/JPL-20250801-WHATSUf-0001-Whats_Up_August_2025~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/JPL-Caltech"
+    },
+    {
+      "id": "nasa-themis-launch",
+      "title": "THEMIS Launch",
+      "url": "https://images-assets.nasa.gov/video/ksc_020107_themis/ksc_020107_themis~small.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Kennedy Space Center"
+    },
+    {
+      "id": "nasa-themis-vass",
+      "title": "THEMIS Vehicle Assembly",
+      "url": "https://images-assets.nasa.gov/video/ksc_021607_themis_vass/ksc_021607_themis_vass~small.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Kennedy Space Center"
+    },
+    {
+      "id": "nasa-trifid-nebula",
+      "title": "Trifid Nebula",
+      "url": "https://images-assets.nasa.gov/video/ksc_061404_t-nebula/ksc_061404_t-nebula~mobile.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Kennedy Space Center"
+    },
+    {
+      "id": "nasa-science-live-ezie",
+      "title": "NASA Science Live: Aurora Glow, Electric Flow",
+      "url": "https://images-assets.nasa.gov/video/20250324_NSL_EZIE/20250324_NSL_EZIE~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA"
+    },
+    {
+      "id": "nasa-earth-from-orbit-2019",
+      "title": "Earth from Orbit 2019",
+      "url": "https://images-assets.nasa.gov/video/GSFC_20190419_Earth_m13188_Orbit/GSFC_20190419_Earth_m13188_Orbit~medium.mp4",
+      "source": "NASA",
+      "license": "Public domain",
+      "attribution": "NASA/Goddard Space Flight Center"
+    }
+  ]
+}
