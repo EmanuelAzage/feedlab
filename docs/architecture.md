@@ -4,7 +4,7 @@ title: FeedLab Architecture
 description: Layers, module boundaries, threading model, state, and project structure
 status: living
 tags: [architecture, structure, threading]
-timestamp: 2026-08-01T19:07:52Z
+timestamp: 2026-08-01T22:15:43Z
 related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
 ---
 
@@ -54,6 +54,12 @@ and which are incidental. Each is chosen to serve measurability, not for its own
 | **Policy object** | `PreparationPlanner` | Resolves strategy intent against pool capacity without either side knowing the other. See `playback-engine.md`. |
 | **DTO** | `ManifestDTO` / `ItemDTO` | Wire format kept separate from the domain model so "field absent" becomes a validation error we phrase, not a `DecodingError`. |
 
+**What is deliberately absent.** No app-wide presentation architecture (MVVM/VIPER/TCA) and no Combine —
+both reasoned out in `decisions.md`. Short version: the hard state here is domain state, not view state, and
+`MetricsEngine` already *is* a reducer, so the testability those frameworks sell is present without them.
+Event delivery stays explicit because the observation surface is the thing being studied. Small
+`@Observable` types are used at the three SwiftUI surfaces that genuinely hold view state.
+
 **Two reuse pools, deliberately decoupled.** The one structural idea worth explaining to a reader:
 `UICollectionView` recycles cells on *scroll geometry*, while `PlayerPool` recycles players on *playback
 intent*. These are different triggers on different clocks, and coupling them — the naive one-player-per-cell
@@ -64,7 +70,7 @@ separate is why pool capacity can be an experiment variable at all.
 
 - Main thread: collection view layout, cell binding, `AVPlayerLayer` attachment, HUD updates.
 - Off-main: `AVURLAsset` loading (`load(.isPlayable, .duration)`), item preparation, teardown, metric folding, persistence.
-- KVO/notification callbacks from AVFoundation arrive on unspecified queues — normalize immediately onto a dedicated serial queue before mutating engine state, then hop to main only for UI.
+- KVO/notification callbacks from AVFoundation arrive on unspecified queues. **Stamp the event with a monotonic timestamp synchronously inside the callback**, then hand it off — delivery is asynchronous (an `AsyncStream<PlaybackEvent>` consumed on a single serial context), but the number is already fixed by then, so scheduling latency cannot leak into a metric. See the measurement-discipline section of `qoe-metrics.md`. Hop to main only for UI.
 - Rule: **no asset or item work on the main thread**, ever. Scroll smoothness is a measured output; blocking the main thread invalidates the whole rig.
 
 ## State

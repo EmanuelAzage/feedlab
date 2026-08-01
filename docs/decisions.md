@@ -4,13 +4,53 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-01T20:41:00Z
+timestamp: 2026-08-01T22:15:43Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-01 — No app-wide presentation architecture (no MVVM/VIPER/TCA)
+MVVM, VIPER and TCA are presentation architectures; they pay off when the hard problem is deriving view
+state, coordinating navigation, or managing a large UI state graph. FeedLab has four screens, one navigation
+edge, and a feed whose entire presentation state is *which index is current*. The hard state here is domain
+state — player lifecycle, preparation tiers, pool occupancy, the stall/TTFF state machine — and it already
+has an architecture: functional core plus ports and adapters. Adding a presentation framework on top would
+add ceremony at the layer with the least state.
+
+TCA specifically: its strongest argument is exhaustive deterministic testing of a state machine with
+effects, and **we already have the valuable half of that**. `MetricsEngine` is a reducer —
+`(State, Event) -> State` folding `[PlaybackEvent]` with injected timestamps — so we get determinism and
+synthetic-edge-case testing with no dependency, and without an effect system anywhere near the AVFoundation
+boundary that `architecture.md` forbids the tested layer from touching. The repo stays dependency-free,
+which is also a better signal for its audience than a framework import.
+
+Where a lightweight `@Observable` type *is* justified, all SwiftUI and none needing a framework: the
+dashboard (M6, genuine view-state derivation), the HUD (M4, derived state under a hard 4 Hz budget), and the
+debug menu once arm selection and session control exist (M5).
+
+## 2026-08-01 — No Combine; raw KVO/NotificationCenter stamped at the callback, delivered via AsyncStream
+The deciding constraint is not ergonomics but timestamp fidelity — see the measurement-discipline section of
+`qoe-metrics.md`. Once the clock is read synchronously inside the observation callback, the delivery
+mechanism no longer affects any number, and Combine's convenience buys little against three costs:
+
+1. **Swift 6 strict concurrency.** Combine predates it and creates real `Sendable` friction across
+   isolation boundaries. `AsyncStream` into an actor or serial context expresses the same thing cleanly.
+2. **One cancellation model.** `playback-engine.md` already commits to structured-concurrency tasks
+   cancelled on fast scroll. Combine would add `AnyCancellable` alongside `Task` cancellation — two systems
+   to get right inside `PlayerPool.release()`, which is exactly where the classic leaked-KVO-on-a-recycled-
+   player bug lives.
+3. **Direction of travel.** Apple's newer APIs are async/await-first and `@Observable` has replaced
+   `ObservableObject` for view binding, so even the SwiftUI layer has no need of it.
+
+Being explicit at this layer is also the point of the project: `player.publisher(for: \.timeControlStatus)`
+hides the observation surface the rig exists to study.
+
+Not claimed: that Combine's KVO-publisher overhead is material at our event rates. That is a directional
+argument, unmeasured. Reversible either way — the seam is `PlaybackObserver`, so changing delivery touches
+one type.
 
 ## 2026-08-01 — Three build configurations: Debug, Measure, Release
 `CLAUDE.md` allows gating the tooling by `#if DEBUG` *or a build config*, and `#if DEBUG` alone is the wrong

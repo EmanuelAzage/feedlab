@@ -4,7 +4,7 @@ title: QoE Metrics — Definitions and Measurement
 description: What each quality-of-experience metric means and exactly how FeedLab measures it from AVFoundation
 status: living
 tags: [qoe, metrics, avfoundation, measurement]
-timestamp: 2026-08-01T00:00:00Z
+timestamp: 2026-08-01T22:15:43Z
 related: [playback-engine.md, observability.md, experiment-harness.md]
 ---
 
@@ -46,6 +46,30 @@ Time an item spent waiting for a free player from the bounded pool. Not a standa
 
 ### Peak resident memory
 Sampled during a session via `task_vm_info` / `mach_task_basic_info` (resident size), and validated against Instruments on device. Attributed to the arm, not to individual items.
+
+## Measurement discipline: when the clock is read
+
+A definition, not an implementation detail — every interval above is only as good as the moment its
+endpoints were stamped.
+
+**The rule: read the clock at the callback site, before any hop.** A `PlaybackEvent` carries the timestamp
+taken synchronously inside the KVO or notification callback that observed the change. Delivery to the
+engine — queue hop, `AsyncStream` yield, actor hop — happens *after* stamping, and may therefore be
+asynchronous without affecting the number.
+
+Getting this backwards is the failure mode that quietly invalidates a rig: if the timestamp is taken where
+the event is *consumed*, every metric silently includes scheduling latency and jitter from the delivery
+mechanism. TTFF is a millisecond measurement, and the resulting bias would vary with system load — which is
+exactly the variable the experiment is trying to hold still. It would also make arms look different for
+reasons that have nothing to do with preload strategy.
+
+Two consequences:
+
+- Use a **monotonic** clock (`ContinuousClock` / `mach_absolute_time`-backed), never wall-clock time. Wall
+  clock can step backwards via NTP mid-session, which would produce negative intervals.
+- The event vocabulary is timestamp-carrying by construction: `MetricsEngine` never reads a clock, so a
+  recorded session re-folds to identical numbers no matter when it is recomputed. This is what makes a
+  metric definition change re-derivable rather than requiring a re-run.
 
 ## Aggregation rules
 

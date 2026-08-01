@@ -4,7 +4,7 @@ title: Observability — HUD, Dashboard, Signposts, Export
 description: How measurements are surfaced live, charted after the fact, exported, and captured as README screenshots
 status: living
 tags: [observability, hud, charts, signposts, screenshots]
-timestamp: 2026-08-01T00:00:00Z
+timestamp: 2026-08-01T22:15:43Z
 related: [qoe-metrics.md, experiment-harness.md, product-spec.md]
 ---
 
@@ -20,6 +20,13 @@ Compact overlay, debug builds only, toggleable. Two blocks:
 **Session** — arm name (prominent), items viewed, mean and p90 TTFF, aggregate rebuffer ratio, pool occupancy (`2/3`), peak resident memory (MB).
 
 Design rules: monospaced digits so numbers don't jitter; update at ≤4 Hz (a HUD that re-renders every frame perturbs what it measures); semi-transparent, never covering the video center; arm name always visible so any screenshot is self-documenting.
+
+**Sample, don't throttle.** The HUD pulls current aggregate state on a 4 Hz timer rather than subscribing to
+the event stream and throttling it. Pull decouples HUD cost from event *rate* entirely, so a stall storm —
+precisely when the HUD is most interesting — cannot turn the HUD into a load source that perturbs the
+measurement. A throttled push still pays per-event delivery cost before discarding.
+
+The M4 acceptance criterion (enabling the HUD must not measurably change TTFF) is the check on this.
 
 ## Dashboard (SwiftUI + Swift Charts)
 
