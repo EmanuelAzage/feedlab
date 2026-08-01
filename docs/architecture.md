@@ -4,7 +4,7 @@ title: FeedLab Architecture
 description: Layers, module boundaries, threading model, state, and project structure
 status: living
 tags: [architecture, structure, threading]
-timestamp: 2026-08-01T00:00:00Z
+timestamp: 2026-08-01T19:07:52Z
 related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
 ---
 
@@ -76,15 +76,33 @@ struct SessionSummary { let arm: String; let records: [PlaybackRecord]; let peak
 ## Project structure
 
 ```
+project.yml        XcodeGen source of truth; regenerate with `xcodegen generate`
 FeedLab/
+  App/             AppDelegate, SceneDelegate, RootFactory, Info.plist
   Feed/            FeedViewController, FeedCell, FeedCoordinator, layout
   Playback/        PlaybackEngine, PlayerPool, PreloadStrategy + implementations, protocol wrappers
-  Instrumentation/ PlaybackObserver, PlaybackEvent, SignpostEmitter, MemorySampler
+  Instrumentation/ PlaybackObserver, PlaybackEvent, SignpostEmitter, MemorySampler, Log
   Metrics/          MetricsEngine, PlaybackRecord, SessionSummary  (pure, no AVFoundation)
   Experiments/     Arm, ArmRegistry, SessionStore
   Dashboard/       SwiftUI views, Swift Charts, export
   Content/         manifest loading, ContentSource + attribution
+    manifests/     short-form.json, long-form.json, mixed.json
   Debug/           DebugMenu, HUD
 FeedLabTests/      unit tests (metrics, pool, strategies, arm assignment)
 docs/              OKF knowledge base
 ```
+
+Folders not yet populated hold a `.gitkeep`, excluded from the target's sources so they cannot end up as
+bundle resources.
+
+### Content layer (M1)
+
+`Content/` depends only on Foundation — no AVFoundation, no UIKit. `ManifestLoader` splits into a pure
+`load(from: Data)` that holds all validation logic and a thin `load(resource:in:)` that only locates bytes,
+which is what makes the licensing rules testable without a bundle or a device. Decoding uses private DTOs
+with every field optional so that "absent" becomes a `ManifestValidationError` we phrase, rather than a
+`DecodingError` thrown before we can attribute it to a rule.
+
+`FeedItem.streamFormat` is derived from the URL rather than declared, and `Manifest.hlsItems` exposes the
+subset over which ABR metrics are valid — see `content-sources.md` for why that subset is smaller than the
+corpus.

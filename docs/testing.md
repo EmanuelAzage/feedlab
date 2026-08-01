@@ -4,7 +4,7 @@ title: Testing and Measurement Protocol
 description: Unit test strategy, what must remain testable without a device, and the protocol for producing publishable numbers
 status: living
 tags: [testing, measurement, protocol]
-timestamp: 2026-08-01T00:00:00Z
+timestamp: 2026-08-01T19:07:52Z
 related: [architecture.md, experiment-harness.md, qoe-metrics.md]
 ---
 
@@ -12,7 +12,12 @@ related: [architecture.md, experiment-harness.md, qoe-metrics.md]
 
 Two separate things: **unit tests** (does the logic hold?) and **measurement runs** (what are the numbers?). Neither substitutes for the other.
 
-## Unit tests (XCTest, no device required)
+## Unit tests (Swift Testing, no device required)
+
+The suite uses **Swift Testing** (`@Test` / `#expect` / `@Suite`), not XCTest — see `decisions.md`. Most of
+the required coverage below is table-shaped (one strategy against many index positions, one metric against
+many event sequences), and `@Test(arguments:)` expresses that directly instead of as hand-rolled loops or
+one method per case. Tests run on a simulator; none of them require a device or a live stream.
 
 The architecture exists to make the interesting parts testable without playing video. Required coverage:
 
@@ -20,7 +25,10 @@ The architecture exists to make the interesting parts testable without playing v
 - **Aggregation** — mean vs. p90 TTFF; aggregate rebuffer ratio computed as total-over-total, *not* the mean of ratios (assert these differ on a crafted case, so the distinction can't silently regress).
 - **PreloadStrategy** implementations — pure index math: near the start, near the end, single-item manifest, index out of range, and the exact prepared set for each strategy.
 - **PlayerPool** — acquire/release under capacity; acquire when exhausted waits and records wait duration; release resets state and detaches observers; no allocation beyond capacity (assert with a fake player factory that counts instantiations).
-- **Manifest validation** — an entry missing `license`/`attribution` fails to load.
+- **Manifest validation** — an entry missing `license`/`attribution` fails to load. *(Done, M1.)* Also
+  covered: every required field enforced, whitespace-only values treated as absent, duplicate ids rejected,
+  non-HTTPS urls rejected, empty item list rejected, malformed JSON surfaced as a manifest error rather than
+  a `DecodingError`, and the shipped `short-form.json` asserted valid and ≥20 items.
 
 Fakes live in `FeedLabTests/Fakes/` implementing `PlayerProviding`/`PlayerItemProviding`. No AVFoundation import anywhere in `Metrics/`; add a test that fails if one appears, or enforce by module boundary.
 

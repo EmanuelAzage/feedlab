@@ -35,10 +35,14 @@ Start at `docs/index.md` and follow links to the concept relevant to the task. U
 ## Commands
 
 ```bash
-xcodebuild -scheme FeedLab -destination 'platform=iOS Simulator,name=iPhone 16' build
-xcodebuild -scheme FeedLab -destination 'platform=iOS Simulator,name=iPhone 16' test
-swiftlint            # if configured
+xcodegen generate    # after ANY edit to project.yml — never edit the project in Xcode's inspector
+xcodebuild -scheme FeedLab -destination 'platform=iOS Simulator,name=iPhone 17' build
+xcodebuild -scheme FeedLab -destination 'platform=iOS Simulator,name=iPhone 17' test
+swiftlint
 ```
+
+The destination must name a simulator that exists on the current Xcode's newest runtime — Xcode 26.3 ships
+iOS 26.2 sims, which have no "iPhone 16"; `xcrun simctl list devices available` shows what is there.
 
 Measurement runs happen **on a real device** (see `docs/testing.md`) — the simulator misreports video memory and decode performance.
 

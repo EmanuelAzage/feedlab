@@ -4,7 +4,7 @@ title: FeedLab Build Plan
 description: Milestones M1-M6 with acceptance criteria, sized for incremental sessions
 status: living
 tags: [plan, milestones]
-timestamp: 2026-08-01T00:00:00Z
+timestamp: 2026-08-01T19:07:52Z
 related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
 ---
 
@@ -13,11 +13,11 @@ related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
 Milestones are ordered but **not time-boxed** — this is built incrementally across short sessions. Each milestone ends in a committed, compiling, test-passing state, so work can stop anywhere without leaving the repo broken. Prefer finishing a milestone's acceptance criteria over starting the next.
 
 ## M1 — Feed shell
-- [ ] Xcode project, Swift 6, iOS 17+, SwiftLint, folder structure per `architecture.md`.
-- [ ] Content manifest loading with license/attribution validation; `short-form.json` populated from `content-sources.md`.
-- [ ] Vertical paging `UICollectionView` (compositional layout), full-screen cells showing title/poster placeholder — **no playback yet**.
-- [ ] Debug menu skeleton.
-- **Accept:** smooth paging scroll over ≥20 manifest items; manifest missing attribution fails validation (unit test).
+- [x] Xcode project, Swift 6, iOS 17+, SwiftLint, folder structure per `architecture.md`. XcodeGen `project.yml` is the source of truth (`decisions.md`).
+- [x] Content manifest loading with license/attribution validation; `short-form.json` populated from `content-sources.md` (22 items; every URL probed before commit).
+- [x] Vertical paging `UICollectionView` (compositional layout), full-screen cells showing title/placeholder — **no playback yet**.
+- [ ] Debug menu skeleton. ← **only M1 item outstanding**
+- **Accept:** smooth paging scroll over ≥20 manifest items — *verified on simulator: 21 swipes forward reaches the last item, 5 back lands exactly on index 16, and the bottom-anchored label sits at the same y on every page, so pages land flush with no cumulative drift*; manifest missing attribution fails validation (unit test) — *done, plus every other required field, whitespace-only values, duplicate ids, non-HTTPS urls, and malformed JSON*.
 
 ## M2 — Playback core
 - [ ] `PlayerProviding`/`PlayerItemProviding` wrappers; `PlayerPool` with fixed capacity, acquire/release, full teardown.
@@ -53,3 +53,4 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
 - MetricKit integration (real-world launch/hang/scroll-hitch metrics).
 - A "hostile network" profile that flips between good and bad mid-session.
 - Adaptive strategy that switches preload depth based on observed scroll velocity — then measure whether it actually beats the fixed strategies.
+- **SwiftUI feed surface as an experiment arm**: a second implementation (`ScrollView`/`LazyVStack` with iOS 17 paging APIs) behind the same coordinator protocol, measured against the UIKit surface for TTFF, dropped frames, and scroll hitches. Nobody has published good data on whether the rendering layer costs anything on a video feed.
