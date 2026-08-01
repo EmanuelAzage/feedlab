@@ -1,0 +1,55 @@
+---
+type: plan
+title: FeedLab Build Plan
+description: Milestones M1-M6 with acceptance criteria, sized for incremental sessions
+status: living
+tags: [plan, milestones]
+timestamp: 2026-08-01T00:00:00Z
+related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
+---
+
+# Build Plan
+
+Milestones are ordered but **not time-boxed** — this is built incrementally across short sessions. Each milestone ends in a committed, compiling, test-passing state, so work can stop anywhere without leaving the repo broken. Prefer finishing a milestone's acceptance criteria over starting the next.
+
+## M1 — Feed shell
+- [ ] Xcode project, Swift 6, iOS 17+, SwiftLint, folder structure per `architecture.md`.
+- [ ] Content manifest loading with license/attribution validation; `short-form.json` populated from `content-sources.md`.
+- [ ] Vertical paging `UICollectionView` (compositional layout), full-screen cells showing title/poster placeholder — **no playback yet**.
+- [ ] Debug menu skeleton.
+- **Accept:** smooth paging scroll over ≥20 manifest items; manifest missing attribution fails validation (unit test).
+
+## M2 — Playback core
+- [ ] `PlayerProviding`/`PlayerItemProviding` wrappers; `PlayerPool` with fixed capacity, acquire/release, full teardown.
+- [ ] `FeedCell` owning `AVPlayerLayer`; attach/detach on becoming current.
+- [ ] Visibility-driven play/pause; looping; asset load and item prep off-main with cancellation on fast scroll.
+- [ ] Unit tests: pool capacity, wait-on-exhaustion, teardown.
+- **Accept:** scroll through 20 items with pool capacity 3 — video plays only on the current item, no wrong-video-in-cell flashes, no player leak (occupancy returns to 0 when idle), main thread free of asset work (verify in Instruments).
+
+## M3 — Instrumentation and metrics
+- [ ] `PlaybackEvent` vocabulary; `PlaybackObserver` (KVO on `timeControlStatus`, `reasonForWaitingToPlay`, `isReadyForDisplay`, item status; notifications for stalls, access/error log entries, end-of-item).
+- [ ] Pure `MetricsEngine` folding events → `PlaybackRecord`; session aggregation with p90.
+- [ ] Full unit suite per `testing.md` (this is the milestone where test coverage is earned).
+- **Accept:** every metric in `qoe-metrics.md` computed for each item; metrics tests pass; `Metrics/` imports no AVFoundation.
+
+## M4 — Live HUD
+- [ ] HUD overlay per `observability.md`, ≤4 Hz updates, arm name prominent, debug-only.
+- [ ] Memory sampler (resident size) feeding session peak.
+- **Accept:** HUD numbers move sensibly under Network Link Conditioner throttling; enabling the HUD doesn't measurably change TTFF (compare a run with it off).
+
+## M5 — Preload strategies and experiment harness
+- [ ] `PreloadStrategy` protocol + the four strategies + `pool-unbounded` control; `ArmRegistry`; arm selection resets the session.
+- [ ] `SessionStore` persistence; strategy unit tests.
+- **Accept:** switching arms visibly changes preparation behavior (observable in signposts/HUD); strategy index math fully unit-tested; sessions survive app relaunch.
+
+## M6 — Dashboard, measurement runs, publication
+- [ ] Swift Charts dashboard (all charts in `observability.md`), CSV/JSON export, `os_signpost` intervals.
+- [ ] Measurement runs per `testing.md`: every arm × 2 network profiles × ≥3 runs, on a physical device.
+- [ ] Screenshots per the screenshot plan, including an Instruments trace.
+- [ ] README: what/why, architecture diagram, results table generated from the CSV export, methodology and its limits, content attribution.
+- **Accept:** a reader can see the startup-vs-smoothness tradeoff from the README alone; every published number traces to an exported run; the honesty rules in `experiment-harness.md` are satisfied.
+
+## Stretch
+- MetricKit integration (real-world launch/hang/scroll-hitch metrics).
+- A "hostile network" profile that flips between good and bad mid-session.
+- Adaptive strategy that switches preload depth based on observed scroll velocity — then measure whether it actually beats the fixed strategies.
