@@ -65,9 +65,19 @@ git clone <repo> && cd FeedLab
 open FeedLab.xcodeproj
 ```
 
-No API keys, no backend, no setup. Video comes from a manifest of public test streams.
+No API keys, no backend, no setup. Video comes from a manifest of public test streams. The project is
+generated from `project.yml` with [XcodeGen](https://github.com/yonaskolb/XcodeGen); the `.xcodeproj` is
+committed, so you only need XcodeGen if you change the project structure (`xcodegen generate`).
 
-Debug menu (shake or the on-screen button) selects the experiment arm, toggles the HUD, and opens the dashboard.
+Three build configurations, because debug tooling and representative performance are independent axes:
+
+| Configuration | Tooling | Optimized | Use |
+|---|---|---|---|
+| `Debug` | yes | no | development |
+| `Measure` | yes | **yes** | measurement runs — the only source of published numbers |
+| `Release` | no | yes | the clean app |
+
+Debug menu (shake or the on-screen button) selects the experiment arm, toggles the HUD, and opens the dashboard. It reports the active configuration and warns when the build is unoptimized, so a run against the wrong binary can't happen quietly.
 
 <!-- M6: verify these steps on a clean machine -->
 

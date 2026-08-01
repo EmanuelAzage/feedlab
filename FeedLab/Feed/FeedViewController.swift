@@ -20,7 +20,7 @@ final class FeedViewController: UIViewController {
         }
     }
 
-    private let manifest: Manifest
+    let manifest: Manifest
     private lazy var collectionView = UICollectionView(
         frame: .zero,
         collectionViewLayout: Self.makeLayout()
@@ -42,10 +42,30 @@ final class FeedViewController: UIViewController {
         view.backgroundColor = .black
         configureCollectionView()
         applySnapshot()
+        #if FEEDLAB_TOOLS
+        installDebugAffordance()
+        #endif
         Log.feed.info(
             "Feed loaded manifest '\(self.manifest.id, privacy: .public)' with \(self.manifest.items.count) items"
         )
     }
+
+    #if FEEDLAB_TOOLS
+    // Motion events are delivered to the first responder, so the feed has to claim it.
+    // `motionEnded` cannot live in the debug extension: Swift does not allow overriding
+    // an inherited method from an extension.
+    override var canBecomeFirstResponder: Bool { true }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        becomeFirstResponder()
+    }
+
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        guard motion == .motionShake else { return }
+        presentDebugMenu()
+    }
+    #endif
 
     // MARK: - Layout
 

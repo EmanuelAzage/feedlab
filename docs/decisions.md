@@ -4,13 +4,39 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-01T19:07:52Z
+timestamp: 2026-08-01T20:41:00Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-01 — Three build configurations: Debug, Measure, Release
+`CLAUDE.md` allows gating the tooling by `#if DEBUG` *or a build config*, and `#if DEBUG` alone is the wrong
+half of the choice: measuring TTFF or peak memory against an unoptimized binary produces numbers that
+describe the build settings rather than the design under test. But a plain Release build has no HUD and no
+debug menu, so it cannot be driven through a run protocol. "Debug tooling" and "representative performance"
+are independent axes, so there are three configurations — `Debug` (tools, unoptimized), `Measure` (tools,
+optimized, and **the only configuration a published number may come from**), `Release` (no tools,
+optimized). Gating is on `FEEDLAB_TOOLS`, not `DEBUG`. Verified by symbol count: the debug menu is present
+in `Measure` and entirely absent from `Release`. The debug menu displays the active configuration and an
+`Optimized: No` warning, so measuring the wrong build has to be a deliberate act rather than an oversight.
+
+## 2026-08-01 — Preparation is two-tiered; pool capacity must cover the prepared set
+Resolves the question `playback-engine.md` deferred. Asset loading and `AVPlayerItem` construction need no
+player, but an item does not **buffer** until associated with an `AVPlayer` — so real preload costs a pool
+slot, and `poolCapacity ≥ |itemsToPrepare|` for a strategy to achieve it. Overflow degrades to a playerless
+warm (asset loaded, no buffering) rather than being dropped, so an under-provisioned arm produces a
+measurable difference instead of a silent one. The existing arm table already satisfies the rule. Flagged
+for empirical confirmation in M2 rather than taken as settled.
+
+## 2026-08-01 — A separate planner arbitrates strategy against capacity
+`PreloadStrategy` stays pure and capacity-unaware, because that is what makes its index math testable
+without a pool. `PreparationPlanner` — also pure — resolves the strategy's ideal set against the actual
+capacity and assigns tiers. Keeping arbitration out of both the strategy and the pool means
+`playerWaitDuration` measures genuine contention rather than a strategy asking for more than the pool could
+ever supply; conflating those two would make a configuration error look like a performance finding.
 
 ## 2026-08-01 — XcodeGen `project.yml` as source of truth, generated `.xcodeproj` committed
 Build settings in a `pbxproj` are unreviewable: a one-line deployment-target change arrives as a diff of

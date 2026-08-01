@@ -4,7 +4,7 @@ title: Playback Engine — Player Pool and Preload Strategies
 description: Bounded AVPlayer pooling, item lifecycle, and the swappable preload strategies the experiments compare
 status: living
 tags: [avfoundation, player-pool, preload, performance]
-timestamp: 2026-08-01T00:00:00Z
+timestamp: 2026-08-01T20:41:00Z
 related: [architecture.md, qoe-metrics.md, experiment-harness.md]
 ---
 
@@ -75,8 +75,63 @@ Implementations (these are the experiment arms — see `experiment-harness.md`):
 
 Strategies are **pure and unit-tested** — index math and configuration only, no AVFoundation. That keeps the interesting logic verifiable without a device.
 
+## Preparation has two tiers
+
+The question this doc previously deferred — *can an item be prepared without holding a player?* — has a
+split answer, and the split determines whether the arm table is even coherent.
+
+| Step | Needs a player? |
+|---|---|
+| `AVURLAsset` construction | No |
+| `await asset.load(.isPlayable, .duration)` — playlist fetch, DNS/TLS warm | No |
+| `AVPlayerItem` construction | No |
+| **Filling the buffer** (`loadedTimeRanges` growing, `status` leaving `.unknown`) | **Yes** |
+
+An `AVPlayerItem` does not buffer, and its `status` stays `.unknown`, until it is associated with an
+`AVPlayer` via `replaceCurrentItem`. So preparation is two tiers:
+
+- **Tier 1 — playerless warm.** Asset loaded, item constructed. Costs a network round trip for the master
+  playlist and no decode resources. Fully cancellable. Available to any number of items.
+- **Tier 2 — player-backed.** Item attached to a pooled player and buffering under the arm's
+  `BufferConfiguration`. This is what actually moves TTFF, and it consumes a pool slot.
+
+**Consequence:** a strategy achieves genuine preload only for items it can put in tier 2, so
+`poolCapacity ≥ |itemsToPrepare|`. Checked against the arm table in `experiment-harness.md`, this already
+holds — `PreloadNext3Capped` prepares 4 at capacity 4, `PreloadWindow` prepares 4 at capacity 4, and the two
+one-and-two-item strategies sit at capacity 3 with a spare slot for the release-then-acquire overlap during
+fast scroll. The table was consistent by intuition; it is now consistent by rule.
+
+> **Verify in M2.** The tier-2 claim is the documented AVFoundation contract, not something this rig has
+> measured. Confirm it directly: construct an `AVPlayerItem`, never attach it, and observe that
+> `loadedTimeRanges` stays empty and `status` stays `.unknown`. If that turns out to be wrong, the arm
+> capacities and this whole section change — record the finding in `ios-learning-notes.md` either way.
+
+## Arbitrating strategy against capacity
+
+`PreloadStrategy` answers *what would be ideal*; it does not know the pool's capacity, and it should not —
+keeping it pure is what makes the index math unit-testable. A separate pure type resolves the two:
+
+```swift
+struct PreparationPlan: Equatable {
+  let playerBacked: [Int]   // tier 2, in priority order; count ≤ capacity
+  let warmOnly: [Int]       // tier 1 overflow
+}
+
+enum PreparationPlanner {
+  static func plan(currentIndex: Int, totalCount: Int,
+                   strategy: PreloadStrategy, capacity: Int) -> PreparationPlan
+}
+```
+
+Priority order: the current item always first, then by ascending `|offset|`, forward before backward on a
+tie (forward scroll dominates a feed). The first `capacity` entries get tier 2; the rest fall back to tier 1
+rather than being dropped, so an under-provisioned arm degrades measurably instead of silently.
+
+This keeps `playerWaitDuration` meaningful. With the planner in place, the current item waiting for a player
+means genuine contention — a release still in flight during fast scroll — rather than a strategy that asked
+for more than the pool could ever supply. Those are different findings and should not share a number.
+
 ## Known hazards to watch for
 
-- Preparing more items than the pool has capacity for: preparation and player acquisition are separate resources; an item can be *prepared* without holding a player, but only if the design keeps `AVPlayerItem` construction independent of player attachment. Verify this holds; document it if it doesn't.
 - `preferredForwardBufferDuration` too small causes stalls; too large wastes memory. This tradeoff is exactly what the rig measures.
 - Looping via `AVPlayerLooper` requires `AVQueuePlayer`; simple seek-to-zero on `AVPlayerItemDidPlayToEndTime` is sufficient here and keeps pooling simpler. Note the choice in `decisions.md`.

@@ -36,6 +36,30 @@ The rule that makes this testable: **AVFoundation exists only in PlaybackEngine 
 - **`PlaybackEvent`** — the instrumentation vocabulary: `.itemBecameCurrent`, `.readyForDisplay`, `.stallBegan`, `.stallEnded`, `.accessLogEntry`, `.errorLogEntry`, `.itemEnded`, `.itemReleased`, `.playerWaitBegan/Ended`, each with a monotonic timestamp.
 - **`MetricsEngine`** — pure fold over `[PlaybackEvent]` → `PlaybackRecord`. No clocks, no AVFoundation, no I/O: injected timestamps only.
 
+## Patterns, and what each one buys
+
+Named here because the shapes are deliberate, and because a reader should be able to tell which are load-bearing
+and which are incidental. Each is chosen to serve measurability, not for its own sake.
+
+| Pattern | Where | What it buys |
+|---|---|---|
+| **Functional core, imperative shell** | AVFoundation confined to PlaybackEngine + Instrumentation; everything below consumes typed events | The rule the whole design serves. Stall and TTFF definitions become code that runs against synthetic edge cases with no device, no network, no video. |
+| **Strategy** | `PreloadStrategy` + 4 implementations | Makes preload depth a *value* the experiment varies, rather than a branch in the engine. Swapping an arm swaps an object. |
+| **Object pool** | `PlayerPooling` / `PlayerPool` | The subject of the experiment. Unusual property: exhaustion **waits** and the wait is recorded as `playerWaitDuration` rather than hidden — the cost of a too-small pool has to surface somewhere. |
+| **Ports and adapters** | `PlayerProviding` / `PlayerItemProviding` | Lets pool logic and metric computation be exercised by fakes. Without it, testing "does release detach observers" needs a real player and a real stream. |
+| **Fold over an event log** | `MetricsEngine`: `[PlaybackEvent] → PlaybackRecord` | Events are the source of truth; records are derived projections. Recomputing a metric after a definition change is a re-fold, not a re-run — and a disputed number can be traced to the events that produced it. |
+| **Observer, normalised** | `PlaybackObserver` over KVO + `NotificationCenter` | AVFoundation reports through several mechanisms on unspecified queues. Collapsing them into one typed vocabulary on one queue is what makes the fold above possible. |
+| **Coordinator** | `FeedCoordinator` (visibility → playback intent) | The seam where a second feed surface plugs in (see the SwiftUI-arm stretch item in `build-plan.md`). |
+| **Registry** | `ArmRegistry` | The set under test is legible in one file. |
+| **Policy object** | `PreparationPlanner` | Resolves strategy intent against pool capacity without either side knowing the other. See `playback-engine.md`. |
+| **DTO** | `ManifestDTO` / `ItemDTO` | Wire format kept separate from the domain model so "field absent" becomes a validation error we phrase, not a `DecodingError`. |
+
+**Two reuse pools, deliberately decoupled.** The one structural idea worth explaining to a reader:
+`UICollectionView` recycles cells on *scroll geometry*, while `PlayerPool` recycles players on *playback
+intent*. These are different triggers on different clocks, and coupling them — the naive one-player-per-cell
+design tied to `prepareForReuse` — is what produces unbounded live players during fast scroll. Keeping them
+separate is why pool capacity can be an experiment variable at all.
+
 ## Threading
 
 - Main thread: collection view layout, cell binding, `AVPlayerLayer` attachment, HUD updates.
@@ -87,7 +111,7 @@ FeedLab/
   Dashboard/       SwiftUI views, Swift Charts, export
   Content/         manifest loading, ContentSource + attribution
     manifests/     short-form.json, long-form.json, mixed.json
-  Debug/           DebugMenu, HUD
+  Debug/           DebugMenuView, CreditsView, BuildInfo, HUD  (gated on FEEDLAB_TOOLS)
 FeedLabTests/      unit tests (metrics, pool, strategies, arm assignment)
 docs/              OKF knowledge base
 ```

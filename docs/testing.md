@@ -4,7 +4,7 @@ title: Testing and Measurement Protocol
 description: Unit test strategy, what must remain testable without a device, and the protocol for producing publishable numbers
 status: living
 tags: [testing, measurement, protocol]
-timestamp: 2026-08-01T19:07:52Z
+timestamp: 2026-08-01T20:41:00Z
 related: [architecture.md, experiment-harness.md, qoe-metrics.md]
 ---
 
@@ -40,6 +40,9 @@ Actual decode behavior, real network stalls, and memory under load. These are me
 
 Numbers published in the README come only from runs following this protocol:
 
+- **The `Measure` configuration.** Optimized (`-O`) with the tooling compiled in — see `decisions.md`. A
+  `Debug` build is unoptimized and its numbers describe the build settings, not the design; the debug menu
+  shows `Optimized: No` precisely so this cannot happen by accident. Never publish a number from `Debug`.
 - **Physical device**, stated by model and iOS version in the README. The simulator misrepresents decode, memory, and thermal behavior — never publish simulator numbers.
 - **Network conditions** set with Network Link Conditioner; each arm run under at least unthrottled Wi-Fi and one constrained profile. State the profile with every number.
 - **Identical run script** across arms (fixed manifest, item order, and scroll sequence — see `experiment-harness.md`).

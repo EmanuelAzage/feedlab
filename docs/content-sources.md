@@ -103,6 +103,9 @@ absent, since `"attribution": "  "` satisfies a non-nil check while crediting no
 
 ## Attribution surfaces
 
-- Long-press on a feed item shows title, source, license, attribution.
-- A Credits screen in the debug menu lists every manifest entry's attribution.
-- The README carries a Content & Licensing section naming each source.
+- Long-press on a feed item shows title, source, license, attribution. *(Pending.)*
+- A Credits screen in the debug menu lists every manifest entry's attribution, grouped by rights holder.
+  *(Done, M1.)*
+- The README carries a Content & Licensing section naming each source. *(Done.)*
+- Each feed cell shows its attribution line directly. *(Done, M1 — not originally required, but it makes
+  every screenshot self-crediting.)*

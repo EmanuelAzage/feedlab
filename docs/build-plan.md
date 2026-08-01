@@ -16,7 +16,7 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
 - [x] Xcode project, Swift 6, iOS 17+, SwiftLint, folder structure per `architecture.md`. XcodeGen `project.yml` is the source of truth (`decisions.md`).
 - [x] Content manifest loading with license/attribution validation; `short-form.json` populated from `content-sources.md` (22 items; every URL probed before commit).
 - [x] Vertical paging `UICollectionView` (compositional layout), full-screen cells showing title/placeholder — **no playback yet**.
-- [ ] Debug menu skeleton. ← **only M1 item outstanding**
+- [x] Debug menu skeleton — content summary, per-source Credits screen (satisfies the attribution surface required by `content-sources.md`), and build configuration with an "unoptimized, not publishable" warning. Reached by an on-screen button or a shake. Contains **only controls whose subsystem exists**; arm selection, HUD/signpost toggles and session controls arrive with M3–M5 rather than as inert placeholders.
 - **Accept:** smooth paging scroll over ≥20 manifest items — *verified on simulator: 21 swipes forward reaches the last item, 5 back lands exactly on index 16, and the bottom-anchored label sits at the same y on every page, so pages land flush with no cumulative drift*; manifest missing attribution fails validation (unit test) — *done, plus every other required field, whitespace-only values, duplicate ids, non-HTTPS urls, and malformed JSON*.
 
 ## M2 — Playback core
