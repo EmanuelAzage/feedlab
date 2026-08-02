@@ -4,13 +4,20 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-02T22:15:35Z
+timestamp: 2026-08-02T22:51:05Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-02 — `videoGravity = .resizeAspect`, not `.resizeAspectFill`
+A real short-form feed carries 9:16 content and fills the screen. Our corpus is landscape 16:9 test
+streams, and aspect-fill into a 9:19.5 frame crops so hard that most of the frame — including BipBop's
+clock, the fastest way to see *which* item is playing and whether it is actually advancing — sits
+off-screen. Legibility of the subject under test beats feed cosmetics. Revisit if the corpus ever gains
+portrait-native content, at which point this arguably becomes per-item rather than global.
 
 ## 2026-08-02 — Asset work lives in a `nonisolated` type, not in the coordinator's task
 `FeedCoordinator` is `@MainActor`, and an unstructured `Task { }` created in a main-actor context

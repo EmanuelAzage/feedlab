@@ -89,7 +89,13 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
 
         // Above the placeholder so video covers it once frames arrive, below the scrim so the
         // title stays legible over bright footage.
-        playerLayer.videoGravity = .resizeAspectFill
+        //
+        // `.resizeAspect`, not `.resizeAspectFill`. A real short-form feed carries 9:16 content
+        // and fills; our corpus is landscape 16:9 test streams, which aspect-fill crops so
+        // aggressively that most of the frame is off-screen — including BipBop's clock, the
+        // thing that makes it obvious at a glance which item is playing and whether it is
+        // actually advancing. Legibility of the subject under test wins over feed cosmetics.
+        playerLayer.videoGravity = .resizeAspect
         contentView.layer.addSublayer(playerLayer)
 
         scrimLayer.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.75).cgColor]

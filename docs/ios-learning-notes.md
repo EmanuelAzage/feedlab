@@ -4,7 +4,7 @@ title: iOS Playback Learning Notes
 description: Living doc of AVFoundation and feed-playback internals - seeded with topics, filled in with notes as they come up in practice
 status: living
 tags: [learning, avfoundation, playback, performance]
-timestamp: 2026-08-02T22:15:35Z
+timestamp: 2026-08-02T22:51:05Z
 related: [playback-engine.md, qoe-metrics.md]
 ---
 
@@ -133,6 +133,27 @@ bug looks like a result.
 
 ## Player pooling and decode resources
 Why live `AVPlayer` count matters: memory, decode sessions, dropped frames. Note the actual numbers observed at pool sizes 3, 4, and unbounded.
+
+## Where playback CPU actually goes (first device trace)
+36 s Time Profiler on an iPhone 12 Pro under continuous scrolling, one video playing throughout:
+
+- **Total samples in FeedLab: 856.** At 1 ms weighting that is under a second of app CPU across 36 s.
+  Decode does not run in our process — `AVFoundation` drives `mediaserverd` out-of-process, so the app pays
+  for *coordination*, not for decoding. Worth internalising: a video feed's CPU profile looks nothing like
+  an image pipeline's, where the decode is yours.
+- **Main thread: 422 samples (~1.2% of wall time), dominated by `UIKitCore`** — i.e. scrolling, which is
+  what it should be doing.
+- **The only media symbols on main were notification delivery**:
+  `CMNotificationCenterPostNotification`, `__avplayeritem_fpItemNotificationCallback_block_invoke`, plus
+  single samples of `-[AVPlayerItem isPlaybackBufferEmpty]` and `_loadedTimeRangesFromFPPlaybableTimeIntervals:`.
+  ~35 ms total. This is inherent: AVFoundation posts item notifications on the main queue. It is *delivery*,
+  not *work*, and it is the category we should expect to remain.
+- **Zero hangs** at the 250 ms threshold.
+
+The absence that mattered: no `-[AVURLAsset initWithURL:options:]` and no `-[AVPlayerItem initWithAsset:]`
+on main, confirming the `ItemPreparer` fix independently of the debug assert. Note that system frameworks
+symbolicate from the device support bundle even when the optimized app binary does not — which is lucky,
+because the question is answered entirely by framework symbols.
 
 ## AVAudioSession is a measurement variable, not just a UX detail
 The default category is `.soloAmbient`: silenced by the ringer switch, and deactivated when the app

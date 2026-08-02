@@ -4,7 +4,7 @@ title: FeedLab Build Plan
 description: Milestones M1-M6 with acceptance criteria, sized for incremental sessions
 status: living
 tags: [plan, milestones]
-timestamp: 2026-08-02T21:38:53Z
+timestamp: 2026-08-02T22:51:05Z
 related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
 ---
 
@@ -27,7 +27,8 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
 - [x] Two-tier preparation verified empirically; findings in `playback-engine.md` and `ios-learning-notes.md`.
 - **Accept:** scroll through 20 items with pool capacity 3 — video plays only on the current item, no wrong-video-in-cell flashes, no player leak (occupancy returns to 0 when idle), main thread free of asset work (verify in Instruments).
   - *Verified on simulator 2026-08-02:* sequential playback with `occupancy 0, free 1` logged after every release — one player serves the whole session. A 20-swipe fast scroll prepared **nothing** in between: only the initial index and the settled index ever acquired. Correct item rendered in the correct cell at rest.
-  - *Outstanding:* the Instruments main-thread check, which needs a device. Carried into the M4 device session rather than claimed from a simulator run.
+  - *Verified on device 2026-08-02* (iPhone 12 Pro, iOS 26.5.2, `Measure` config, 36 s Time Profiler trace under continuous manual scrolling): **zero** entries in `potential-hangs` (>250 ms threshold); main thread used ~422 ms CPU across 36.4 s. The only media symbols on main-thread stacks were notification delivery and property reads — `CMNotificationCenterPostNotification` (11 samples), `__avplayeritem_fpItemNotificationCallback_block_invoke` (5), `-[AVPlayerItem isPlaybackBufferEmpty]` (1) — totalling ~35 ms. **Absent:** `-[AVURLAsset initWithURL:options:]`, `-[AVPlayerItem initWithAsset:]`, any `loadValues*`. Asset and item construction do not touch the main thread.
+  - *Not a published number:* single run, no fixed scroll script, unthrottled network. It clears the criterion; it does not enter the README.
 
 ## M3 — Instrumentation and metrics
 - [ ] `PlaybackEvent` vocabulary; `PlaybackObserver` (KVO on `timeControlStatus`, `reasonForWaitingToPlay`, `isReadyForDisplay`, item status; notifications for stalls, access/error log entries, end-of-item).

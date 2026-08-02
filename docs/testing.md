@@ -4,7 +4,7 @@ title: Testing and Measurement Protocol
 description: Unit test strategy, what must remain testable without a device, and the protocol for producing publishable numbers
 status: living
 tags: [testing, measurement, protocol]
-timestamp: 2026-08-01T20:41:00Z
+timestamp: 2026-08-02T22:51:05Z
 related: [architecture.md, experiment-harness.md, qoe-metrics.md]
 ---
 
@@ -49,6 +49,27 @@ Numbers published in the README come only from runs following this protocol:
 - **≥3 runs per arm per profile**; report the median and the observed spread.
 - **Cold start** before each arm; discard and note the warm-up item.
 - Export via CSV; the README table is generated from the export, never hand-typed.
+
+## Practical notes for device sessions
+
+Learned the hard way; each of these cost a cycle.
+
+- **Profiling needs a USB cable.** Install, launch and debug all work fine over Wi-Fi, but
+  `xctrace record` against a wirelessly-connected device fails with "An unknown problem is preventing
+  this device from recording" and silently produces a zero-duration trace **targeting the Mac**. Check the
+  exported `--toc`: if `<device>` says `platform="macOS"`, the trace is worthless regardless of what the
+  recording reported.
+- **Each tool uses a different device identifier.** `devicectl` uses a UUID, `xcodebuild -destination` and
+  `xctrace --device` use the ECID (`00008101-…`). `--device-name` is ambiguous when two devices share a
+  name, which is common.
+- **`xctrace --attach` takes a process name, not a bundle id.** `--launch` takes the bundle id.
+- **Do not close the app mid-recording.** `--launch` samples the process it started; backgrounding or
+  killing it ends the trace.
+- **`xctrace export --xpath` writes to stdout**; redirecting with `2>/dev/null` can silently yield an
+  empty file.
+- **Symbolication:** system frameworks (AVFCore, CoreMedia, UIKitCore) symbolicate from the device support
+  bundle, but an optimized app binary shows raw addresses. That is usually fine — the question "is asset
+  work on the main thread" is answered by *framework* symbols, which do resolve.
 
 ## Regression check
 

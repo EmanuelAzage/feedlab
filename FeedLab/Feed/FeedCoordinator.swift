@@ -64,11 +64,21 @@ final class FeedCoordinator {
         renderTarget(index)?.attachPlayer(attachment.pooled.player)
     }
 
-    /// A cell scrolled out of the visible set. If it still holds a player, reclaim it — this
-    /// is what keeps occupancy bounded during fast scrolling.
+    /// A cell scrolled out of the visible set. Reclaim its player.
+    ///
+    /// Torn down **unconditionally**, including when it is the current index. `product-spec.md`:
+    /// "Items leaving the screen pause and release their player back to the pool." An earlier
+    /// version skipped teardown for the current index, so during a long drag the departed item
+    /// kept playing — audible over cells the user had already scrolled to, and worse, still
+    /// accumulating watch duration. Watch duration is the denominator of rebuffer ratio, so
+    /// that would have quietly flattered the smoothness of any item the user scrolled away from.
     func cellDidEndDisplaying(at index: Int) {
-        guard index != currentIndex else { return }
         teardown(index: index)
+        if currentIndex == index {
+            // Clear it, or settling back on this index would be treated as "already current"
+            // and never restart playback.
+            currentIndex = nil
+        }
     }
 
     /// Releases everything. Called when the feed leaves the screen so a backgrounded rig does
