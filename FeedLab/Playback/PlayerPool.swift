@@ -73,13 +73,19 @@ actor PlayerPool: PlayerPooling {
     // MARK: - Acquire / release
 
     func acquire() async throws -> PooledPlayer {
-        let start = clock.now()
         try Task.checkCancellation()
 
         if let player = takeImmediately() {
-            return PooledPlayer(player: player, waitDuration: clock.now() - start)
+            // Zero, not elapsed. Obtaining a player without blocking is not *waiting*, even
+            // though instantiating one costs real time (~5 ms on simulator). Counting that as
+            // wait would penalise `pool-unbounded`, which instantiates on nearly every
+            // acquire — and that arm exists precisely to look good on startup and bad on
+            // memory. `playerWaitDuration` measures contention; see `docs/qoe-metrics.md`.
+            return PooledPlayer(player: player, waitDuration: 0)
         }
 
+        // The clock starts only once we are certain we must block.
+        let start = clock.now()
         let id = UUID()
         let player = try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in

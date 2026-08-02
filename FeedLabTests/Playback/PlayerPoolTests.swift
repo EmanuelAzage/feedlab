@@ -97,6 +97,40 @@ struct PlayerPoolTests {
         #expect(await pool.pendingAcquireCount == 0)
     }
 
+    @Test("Instantiating a player is not reported as waiting for one")
+    func immediateAcquireReportsZeroWaitEvenWhenTimePasses() async throws {
+        // Against a clock that ticks on every read, any elapsed-time computation on the
+        // non-blocking path shows up as non-zero. Creating a player costs real time (~5 ms
+        // measured on simulator), but that is not contention — counting it as such would
+        // penalise `pool-unbounded`, the arm that instantiates on nearly every acquire and is
+        // supposed to demonstrate good startup at bad memory cost.
+        let pool = PlayerPool(
+            capacity: .unbounded,
+            clock: AdvancingClock(step: 0.05),
+            makePlayer: CountingPlayerFactory().make
+        )
+
+        for _ in 0..<5 {
+            let pooled = try await pool.acquire()
+            #expect(pooled.waitDuration == 0, "instantiation cost must not be recorded as contention")
+        }
+    }
+
+    @Test("A recycled acquire reports zero wait too")
+    func recycledAcquireReportsZeroWait() async throws {
+        let pool = PlayerPool(
+            capacity: .bounded(1),
+            clock: AdvancingClock(step: 0.05),
+            makePlayer: CountingPlayerFactory().make
+        )
+
+        let first = try await pool.acquire()
+        await pool.release(first)
+        let second = try await pool.acquire()
+
+        #expect(second.waitDuration == 0)
+    }
+
     @Test("Queued acquires are served in order, and cannot be overtaken")
     func waitersAreServedFIFO() async throws {
         let pool = PlayerPool(capacity: .bounded(1), clock: FakeClock(), makePlayer: CountingPlayerFactory().make)

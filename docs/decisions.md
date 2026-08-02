@@ -4,13 +4,36 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-02T21:38:53Z
+timestamp: 2026-08-02T22:15:35Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-02 — Playback intent fires on scroll *settle*, not continuously
+The feed tracks the current index continuously for display, but only a settled page starts playback.
+Continuous intent would acquire and release a player at every rounding boundary during a drag, thrashing the
+pool in exactly the fast-scroll case the rig is built to study, and would leave `t0` for time-to-first-frame
+ambiguous — "became current" would fire repeatedly for items the user never stopped on. Settle gives one
+unambiguous `t0` per viewed item.
+
+Measured consequence: a 20-swipe fast scroll prepares **nothing** in between — only the departure and
+arrival indices ever acquire a player. Preparing items *ahead* is deliberately not this type's job; that is
+`PreloadStrategy` (M5), and keeping it out here means the M2 baseline is genuinely "no preload" rather than
+an accidental policy nobody chose.
+
+Three settle events must all be handled — `scrollViewDidEndDecelerating`, `scrollViewDidEndDragging` with
+`willDecelerate == false`, and `scrollViewDidEndScrollingAnimation`. Missing any one leaves playback
+silently not starting for pages that came to rest that way.
+
+## 2026-08-02 — Audio session set to `.playback` explicitly
+The default `.soloAmbient` category is silenced by the ringer switch, and a silenced session can mean the
+audio path does no work. Since audio decode is part of the workload under measurement, leaving the default
+would let two runs of the same arm differ by whether the device happened to be muted — a variance source
+with nothing to do with preload strategy. `.playback` with `.moviePlayback` holds the workload constant and
+matches feed convention.
 
 ## 2026-08-02 — `acquire()` throws so a blocked wait can be cancelled
 The original `PlayerPooling` sketch had a non-throwing `acquire() async`. That is wrong for a feed: a fast

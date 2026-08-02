@@ -21,11 +21,13 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
 
 ## M2 — Playback core
 - [x] `PlayerProviding`/`PlayerItemProviding` wrappers; `PlayerPool` (actor) with fixed capacity, FIFO waiters, cancellable acquire, measured wait, full teardown, and `drain()`.
-- [ ] `FeedCell` owning `AVPlayerLayer`; attach/detach on becoming current.
-- [ ] Visibility-driven play/pause; looping; asset load and item prep off-main with cancellation on fast scroll.
+- [x] `FeedCell` owning `AVPlayerLayer`; attach/detach on becoming current, via the `PlayerRenderTarget` ordering rule.
+- [x] Visibility-driven play/pause; looping (seek-to-zero); asset load and item prep off-main with cancellation on fast scroll. Intent fires on **settle**, not continuously — see `decisions.md`.
 - [x] Unit tests: pool capacity, wait-on-exhaustion, teardown. *(10 tests / 13 cases against fakes and a fake clock — no device, no stream, no real time.)*
 - [x] Two-tier preparation verified empirically; findings in `playback-engine.md` and `ios-learning-notes.md`.
 - **Accept:** scroll through 20 items with pool capacity 3 — video plays only on the current item, no wrong-video-in-cell flashes, no player leak (occupancy returns to 0 when idle), main thread free of asset work (verify in Instruments).
+  - *Verified on simulator 2026-08-02:* sequential playback with `occupancy 0, free 1` logged after every release — one player serves the whole session. A 20-swipe fast scroll prepared **nothing** in between: only the initial index and the settled index ever acquired. Correct item rendered in the correct cell at rest.
+  - *Outstanding:* the Instruments main-thread check, which needs a device. Carried into the M4 device session rather than claimed from a simulator run.
 
 ## M3 — Instrumentation and metrics
 - [ ] `PlaybackEvent` vocabulary; `PlaybackObserver` (KVO on `timeControlStatus`, `reasonForWaitingToPlay`, `isReadyForDisplay`, item status; notifications for stalls, access/error log entries, end-of-item).

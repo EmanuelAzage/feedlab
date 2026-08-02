@@ -26,6 +26,7 @@ final class FeedViewController: UIViewController {
         collectionViewLayout: Self.makeLayout()
     )
     private var dataSource: UICollectionViewDiffableDataSource<Section, FeedItem>?
+    private var coordinator: FeedCoordinator?
 
     init(manifest: Manifest) {
         self.manifest = manifest
@@ -42,6 +43,7 @@ final class FeedViewController: UIViewController {
         view.backgroundColor = .black
         configureCollectionView()
         applySnapshot()
+        configureCoordinator()
         #if FEEDLAB_TOOLS
         installDebugAffordance()
         #endif
@@ -50,22 +52,45 @@ final class FeedViewController: UIViewController {
         )
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        #if FEEDLAB_TOOLS
+        becomeFirstResponder()
+        #endif
+        // The first item never "settles" — it is current from the moment the feed appears.
+        coordinator?.settled(on: currentIndex)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // Hand every player back rather than holding decode resources off-screen.
+        coordinator?.teardownAll()
+    }
+
     #if FEEDLAB_TOOLS
     // Motion events are delivered to the first responder, so the feed has to claim it.
     // `motionEnded` cannot live in the debug extension: Swift does not allow overriding
     // an inherited method from an extension.
     override var canBecomeFirstResponder: Bool { true }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        becomeFirstResponder()
-    }
-
     override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
         guard motion == .motionShake else { return }
         presentDebugMenu()
     }
     #endif
+
+    private func configureCoordinator() {
+        coordinator = FeedCoordinator(
+            manifest: manifest,
+            pool: PlayerPool(capacity: .bounded(Self.poolCapacity))
+        ) { [weak self] index in
+            self?.collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? FeedCell
+        }
+    }
+
+    /// Default from `docs/playback-engine.md`: current, next, previous. Becomes an experiment
+    /// variable once `ArmRegistry` exists (M5).
+    private static let poolCapacity = 3
 
     // MARK: - Layout
 
@@ -129,10 +154,47 @@ final class FeedViewController: UIViewController {
 // MARK: - UICollectionViewDelegate
 
 extension FeedViewController: UICollectionViewDelegate {
+    /// Tracks the index continuously for display purposes only. **Playback intent is not
+    /// driven from here** — see `settle()`.
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let pageHeight = scrollView.bounds.height
         guard pageHeight > 0 else { return }
         let page = Int((scrollView.contentOffset.y / pageHeight).rounded())
         currentIndex = min(max(page, 0), max(manifest.items.count - 1, 0))
+    }
+
+    // A page can come to rest three different ways, and all three have to be treated as a
+    // settle or playback silently fails to start for that item.
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        settle()
+    }
+
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        guard !decelerate else { return }
+        settle()
+    }
+
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        settle()
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        willDisplay cell: UICollectionViewCell,
+        forItemAt indexPath: IndexPath
+    ) {
+        coordinator?.cellWillDisplay(at: indexPath.item)
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        didEndDisplaying cell: UICollectionViewCell,
+        forItemAt indexPath: IndexPath
+    ) {
+        coordinator?.cellDidEndDisplaying(at: indexPath.item)
+    }
+
+    private func settle() {
+        coordinator?.settled(on: currentIndex)
     }
 }

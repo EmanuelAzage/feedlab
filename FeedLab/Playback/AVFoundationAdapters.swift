@@ -98,6 +98,13 @@ final class AVPlayerAdapter: PlayerProviding, @unchecked Sendable {
         player.pause()
     }
 
+    func seekToStart() {
+        // Tolerance zero: a loop that restarts at the nearest keyframe instead of the true
+        // start would make watch duration drift by up to a GOP on every lap, and watch
+        // duration is the denominator of rebuffer ratio.
+        player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+    }
+
     func apply(_ configuration: BufferConfiguration) {
         player.automaticallyWaitsToMinimizeStalling = configuration.automaticallyWaitsToMinimizeStalling
         attachedItem?.apply(configuration)

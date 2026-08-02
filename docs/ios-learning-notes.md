@@ -4,7 +4,7 @@ title: iOS Playback Learning Notes
 description: Living doc of AVFoundation and feed-playback internals - seeded with topics, filled in with notes as they come up in practice
 status: living
 tags: [learning, avfoundation, playback, performance]
-timestamp: 2026-08-02T21:38:53Z
+timestamp: 2026-08-02T22:15:35Z
 related: [playback-engine.md, qoe-metrics.md]
 ---
 
@@ -133,6 +133,27 @@ bug looks like a result.
 
 ## Player pooling and decode resources
 Why live `AVPlayer` count matters: memory, decode sessions, dropped frames. Note the actual numbers observed at pool sizes 3, 4, and unbounded.
+
+## AVAudioSession is a measurement variable, not just a UX detail
+The default category is `.soloAmbient`: silenced by the ringer switch, and deactivated when the app
+backgrounds. A silenced session can mean the audio decode path does no work at all — so the same arm,
+measured twice, could exercise a video-only pipeline on a muted device and a full audio+video pipeline
+otherwise. That is a variance source with nothing to do with preload strategy. Set explicitly to `.playback`
+/ `.moviePlayback` in `AudioSessionConfigurator`.
+
+**Bridge to prior experience:** this is the same object as the capture-side `AVAudioSession` work in
+VoiceInk, approached from the other end. There the category governed whether recording could proceed and how
+it interacted with other audio; here it governs whether the playback workload is constant across runs. Same
+process-wide singleton, same category/mode vocabulary, opposite direction of data flow — and in both cases
+the failure mode is silent rather than an error.
+
+## Seeking, and why tolerance matters for a loop
+Looping is `seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)` on
+`AVPlayerItemDidPlayToEndTime`. The tolerances are not boilerplate: `seek(to:)` without them lets the player
+land on the nearest keyframe, which is cheaper but can be up to a GOP away from the true start. In a looping
+feed that error accumulates every lap, and **watch duration is the denominator of rebuffer ratio** — so a
+sloppy loop would slowly inflate the smoothness score of any item the user lingered on. Exact seeking costs
+a little decode work and buys a stable denominator.
 
 ## Prior-experience bridges
 - Bounded pooling of expensive resources ↔ prior image-pipeline memory work (peak usage on ~100-image sets, ~4GB → under 700MB). Same shape: cap the live set, recycle, measure.

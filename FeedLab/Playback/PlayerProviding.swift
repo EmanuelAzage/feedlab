@@ -27,6 +27,10 @@ protocol PlayerProviding: AnyObject, Sendable {
     func replaceCurrentItem(with item: (any PlayerItemProviding)?)
     func play()
     func pause()
+    /// Seeks to the beginning. Backs looping (`docs/decisions.md`: seek-to-zero rather than
+    /// `AVPlayerLooper`, which would need `AVQueuePlayer` and complicate pooling) and the
+    /// double-tap gesture in the product spec.
+    func seekToStart()
     func apply(_ configuration: BufferConfiguration)
 
     /// Full teardown, called by the pool before a player re-enters the free list: pause, drop

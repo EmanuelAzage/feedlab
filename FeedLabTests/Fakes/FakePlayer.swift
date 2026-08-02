@@ -16,12 +16,14 @@ final class FakePlayer: PlayerProviding, @unchecked Sendable {
     private var _appliedConfigurations: [BufferConfiguration] = []
     private var _currentItem: (any PlayerItemProviding)?
     private var _timeControlStatus: PlayerTimeControlStatus = .paused
+    private var _seekToStartCount = 0
 
     init(serial: Int) {
         self.serial = serial
     }
 
     var resetCount: Int { lock.withLock { _resetCount } }
+    var seekToStartCount: Int { lock.withLock { _seekToStartCount } }
     var appliedConfigurations: [BufferConfiguration] { lock.withLock { _appliedConfigurations } }
 
     var timeControlStatus: PlayerTimeControlStatus { lock.withLock { _timeControlStatus } }
@@ -38,6 +40,10 @@ final class FakePlayer: PlayerProviding, @unchecked Sendable {
 
     func pause() {
         lock.withLock { _timeControlStatus = .paused }
+    }
+
+    func seekToStart() {
+        lock.withLock { _seekToStartCount += 1 }
     }
 
     func apply(_ configuration: BufferConfiguration) {
@@ -65,6 +71,27 @@ final class CountingPlayerFactory: @unchecked Sendable {
         lock.withLock {
             _count += 1
             return FakePlayer(serial: _count)
+        }
+    }
+}
+
+/// Time that advances on every read.
+///
+/// Exists to catch the specific bug where a non-blocking acquire reports elapsed time as
+/// contention: against this clock any stray `now()` difference becomes visibly non-zero.
+final class AdvancingClock: TimestampSource, @unchecked Sendable {
+    private let lock = NSLock()
+    private let step: TimeInterval
+    private var current: TimeInterval = 0
+
+    init(step: TimeInterval) {
+        self.step = step
+    }
+
+    func now() -> TimeInterval {
+        lock.withLock {
+            current += step
+            return current
         }
     }
 }

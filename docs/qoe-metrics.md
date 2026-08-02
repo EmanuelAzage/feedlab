@@ -4,7 +4,7 @@ title: QoE Metrics — Definitions and Measurement
 description: What each quality-of-experience metric means and exactly how FeedLab measures it from AVFoundation
 status: living
 tags: [qoe, metrics, avfoundation, measurement]
-timestamp: 2026-08-01T22:15:43Z
+timestamp: 2026-08-02T22:15:35Z
 related: [playback-engine.md, observability.md, experiment-harness.md]
 ---
 
@@ -43,6 +43,16 @@ How often ABR changed variants. High switching is visually distracting even when
 
 ### Player wait duration *(FeedLab-specific)*
 Time an item spent waiting for a free player from the bounded pool. Not a standard streaming metric; it exists because pool capacity is an experiment variable and its cost has to surface somewhere. Folds into TTFF but is recorded separately so the two causes of slow startup — pool contention vs. network/decode — stay distinguishable.
+
+**Measured as:** elapsed time spent *blocked* on an exhausted pool, and nothing else. An acquire that
+returns without blocking reports **exactly zero**, including when it had to instantiate a player first.
+
+That exclusion is deliberate and was a real bug during M2. Instantiating an `AVPlayer` costs measurable time
+(~5 ms on simulator), and an early implementation reported it as wait. Counting it would have penalised
+`pool-unbounded`, which instantiates on nearly every acquire — the arm whose entire purpose is to look
+*good* on startup and bad on memory. The metric would have quietly contradicted the finding it exists to
+support. Instantiation cost is a property of the player, not of contention; if it is ever worth reporting it
+gets its own name.
 
 ### Peak resident memory
 Sampled during a session via `task_vm_info` / `mach_task_basic_info` (resident size), and validated against Instruments on device. Attributed to the arm, not to individual items.
