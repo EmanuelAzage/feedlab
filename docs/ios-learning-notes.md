@@ -4,7 +4,7 @@ title: iOS Playback Learning Notes
 description: Living doc of AVFoundation and feed-playback internals - seeded with topics, filled in with notes as they come up in practice
 status: living
 tags: [learning, avfoundation, playback, performance]
-timestamp: 2026-08-01T19:07:52Z
+timestamp: 2026-08-02T21:38:53Z
 related: [playback-engine.md, qoe-metrics.md]
 ---
 
@@ -14,6 +14,39 @@ Living doc. When a playback concept surfaces during the build, append a short no
 
 ## The AVFoundation playback object graph
 `AVURLAsset` (the media + its metadata) → `AVPlayerItem` (one playback session over an asset: buffers, logs, status) → `AVPlayer` (the transport: rate, timeControlStatus) → `AVPlayerLayer` (the render surface). Knowing which object owns which responsibility is most of the API. Note where each is created and destroyed in `Playback/`.
+
+**M2 — the edge that isn't obvious from the diagram: an `AVPlayerItem` is inert until a player adopts it.**
+Measured on macOS against Apple's BipBop multi-variant stream (throwaway script; deliberately *not* a
+committed test, per `testing.md` — live-stream tests would make CI meaningless):
+
+```
+unattached, t=8s          status=unknown      buffered=  0.00s
+attached (paused), t=3s   status=readyToPlay  buffered=359.09s  likelyToKeepUp=true
+attached (paused), t=6s   status=readyToPlay  buffered=907.81s  bufferFull=true
+```
+
+Three things fell out of this, in increasing order of surprise:
+
+1. **No buffering without a player.** The item's `status` never leaves `.unknown` and `loadedTimeRanges`
+   stays empty. So "preload" in the sense that matters — bytes on the device — costs a pool slot, which is
+   what fixes `poolCapacity ≥ |itemsToPrepare|` in `playback-engine.md`.
+2. **`play()` is not required.** Attachment alone starts buffering. Preloading is therefore *attach and
+   stay paused*, not "play muted off-screen", which would spend decode resources on frames nobody sees.
+3. **The default forward buffer is enormous** — ~908 s buffered, `isPlaybackBufferFull`, from one paused
+   item within six seconds. This is the finding that changes a design: four preloaded players at the system
+   default is a memory problem, so `preferredForwardBufferDuration` capping is what makes deep preload
+   possible rather than merely tidier. (Magnitude is macOS-specific and gets re-measured on device.)
+
+**Bridge to prior experience:** this is the decode-side analogue of the image-pipeline work — the expensive
+resource isn't the object you hold (`AVPlayerItem` unattached is nearly free, like an undecoded image
+reference), it's the buffer that materialises when you *bind* it. Capping the live set is the same move;
+here the cap has two dimensions, how many players and how much each buffers.
+
+**Gotcha found while measuring this:** the first run of the script reported zero buffering even for the
+attached item, because it blocked the main thread on a semaphore while waiting. AVFoundation's state
+machine needs a live main run loop to progress — replacing the semaphore with `RunLoop.main.run()` made the
+numbers appear. A concrete demonstration of the project's own rule: block the main thread and playback does
+not merely stutter, it does not proceed at all.
 
 ## Asynchronous asset loading
 Modern async `load(.isPlayable, .duration, ...)` replaces the older `loadValuesAsynchronously`. Loading is I/O and must never block the main thread. Note what happens to TTFF when loading is *not* prepared ahead — that difference is the `baseline` arm.

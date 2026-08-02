@@ -4,7 +4,7 @@ title: Playback Engine — Player Pool and Preload Strategies
 description: Bounded AVPlayer pooling, item lifecycle, and the swappable preload strategies the experiments compare
 status: living
 tags: [avfoundation, player-pool, preload, performance]
-timestamp: 2026-08-01T20:41:00Z
+timestamp: 2026-08-02T21:38:53Z
 related: [architecture.md, qoe-metrics.md, experiment-harness.md]
 ---
 
@@ -19,18 +19,39 @@ The architectural centerpiece. Two problems: **how many players exist and how th
 ## PlayerPool
 
 ```swift
-protocol PlayerPooling {
-  func acquire() async -> PooledPlayer      // waits if none free; wait is measured
-  func release(_ player: PooledPlayer)
-  var capacity: Int { get }
-  var occupancy: Int { get }
+enum PoolCapacity: Equatable, Sendable { case bounded(Int), unbounded }
+
+struct PooledPlayer: Sendable {
+  let player: any PlayerProviding
+  let waitDuration: TimeInterval          // 0 when one was free
+}
+
+protocol PlayerPooling: Sendable {
+  var capacity: PoolCapacity { get }
+  func acquire() async throws -> PooledPlayer   // waits if none free; wait is measured
+  func release(_ pooled: PooledPlayer) async
 }
 ```
+
+Implemented as an `actor` — the pool *is* the serial context that owns the free list. It also exposes
+`occupancy`, `pendingAcquireCount` (callers currently blocked — non-zero means real contention, and it
+feeds the HUD), `freeCount`, and `drain()` for tearing down idle players without lowering capacity.
+
+`acquire()` **throws**, unlike the original sketch: a blocked acquire must be cancellable, or a fast scroll
+past a waiting item strands a continuation forever. Cancellation resumes it with `CancellationError`.
 
 Rules:
 - Fixed `capacity` (default 3: current, next, previous). Capacity is an experiment variable.
 - `acquire()` never allocates beyond capacity. If all players are in use, the caller waits and the wait is recorded as `playerWaitDuration` — a first-class metric, because a pool that's too small shows up as startup latency.
-- `release()` performs full teardown before returning the player: `pause()`, `replaceCurrentItem(with: nil)`, detach from any `AVPlayerLayer`, remove KVO observers and notification tokens, reset `preferredForwardBufferDuration` / `preferredPeakBitRate`.
+- Waiters are served **FIFO**, and a released player is handed straight to the longest-waiting caller rather than round-tripping through the free list, so a queued acquire cannot be overtaken by a fresh one.
+- `release()` performs full teardown before the player becomes visible to anyone else. Responsibility splits three ways, and all three must happen or the recycling is unsafe:
+
+  | Step | Owner | Why there |
+  |---|---|---|
+  | `pause()`, `replaceCurrentItem(nil)`, restore buffer configuration | the pool, via `PlayerProviding.reset()` | the pool is the only thing that knows a player is going back on the shelf |
+  | `layer.player = nil` | the cell, on the main actor, *before* releasing | layer work is main-thread-only, and detaching late is what puts a frame of the wrong video in the wrong cell |
+  | remove KVO observations and notification tokens | the instrumentation layer, before releasing | it registered them; only it knows what they were |
+
 - **Leak discipline:** every observer registered on acquire must be torn down on release. A leaked KVO observation on a recycled player is the classic bug here and will silently corrupt metrics for later items.
 
 ### Layer attachment
@@ -101,10 +122,32 @@ holds — `PreloadNext3Capped` prepares 4 at capacity 4, `PreloadWindow` prepare
 one-and-two-item strategies sit at capacity 3 with a spare slot for the release-then-acquire overlap during
 fast scroll. The table was consistent by intuition; it is now consistent by rule.
 
-> **Verify in M2.** The tier-2 claim is the documented AVFoundation contract, not something this rig has
-> measured. Confirm it directly: construct an `AVPlayerItem`, never attach it, and observe that
-> `loadedTimeRanges` stays empty and `status` stays `.unknown`. If that turns out to be wrong, the arm
-> capacities and this whole section change — record the finding in `ios-learning-notes.md` either way.
+### Verified 2026-08-02
+
+Measured directly rather than taken from the documentation (macOS, Apple BipBop multi-variant stream; see
+`ios-learning-notes.md` for the method):
+
+| State | `status` | Buffered |
+|---|---|---|
+| Item constructed, never attached, after 8 s | `unknown` | 0.00 s |
+| Attached to a player, **never played**, after 3 s | `readyToPlay` | 359 s |
+| Attached to a player, **never played**, after 6 s | `readyToPlay` | 908 s, `isPlaybackBufferFull` |
+
+Three consequences:
+
+1. **The two-tier model holds.** An unattached item does not buffer, so `poolCapacity ≥ |itemsToPrepare|`
+   stands and the arm table stays coherent.
+2. **`play()` is not required to buffer** — attachment alone starts it. This is the mechanism tier 2 uses:
+   a preloaded item is attached to a pooled player and left paused. Preload does *not* mean playing muted
+   off-screen, which would burn decode resources for nothing.
+3. **The system default forward buffer is very large.** Nearly a thousand seconds of content, buffered to
+   `isPlaybackBufferFull`, from a single paused item. Across a four-player pool that is a memory problem —
+   which promotes `preferredForwardBufferDuration` capping from a tuning knob to the thing that makes deep
+   preload viable at all, and sharpens the `PreloadNext3Capped` hypothesis from "should contain the memory
+   cost" to "must, or the arm is unusable."
+
+Caveat: run on macOS. (1) and (2) are API contract and carry over. The buffer *magnitude* in (3) is
+memory-dependent and must be re-measured on device before any number derived from it is published.
 
 ## Arbitrating strategy against capacity
 

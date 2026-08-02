@@ -4,7 +4,7 @@ title: FeedLab Build Plan
 description: Milestones M1-M6 with acceptance criteria, sized for incremental sessions
 status: living
 tags: [plan, milestones]
-timestamp: 2026-08-01T19:07:52Z
+timestamp: 2026-08-02T21:38:53Z
 related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
 ---
 
@@ -20,10 +20,11 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
 - **Accept:** smooth paging scroll over ≥20 manifest items — *verified on simulator: 21 swipes forward reaches the last item, 5 back lands exactly on index 16, and the bottom-anchored label sits at the same y on every page, so pages land flush with no cumulative drift*; manifest missing attribution fails validation (unit test) — *done, plus every other required field, whitespace-only values, duplicate ids, non-HTTPS urls, and malformed JSON*.
 
 ## M2 — Playback core
-- [ ] `PlayerProviding`/`PlayerItemProviding` wrappers; `PlayerPool` with fixed capacity, acquire/release, full teardown.
+- [x] `PlayerProviding`/`PlayerItemProviding` wrappers; `PlayerPool` (actor) with fixed capacity, FIFO waiters, cancellable acquire, measured wait, full teardown, and `drain()`.
 - [ ] `FeedCell` owning `AVPlayerLayer`; attach/detach on becoming current.
 - [ ] Visibility-driven play/pause; looping; asset load and item prep off-main with cancellation on fast scroll.
-- [ ] Unit tests: pool capacity, wait-on-exhaustion, teardown.
+- [x] Unit tests: pool capacity, wait-on-exhaustion, teardown. *(10 tests / 13 cases against fakes and a fake clock — no device, no stream, no real time.)*
+- [x] Two-tier preparation verified empirically; findings in `playback-engine.md` and `ios-learning-notes.md`.
 - **Accept:** scroll through 20 items with pool capacity 3 — video plays only on the current item, no wrong-video-in-cell flashes, no player leak (occupancy returns to 0 when idle), main thread free of asset work (verify in Instruments).
 
 ## M3 — Instrumentation and metrics

@@ -4,13 +4,36 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-01T22:15:43Z
+timestamp: 2026-08-02T21:38:53Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-02 — `acquire()` throws so a blocked wait can be cancelled
+The original `PlayerPooling` sketch had a non-throwing `acquire() async`. That is wrong for a feed: a fast
+scroll past an item whose acquire is still queued must be able to abandon the wait, and a continuation that
+is never resumed leaks the task forever. `acquire()` now throws `CancellationError` when the calling task is
+cancelled, and the pool removes the stranded waiter. Cost is a `try` at every call site; the alternative was
+a pool that quietly accumulates suspended tasks during exactly the scroll pattern the rig is built to study.
+
+## 2026-08-02 — Teardown responsibility is split three ways, deliberately
+`release()` cannot do the whole job. The pool resets player state; the **cell** nils `layer.player` on the
+main actor *before* releasing, because layer work is main-thread-only and detaching late is what puts a
+frame of the wrong video in the wrong cell; the **instrumentation layer** removes its own KVO and
+notification registrations, because only it knows what it registered. Concentrating all three in the pool
+would require the pool to know about layers and observers, coupling it to both the UI and the metrics
+layers. The split is recorded as a table in `playback-engine.md` because "all three must happen" is the
+invariant, and a reader needs to see where each lives.
+
+## 2026-08-02 — Domain enums mirror AVFoundation rather than re-exporting it
+`PlayerTimeControlStatus`, `PlayerWaitingReason`, `PlayerItemStatus` restate their AVFoundation
+counterparts. The duplication is deliberate: it keeps `PlayerProviding` free of AVFoundation, so fakes are
+trivial and the same types can travel into the event vocabulary that `Metrics/` consumes without dragging
+the framework across the boundary `architecture.md` forbids. The mapping lives in one adapter file and is
+the only place a framework enum appears.
 
 ## 2026-08-01 — No app-wide presentation architecture (no MVVM/VIPER/TCA)
 MVVM, VIPER and TCA are presentation architectures; they pay off when the hard problem is deriving view
