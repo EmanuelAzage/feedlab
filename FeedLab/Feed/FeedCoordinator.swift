@@ -17,11 +17,16 @@ final class FeedCoordinator {
         let pooled: PooledPlayer
         let item: AVPlayerItemAdapter
         let endOfItemToken: NSObjectProtocol
+        let observer: PlaybackObserver
     }
 
     private let manifest: Manifest
     private let pool: PlayerPool
     private let preparer = ItemPreparer()
+    private let clock: any TimestampSource
+    private let pipe = PlaybackEventPipe()
+    private var forwardingTask: Task<Void, Never>?
+    let recorder: SessionRecorder
     /// Resolves an index to its on-screen cell, or nil if it is not currently displayed.
     private let renderTarget: @MainActor (Int) -> (any PlayerRenderTarget)?
 
@@ -32,11 +37,35 @@ final class FeedCoordinator {
     init(
         manifest: Manifest,
         pool: PlayerPool,
+        recorder: SessionRecorder,
+        clock: any TimestampSource = MonotonicTimestampSource(),
         renderTarget: @escaping @MainActor (Int) -> (any PlayerRenderTarget)?
     ) {
         self.manifest = manifest
         self.pool = pool
+        self.recorder = recorder
+        self.clock = clock
         self.renderTarget = renderTarget
+
+        // Detached so draining does not hop through the main actor for every event. Ordering comes
+        // from the stream; this task is the single serial consumer `architecture.md` specifies.
+        let pipe = self.pipe
+        forwardingTask = Task.detached(priority: .utility) {
+            for await event in pipe.events {
+                await recorder.record(event)
+            }
+        }
+    }
+
+    deinit {
+        pipe.finish()
+        forwardingTask?.cancel()
+    }
+
+    /// Hands an event to the ordered pipe. Synchronous and thread-safe; the forwarding task drains
+    /// it into the recorder in order.
+    private nonisolated func emit(_ event: PlaybackEvent, to recorder: SessionRecorder) {
+        pipe.send(event)
     }
 
     // MARK: - Intent
@@ -54,6 +83,15 @@ final class FeedCoordinator {
             teardown(index: previous)
         }
         currentIndex = index
+
+        // `t0` for time-to-first-frame: stamped the moment intent exists, *before* any asset work
+        // begins. Stamping after the load would measure only the tail of startup and would make
+        // preload strategies look better than they are, since preparation is exactly what they
+        // move out of this interval.
+        emit(
+            PlaybackEvent(itemID: manifest.items[index].id, timestamp: clock.now(), kind: .itemBecameCurrent),
+            to: recorder
+        )
         beginPlayback(at: index)
     }
 
@@ -122,6 +160,7 @@ final class FeedCoordinator {
                     await self.pool.release(pooled)
                     return
                 }
+                self.recordPoolWait(pooled, itemID: feedItem.id)
                 self.attach(pooled: pooled, item: item, at: index)
             } catch {
                 Log.playback.debug("Player acquire cancelled for \(feedItem.id, privacy: .public)")
@@ -129,7 +168,23 @@ final class FeedCoordinator {
         }
     }
 
+    /// Emits the wait bracket only when the acquire actually blocked.
+    ///
+    /// The bracket is reconstructed from the pool's own measurement rather than timed around the
+    /// call, because timing the call would include `AVPlayer` instantiation — which is a cost of
+    /// the player, not of contention, and counting it would penalise the `pool-unbounded` arm that
+    /// instantiates on nearly every acquire. See `docs/qoe-metrics.md`.
+    private func recordPoolWait(_ pooled: PooledPlayer, itemID: String) {
+        guard pooled.waitDuration > 0 else { return }
+        let ended = clock.now()
+        let began = ended - pooled.waitDuration
+        emit(PlaybackEvent(itemID: itemID, timestamp: began, kind: .playerWaitBegan), to: recorder)
+        emit(PlaybackEvent(itemID: itemID, timestamp: ended, kind: .playerWaitEnded), to: recorder)
+    }
+
     private func attach(pooled: PooledPlayer, item: AVPlayerItemAdapter, at index: Int) {
+        let feedItem = manifest.items[index]
+
         // Looping by seek-to-zero rather than AVPlayerLooper, which would require an
         // AVQueuePlayer and fragment the item's access log — see `docs/decisions.md`.
         let token = NotificationCenter.default.addObserver(
@@ -143,15 +198,56 @@ final class FeedCoordinator {
         }
 
         pooled.player.replaceCurrentItem(with: item)
-        attachments[index] = Attachment(pooled: pooled, item: item, endOfItemToken: token)
 
-        renderTarget(index)?.attachPlayer(pooled.player)
+        let target = renderTarget(index)
+        // Attach the layer *before* observing it, so `isReadyForDisplay` is observed on the layer
+        // that will actually render this item.
+        target?.attachPlayer(pooled.player)
+
+        let observer = PlaybackObserver(
+            itemID: feedItem.id,
+            player: (pooled.player as? AVPlayerAdapter)?.player ?? AVPlayer(),
+            item: item.item,
+            layer: target?.readinessLayer,
+            clock: clock,
+            emit: { [pipe] event in pipe.send(event) }
+        )
+
+        attachments[index] = Attachment(
+            pooled: pooled,
+            item: item,
+            endOfItemToken: token,
+            observer: observer
+        )
+
         pooled.player.play()
 
         Log.playback.info(
             """
             Playing index \(index, privacy: .public) \
             (pool wait \(pooled.waitDuration * 1000, format: .fixed(precision: 1), privacy: .public) ms)
+            """
+        )
+    }
+
+    /// Reports the folded record once the item view closes.
+    ///
+    /// Temporary until the HUD (M4) and dashboard (M6) surface these properly, but useful now: it
+    /// is the first point at which the whole chain — observation, stamping, ordered delivery, and
+    /// the pure fold — can be seen producing a number end to end.
+    private nonisolated static func logRecord(for itemID: String, from recorder: SessionRecorder) async {
+        guard let record = await recorder.records.last(where: { $0.itemID == itemID }) else { return }
+        let ttff = record.timeToFirstFrame.map { String(format: "%.0f ms", $0 * 1000) } ?? "never rendered"
+        let switches = record.bitrateSwitchCount.map(String.init) ?? "n/a"
+        Log.metrics.info(
+            """
+            \(itemID, privacy: .public): ttff \(ttff, privacy: .public), \
+            watch \(record.watchDuration, format: .fixed(precision: 2), privacy: .public)s, \
+            stalls \(record.stallCount, privacy: .public) \
+            (\(record.totalStallDuration, format: .fixed(precision: 2), privacy: .public)s, \
+            ratio \(record.rebufferRatio, format: .fixed(precision: 3), privacy: .public)), \
+            switches \(switches, privacy: .public), \
+            wait \(record.playerWaitDuration * 1000, format: .fixed(precision: 1), privacy: .public) ms
             """
         )
     }
@@ -170,13 +266,23 @@ final class FeedCoordinator {
 
         guard let attachment = attachments.removeValue(forKey: index) else { return }
 
+        // Closes watch accounting, and closes any stall still open at this moment — an item the
+        // user scrolled away from while it was still spinning really did stall for that long.
+        emit(
+            PlaybackEvent(itemID: manifest.items[index].id, timestamp: clock.now(), kind: .itemReleased),
+            to: recorder
+        )
+
         // Order matters and is the subject of `PlayerRenderTarget`'s ordering rule: unbind the
-        // layer first, then drop the observer, then hand the player back. Releasing first
-        // would let the next cell adopt a player the old layer still references.
+        // layer first, then drop every observation, then hand the player back. Releasing first
+        // would let the next cell adopt a player the old layer still references, and a surviving
+        // KVO registration would attribute the next item's events to this one.
         renderTarget(index)?.attachPlayer(nil)
+        attachment.observer.invalidate()
         NotificationCenter.default.removeObserver(attachment.endOfItemToken)
 
-        Task { [pool] in
+        let itemID = manifest.items[index].id
+        Task { [pool, recorder] in
             await pool.release(attachment.pooled)
             // Logged so the M2 acceptance criterion — occupancy returns to zero when idle —
             // is observable rather than inferred from playback appearing to work.
@@ -188,6 +294,7 @@ final class FeedCoordinator {
                 occupancy \(occupancy, privacy: .public), free \(free, privacy: .public)
                 """
             )
+            await Self.logRecord(for: itemID, from: recorder)
         }
     }
 }

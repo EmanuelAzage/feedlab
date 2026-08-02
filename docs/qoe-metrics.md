@@ -4,7 +4,7 @@ title: QoE Metrics — Definitions and Measurement
 description: What each quality-of-experience metric means and exactly how FeedLab measures it from AVFoundation
 status: living
 tags: [qoe, metrics, avfoundation, measurement]
-timestamp: 2026-08-02T22:15:35Z
+timestamp: 2026-08-02T23:58:21Z
 related: [playback-engine.md, observability.md, experiment-harness.md]
 ---
 
@@ -24,6 +24,16 @@ Cross-check against `AVPlayerItemAccessLogEvent.startupTime`, which measures the
 Fraction of intended watch time spent stalled. The single best summary of playback smoothness. Industry framing is that even low single-digit percentages are noticeable.
 
 **Measured as:** `totalStallDuration / watchDuration`. Stall begins when `AVPlayer.timeControlStatus == .waitingToPlayAtSpecifiedRate` **and** `reasonForWaitingToPlay == .toMinimizeStalls`; it ends when status returns to `.playing`. Cross-check stall *count* against `AVPlayerItemPlaybackStalled` notifications and `accessLog` `numberOfStalls`. Exclude user-initiated pauses from both numerator and denominator.
+
+**A stall only counts after playback has begun.** `AVPlayer` enters exactly the state above while
+filling its buffer *before the first frame*, so the condition as stated is satisfied by every item's
+startup. Counting that would report startup twice — once as time-to-first-frame, again as a rebuffer —
+and inflate every rebuffer ratio by a roughly constant amount. A constant bias is worse than a random
+one: it survives averaging, moves every arm the same way, and looks like a real finding.
+
+Observed in M3 before the guard existed: **every item reported exactly one stall**, of 0.4–0.65 s. With
+the rule corrected, clean playback of the same items reports zero. The engine therefore ignores any
+`stallBegan` preceding the first `playbackStarted` for that item view.
 
 ### Stall count
 Number of rebuffering interruptions. Distinct from ratio: one 4-second stall and eight 0.5-second stalls score the same ratio but feel very different.

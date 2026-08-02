@@ -65,14 +65,30 @@ enum MetricsEngine {
 
     // MARK: - Stalls
 
+    /// A stall is an interruption **after playback has begun**.
+    ///
+    /// This is the difference between startup and rebuffering, and getting it wrong is expensive.
+    /// `AVPlayer` enters `.waitingToPlayAtSpecifiedRate` with reason `.toMinimizeStalls` while it
+    /// fills the buffer *before* the first frame plays, which satisfies the stall condition
+    /// literally — so a naive reading counts every item's startup as a rebuffer. Startup is already
+    /// measured, as time-to-first-frame; counting it again here would report it twice and inflate
+    /// every rebuffer ratio by a roughly constant amount, which is worse than a random error
+    /// because it survives averaging and looks like a real finding.
+    ///
+    /// Confirmed empirically before this guard existed: every item reported exactly one stall.
     private static func applyStalls(from events: [PlaybackEvent], t0: TimeInterval, to record: inout PlaybackRecord) {
         var openedAt: TimeInterval?
         var count = 0
         var total: TimeInterval = 0
+        var hasStartedPlaying = false
 
         for event in events {
             switch event.kind {
+            case .playbackStarted:
+                hasStartedPlaying = true
             case .stallBegan:
+                // Before first playback this is startup buffering, not a rebuffer.
+                guard hasStartedPlaying else { break }
                 // Ignore a second stallBegan while one is open; AVFoundation can report the
                 // waiting state more than once for a single interruption.
                 if openedAt == nil {

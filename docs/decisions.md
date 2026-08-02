@@ -4,13 +4,33 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-02T23:11:54Z
+timestamp: 2026-08-02T23:58:21Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-02 — Startup buffering is not a stall
+`AVPlayer` enters `.waitingToPlayAtSpecifiedRate` with reason `.toMinimizeStalls` while filling its buffer
+*before the first frame*, which satisfies the stall condition in `qoe-metrics.md` exactly as written. Taken
+literally it made **every item report exactly one stall** of 0.4–0.65 s — startup counted twice, once as
+time-to-first-frame and again as a rebuffer. A constant bias like that is more dangerous than a noisy one:
+it survives averaging, shifts every arm identically, and reads as a genuine result. The engine now ignores
+any `stallBegan` preceding the first `playbackStarted` for that item view, and clean playback of the same
+streams reports zero.
+
+The fix also exposed under-specified tests: several fixtures omitted `.playbackStarted` and had been passing
+because the rule was too permissive. Real event streams always contain it before a genuine rebuffer.
+
+## 2026-08-02 — Events are delivered through an ordered `AsyncStream`, not a task per event
+The obvious `Task { await recorder.record(event) }` per callback spawns unordered tasks: an event stamped
+before `.itemReleased` can arrive after it, land in a fresh bucket, and never be folded. Timestamps would
+still be right and the record would still be wrong. `PlaybackEventPipe` wraps an unbounded `AsyncStream`
+whose `yield` is thread-safe and order-preserving, drained by one detached consumer — the single serial
+context `architecture.md` calls for. Buffering is unbounded deliberately: dropping events under load would
+corrupt records at exactly the moments worth measuring.
 
 ## 2026-08-02 — `PlaybackEvent` lives in `Metrics/`, not `Instrumentation/`
 `architecture.md` originally placed the event vocabulary under `Instrumentation/`. Moved, because this type

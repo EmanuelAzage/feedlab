@@ -32,12 +32,14 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
 
 ## M3 — Instrumentation and metrics
 - [x] `PlaybackEvent` vocabulary — including `.userPaused`/`.userResumed`, which the pause-exclusion rule in `qoe-metrics.md` requires whether or not the gesture exists yet.
-- [ ] `PlaybackObserver` (KVO on `timeControlStatus`, `reasonForWaitingToPlay`, `isReadyForDisplay`, item status; notifications for stalls, access/error log entries, end-of-item), stamping timestamps at the callback.
+- [x] `PlaybackObserver` (KVO on `timeControlStatus`, `reasonForWaitingToPlay`, `isReadyForDisplay`; notifications for access/error log entries and end-of-item), stamping timestamps at the callback, with `invalidate()` before release. Delivery via `PlaybackEventPipe` (`AsyncStream`) into `SessionRecorder`.
 - [x] Pure `MetricsEngine` folding events → `PlaybackRecord`; session aggregation with p90 (nearest-rank, stated in `SessionSummary`).
 - [x] Full unit suite per `testing.md` — 62 tests across 5 suites, including the `Metrics/` purity guard.
 - [ ] **Playback gestures** (specified in `product-spec.md`, previously missing from every milestone): tap → play/pause emitting `.userPaused`/`.userResumed`, double-tap → seek to start, long-press → source info. Landed here because the pause events are a metrics correctness requirement, not a UI nicety.
 - [ ] Minimal scrubber with elapsed/duration (`product-spec.md`).
 - **Accept:** every metric in `qoe-metrics.md` computed for each item; metrics tests pass; `Metrics/` imports no AVFoundation.
+  - *Verified end to end on simulator 2026-08-02*, real playback producing e.g. `apple-bipbop-fmp4: ttff 356 ms, watch 5.40s, stalls 0, ratio 0.000, switches 3` — observation, callback-site stamping, ordered delivery and the pure fold all working together. Switch counts of 2/0/3 across three streams confirm ABR detection is real rather than constant.
+  - *Outstanding:* peak memory (needs M4's sampler) and the gestures/scrubber below.
 
 ## M4 — Live HUD
 - [ ] HUD overlay per `observability.md`, ≤4 Hz updates, arm name prominent, debug-only.

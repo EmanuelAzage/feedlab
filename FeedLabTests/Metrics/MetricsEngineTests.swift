@@ -81,11 +81,49 @@ struct MetricsEngineTests {
 
     // MARK: - Stalls
 
+    @Test("Startup buffering is not a rebuffer")
+    func startupBufferingIsNotAStall() {
+        // What AVFoundation actually reports for a fresh item: it waits to minimize stalls while
+        // filling the buffer, *then* plays. Counting that as a stall would report startup twice —
+        // once as TTFF and again in rebuffer ratio — inflating every ratio by a near-constant.
+        let record = fold([
+            (0.0, .itemBecameCurrent),
+            (0.1, .stallBegan),
+            (1.3, .stallEnded),
+            (1.3, .playbackStarted),
+            (1.3, .readyForDisplay),
+            (10.0, .itemReleased)
+        ])
+
+        #expect(record.stallCount == 0)
+        #expect(record.totalStallDuration == 0)
+        #expect(record.rebufferRatio == 0)
+        // Startup is not lost — it is measured where it belongs.
+        #expect(isClose(record.timeToFirstFrame, 1.3))
+    }
+
+    @Test("A stall after playback begins is counted")
+    func stallAfterStartIsCounted() {
+        let record = fold([
+            (0.0, .itemBecameCurrent),
+            (0.1, .stallBegan),
+            (1.0, .stallEnded),
+            (1.0, .playbackStarted),
+            (4.0, .stallBegan),
+            (6.0, .stallEnded),
+            (10.0, .itemReleased)
+        ])
+
+        #expect(record.stallCount == 1, "only the post-start interruption counts")
+        #expect(record.totalStallDuration == 2.0)
+    }
+
     @Test("A single long stall")
     func singleLongStall() {
         let record = fold([
             (0.0, .itemBecameCurrent),
             (0.2, .readyForDisplay),
+            (0.2, .playbackStarted),
             (2.0, .stallBegan),
             (6.0, .stallEnded),
             (10.0, .itemReleased)
@@ -101,7 +139,8 @@ struct MetricsEngineTests {
     func manyShortStalls() {
         var events: [(TimeInterval, PlaybackEvent.Kind)] = [
             (0.0, .itemBecameCurrent),
-            (0.2, .readyForDisplay)
+            (0.2, .readyForDisplay),
+            (0.2, .playbackStarted)
         ]
         for index in 0..<8 {
             let start = 1.0 + Double(index)
@@ -123,6 +162,7 @@ struct MetricsEngineTests {
         // the worst experiences invisible.
         let record = fold([
             (0.0, .itemBecameCurrent),
+            (0.5, .playbackStarted),
             (1.0, .stallBegan),
             (4.0, .itemReleased)
         ])
@@ -135,6 +175,7 @@ struct MetricsEngineTests {
     func repeatedStallBegan() {
         let record = fold([
             (0.0, .itemBecameCurrent),
+            (0.5, .playbackStarted),
             (1.0, .stallBegan),
             (1.5, .stallBegan),
             (3.0, .stallEnded),
@@ -165,6 +206,7 @@ struct MetricsEngineTests {
     func userPauseDoesNotCountAsStall() {
         let paused = fold([
             (0.0, .itemBecameCurrent),
+            (0.5, .playbackStarted),
             (1.0, .stallBegan),
             (2.0, .stallEnded),
             (3.0, .userPaused),
@@ -314,6 +356,7 @@ struct MetricsEngineTests {
             (0.0, .itemBecameCurrent),
             (6.0, .stallEnded),
             (2.0, .stallBegan),
+            (0.2, .playbackStarted),
             (0.2, .readyForDisplay)
         ])
 

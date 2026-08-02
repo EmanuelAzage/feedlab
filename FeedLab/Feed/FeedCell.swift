@@ -64,9 +64,9 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
         playerLayer.player = (player as? AVPlayerAdapter)?.player
     }
 
-    /// `true` once the layer has a frame to show — the `t1` endpoint for time-to-first-frame.
-    var isReadyForDisplay: Bool {
-        playerLayer.isReadyForDisplay
+    /// The layer whose `isReadyForDisplay` marks the first rendered frame.
+    var readinessLayer: AVPlayerLayer? {
+        playerLayer
     }
 
     func configure(with item: FeedItem) {

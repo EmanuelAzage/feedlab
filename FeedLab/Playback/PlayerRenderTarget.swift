@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 
 /// A surface a borrowed player can render into.
@@ -12,4 +13,11 @@ import Foundation
 @MainActor
 protocol PlayerRenderTarget: AnyObject {
     func attachPlayer(_ player: (any PlayerProviding)?)
+
+    /// The layer whose `isReadyForDisplay` marks the first rendered frame — `t1` for
+    /// time-to-first-frame. Exposed so `PlaybackObserver` can KVO it directly and stamp the
+    /// timestamp inside that callback; routing it through a closure on the cell would add a hop
+    /// between the frame appearing and the clock being read, which is precisely what the
+    /// measurement discipline forbids.
+    var readinessLayer: AVPlayerLayer? { get }
 }

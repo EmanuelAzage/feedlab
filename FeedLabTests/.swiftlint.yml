@@ -1,0 +1,14 @@
+# Nested configuration for the test target.
+#
+# Test suites are flat lists of independent cases, so the size rules that keep production types
+# honest measure nothing here — a long suite is thorough, not complex. Splitting a coherent suite
+# to satisfy a line count would scatter related cases across files for no reader's benefit.
+#
+# Everything else, including the ban on force-unwrapping, still applies.
+type_body_length:
+  warning: 600
+  error: 800
+
+file_length:
+  warning: 800
+  error: 1000

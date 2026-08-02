@@ -80,13 +80,19 @@ final class FeedViewController: UIViewController {
     #endif
 
     private func configureCoordinator() {
+        let recorder = SessionRecorder(arm: Self.defaultArm)
         coordinator = FeedCoordinator(
             manifest: manifest,
-            pool: PlayerPool(capacity: .bounded(Self.poolCapacity))
+            pool: PlayerPool(capacity: .bounded(Self.poolCapacity)),
+            recorder: recorder
         ) { [weak self] index in
             self?.collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? FeedCell
         }
     }
+
+    /// Until `ArmRegistry` exists (M5) every session is the control arm, which is what the current
+    /// behaviour actually is: current item only, no preload.
+    private static let defaultArm = "baseline"
 
     /// Default from `docs/playback-engine.md`: current, next, previous. Becomes an experiment
     /// variable once `ArmRegistry` exists (M5).
