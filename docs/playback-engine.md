@@ -91,10 +91,46 @@ Implementations (these are the experiment arms — see `experiment-harness.md`):
 |---|---|---|---|
 | `NoPreload` | current only | system defaults | Baseline. Worst TTFF, least bandwidth. |
 | `PreloadNext1` | current, next | default forward buffer | Big TTFF win for the common forward scroll. |
-| `PreloadNext3Capped` | current + next 3 | forward buffer capped (e.g. 2–4s), peak bitrate capped on non-current | Better TTFF on fast scroll; risks memory and wasted bytes. |
+| `PreloadNext3Capped` | current + next 3 | forward buffer capped to ~1 segment (**see granularity note**), peak bitrate capped on non-current | Better TTFF on fast scroll; risks memory and wasted bytes. |
 | `PreloadWindow` | previous 1 + next 2 | default | Handles back-scroll; costs a pool slot. |
 
 Strategies are **pure and unit-tested** — index math and configuration only, no AVFoundation. That keeps the interesting logic verifiable without a device.
+
+### Buffer cap granularity — measured 2026-08-02
+
+`preferredForwardBufferDuration` **cannot go below one segment.** Four items capped at 5 s buffered ~10 s
+each, because Apple's BipBop segments are ~10 s (`#EXT-X-TARGETDURATION:11`, `#EXTINF:9.98`). The player
+cannot hold a fraction of a segment, so any cap below segment duration produces identical behaviour.
+
+This invalidates the "e.g. 2–4 s" figure this doc previously carried: on a 10 s-segment stream, 2 s, 4 s and
+10 s are the same setting. An arm configured that way would appear to test a capped buffer while testing
+nothing, and its comparison against `PreloadNext1` would silently reduce to a test of preload depth alone.
+
+Consequences for arm design:
+- Express caps in **segments, not seconds**, or pick seconds knowing the corpus's segment duration.
+- Meaningful cap values are ~1 segment (~10 s), ~2 segments (~20 s), and so on.
+- Segment duration varies per stream, so a mixed manifest will not respond uniformly to one cap. Record
+  which streams a capped arm actually affected rather than assuming it applied everywhere.
+- Progressive MP4 items have no segments and ignore this lever differently again — another reason
+  `Manifest.hlsItems` exists.
+
+### Why capping matters at all — measured 2026-08-02
+
+Buffering is **resident memory**, not disk-backed cache. Attached-but-never-played items, macOS,
+`phys_footprint` delta:
+
+| Case | Buffered | Footprint delta |
+|---|---|---|
+| 1 item, system default | 907.8 s | +57.9 MB |
+| 4 items, system default | 538.5 s | +90.9 MB |
+| 4 items, capped 5 s | 39.6 s | **+1.5 MB** |
+
+The four-item default case was still filling when sampled (it buffered *less in total* than the single item,
+because four concurrent loads contend for bandwidth), so +90.9 MB understates steady state.
+
+Directional only — macOS, single run, and `phys_footprint` on a Mac is not iOS memory. It establishes that
+the lever works and roughly how much it matters, not a publishable figure. The device measurement is an
+explicit M4 acceptance item.
 
 ## Preparation has two tiers
 

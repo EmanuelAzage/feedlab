@@ -31,12 +31,17 @@ enum PlayerItemStatus: Equatable, Sendable {
 
 /// The buffering levers a preload strategy pulls.
 ///
-/// Measured motivation for capping the forward buffer (macOS, Apple BipBop, 2026-08-02): an
-/// item left at the system default buffered ~908 s of content within six seconds of being
-/// attached, reaching `isPlaybackBufferFull`. Multiplied across a four-player pool that is a
-/// memory problem, which is exactly what `PreloadNext3Capped` exists to test.
+/// Measured motivation for capping the forward buffer (macOS, Apple BipBop, 2026-08-02):
+/// four attached-but-unplayed items at the system default grew `phys_footprint` by ~91 MB;
+/// the same four capped at 5 s grew it by ~1.5 MB. Buffering is resident memory, not
+/// disk-backed cache. Directional only — macOS, single run — but it is why
+/// `PreloadNext3Capped` exists. See `docs/playback-engine.md`.
 struct BufferConfiguration: Equatable, Sendable {
     /// Seconds to buffer ahead. `0` means "system default", which is *not* a small number.
+    ///
+    /// **Cannot go below one segment.** A 5 s request against ~10 s segments yields ~10 s, so
+    /// any value under the stream's segment duration is indistinguishable from that duration.
+    /// Choose caps in segment multiples, not arbitrary seconds.
     var preferredForwardBufferDuration: TimeInterval
     /// `false` starts fast and risks stalling; `true` starts safe.
     var automaticallyWaitsToMinimizeStalling: Bool

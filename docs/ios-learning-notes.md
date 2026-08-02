@@ -57,6 +57,35 @@ Modern async `load(.isPlayable, .duration, ...)` replaces the older `loadValuesA
 ## Buffering knobs
 `preferredForwardBufferDuration` (how much to buffer ahead), `automaticallyWaitsToMinimizeStalling` (start fast vs. start safe), `preferredPeakBitRate` (cap the ladder). These are the levers the preload strategies pull; note the measured effect of each rather than the documented one.
 
+**M2 — the buffer is resident memory, and the cap has a floor.** Two things measured on macOS with four
+attached-but-never-played items (`phys_footprint` delta):
+
+| Case | Buffered | Footprint delta |
+|---|---|---|
+| 1 item, system default | 907.8 s | +57.9 MB |
+| 4 items, system default | 538.5 s | +90.9 MB |
+| 4 items, capped 5 s | 39.6 s | +1.5 MB |
+
+First: **buffering is not disk-backed.** I had assumed the "908 s buffered" figure implied a memory problem;
+that was an inference from a *duration*, and durations are not bytes — HLS segments could plausibly have
+been spooled to disk. They are not, and the lever works: ~60× less footprint growth when capped. Worth
+noting the four-item default case buffered *less in total* than the single item, because four concurrent
+loads contend for bandwidth — so it was still filling when sampled and +90.9 MB understates steady state.
+
+Second, and the more useful correction: **`preferredForwardBufferDuration` cannot go below one segment.**
+Capping at 5 s produced ~10 s per item, because BipBop segments are ~10 s (`#EXT-X-TARGETDURATION:11`,
+`#EXTINF:9.9766`). The player cannot hold a fraction of a segment. Our own spec had suggested "e.g. 2–4 s"
+for the capped arm, which on this corpus would have been a **no-op** — the arm would have looked like it was
+testing a buffer cap while testing only preload depth. Caps belong in segment multiples.
+
+**Bridge to prior experience:** the same class of mistake as assuming a downsampled image costs less
+resident memory than its decode buffer — the knob you set and the resource you consume are separated by an
+implementation detail (segment size here, decode geometry there), and only measuring finds the floor.
+
+**Method note:** both findings came from throwaway scripts in a scratch directory, deliberately not
+committed as tests — `testing.md` forbids CI tests against live streams. What lands in the repo is the
+finding and its caveats, not the harness.
+
 ## HLS and ABR
 Multi-variant playlists, the bitrate ladder, and how the player switches variants under changing throughput. Observed vs. indicated bitrate, and why a downswitch is preceded by observed falling below indicated. Contrast with progressive MP4, which has none of this.
 

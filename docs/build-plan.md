@@ -36,7 +36,8 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
 ## M4 — Live HUD
 - [ ] HUD overlay per `observability.md`, ≤4 Hz updates, arm name prominent, debug-only.
 - [ ] Memory sampler (resident size) feeding session peak.
-- **Accept:** HUD numbers move sensibly under Network Link Conditioner throttling; enabling the HUD doesn't measurably change TTFF (compare a run with it off).
+- [ ] **On-device confirmation of the buffer/memory relationship.** The macOS probe (`playback-engine.md`) showed ~91 MB vs ~1.5 MB for four attached items at default vs 5 s cap, but macOS `phys_footprint` is not iOS memory and it was a single run. Re-measure on device with the sampler before any claim about capping reaches the README.
+- **Accept:** HUD numbers move sensibly under Network Link Conditioner throttling; enabling the HUD doesn't measurably change TTFF (compare a run with it off); the capped-vs-uncapped footprint difference is confirmed on device or the strategy table is revised.
 
 ## M5 — Preload strategies and experiment harness
 - [ ] `PreloadStrategy` protocol + the four strategies + `pool-unbounded` control; `ArmRegistry`; arm selection resets the session.
