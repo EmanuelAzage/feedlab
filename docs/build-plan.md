@@ -31,9 +31,12 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
   - *Not a published number:* single run, no fixed scroll script, unthrottled network. It clears the criterion; it does not enter the README.
 
 ## M3 — Instrumentation and metrics
-- [ ] `PlaybackEvent` vocabulary; `PlaybackObserver` (KVO on `timeControlStatus`, `reasonForWaitingToPlay`, `isReadyForDisplay`, item status; notifications for stalls, access/error log entries, end-of-item).
-- [ ] Pure `MetricsEngine` folding events → `PlaybackRecord`; session aggregation with p90.
-- [ ] Full unit suite per `testing.md` (this is the milestone where test coverage is earned).
+- [x] `PlaybackEvent` vocabulary — including `.userPaused`/`.userResumed`, which the pause-exclusion rule in `qoe-metrics.md` requires whether or not the gesture exists yet.
+- [ ] `PlaybackObserver` (KVO on `timeControlStatus`, `reasonForWaitingToPlay`, `isReadyForDisplay`, item status; notifications for stalls, access/error log entries, end-of-item), stamping timestamps at the callback.
+- [x] Pure `MetricsEngine` folding events → `PlaybackRecord`; session aggregation with p90 (nearest-rank, stated in `SessionSummary`).
+- [x] Full unit suite per `testing.md` — 62 tests across 5 suites, including the `Metrics/` purity guard.
+- [ ] **Playback gestures** (specified in `product-spec.md`, previously missing from every milestone): tap → play/pause emitting `.userPaused`/`.userResumed`, double-tap → seek to start, long-press → source info. Landed here because the pause events are a metrics correctness requirement, not a UI nicety.
+- [ ] Minimal scrubber with elapsed/duration (`product-spec.md`).
 - **Accept:** every metric in `qoe-metrics.md` computed for each item; metrics tests pass; `Metrics/` imports no AVFoundation.
 
 ## M4 — Live HUD

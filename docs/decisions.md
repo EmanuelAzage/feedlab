@@ -4,13 +4,42 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-02T22:51:05Z
+timestamp: 2026-08-02T23:11:54Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-02 — `PlaybackEvent` lives in `Metrics/`, not `Instrumentation/`
+`architecture.md` originally placed the event vocabulary under `Instrumentation/`. Moved, because this type
+*is* the boundary: if an `AVPlayerItem` ever appears on it the whole no-AVFoundation guarantee collapses
+silently. FeedLab is a single module, so the rule cannot be enforced by the compiler — it is enforced by a
+test that scans the `Metrics/` directory, and the vocabulary belongs inside the region that test covers.
+`Instrumentation/` produces events; `Metrics/` owns the contract and consumes them.
+
+## 2026-08-02 — Optional means "not applicable", never "zero"
+`bitrateSwitchCount`, `droppedFrames` and the bitrates are optional on `PlaybackRecord`, and aggregates skip
+nil rather than substituting zero. A progressive MP4 has no ladder, so reporting zero switches for it would
+read as a flawless ABR result on a stream where the question is meaningless — and it would dilute the mean
+for the HLS items that *can* switch. Since our corpus is 7 HLS to 15 progressive (`content-sources.md`),
+that dilution would have been the dominant effect rather than a rounding detail. The nil cases fall out of
+the event stream naturally: no access-log entry ever carried an indicated bitrate, so there is nothing to
+count.
+
+## 2026-08-02 — p90 is nearest-rank, and the method is named
+Percentile methods disagree, and the README quotes these numbers, so "p90" alone is not a specification.
+Nearest-rank always returns an actually-observed value; linear interpolation at the small n of a single run
+can land between two real samples and report a startup time that never occurred. Stated on `Percentile`
+itself so the definition travels with the code.
+
+## 2026-08-02 — Gestures assigned to M3 because user-pause is a metrics requirement
+`product-spec.md` has specified tap-to-pause, double-tap-to-seek and long-press-for-source since the start,
+but no milestone ever claimed them. They belong in M3 rather than a UI milestone because `qoe-metrics.md`
+requires excluding user-initiated pauses from **both** the numerator and denominator of rebuffer ratio —
+so `.userPaused`/`.userResumed` must exist in the vocabulary for the metric to be correct, gesture or no
+gesture. The events are implemented and tested ahead of the UI that will emit them.
 
 ## 2026-08-02 — `videoGravity = .resizeAspect`, not `.resizeAspectFill`
 A real short-form feed carries 9:16 content and fills the screen. Our corpus is landscape 16:9 test

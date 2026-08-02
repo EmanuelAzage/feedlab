@@ -4,7 +4,7 @@ title: FeedLab Product Spec
 description: Feed behavior, screens, HUD, debug menu, and UX rules for the playback measurement rig
 status: living
 tags: [spec, ux, feed, hud]
-timestamp: 2026-08-01T00:00:00Z
+timestamp: 2026-08-02T23:11:54Z
 related: [architecture.md, playback-engine.md, observability.md]
 ---
 
@@ -51,3 +51,17 @@ A **session** starts when the user begins scrolling under a selected arm and end
 ## Non-goals
 
 Accounts, backend, likes/comments/sharing, uploads, DRM/FairPlay, offline download, iPad-optimized layout, Picture-in-Picture, AirPlay, captions UI (though caption tracks in test streams should not break playback).
+
+### Portrait only, deliberately
+
+The app is locked to portrait. Two reasons, and the second is the one that decides it:
+
+1. It is the feed convention this app emulates.
+2. **Rotation is a measurement confound.** It resizes the `AVPlayerLayer` and forces a relayout of the
+   collection view mid-playback, while `testing.md`'s run protocol requires conditions held identical
+   across arms. Supporting landscape would mean either controlling for orientation in every run or
+   accepting an uncontrolled variable in the comparison.
+
+Worth noting the tension: the corpus is landscape 16:9, so landscape would actually display it better —
+which is what `videoGravity = .resizeAspect` addresses instead (`decisions.md`). If the corpus ever gains
+portrait-native content this is worth revisiting, but not before.
