@@ -12,6 +12,18 @@ related: [architecture.md, playback-engine.md]
 
 Add a dated entry for every non-obvious choice. Newest first.
 
+## 2026-08-02 — Asset work lives in a `nonisolated` type, not in the coordinator's task
+`FeedCoordinator` is `@MainActor`, and an unstructured `Task { }` created in a main-actor context
+**inherits that isolation**. Asset and item construction placed directly in that task therefore ran on the
+main thread, violating the architecture's central threading rule. Playback still worked — `await` releases
+the actor while AVFoundation does its I/O elsewhere — which is exactly what made the mistake invisible;
+it was found by logging `Thread.isMainThread`, not by anything misbehaving.
+
+`ItemPreparer.prepare` is `nonisolated async`, so per SE-0338 it runs on the global concurrent executor
+rather than the caller's actor, which is what actually moves the work off main. A debug `assert` on
+`!Thread.isMainThread` guards the invariant, so a future regression fails loudly in development instead of
+becoming a scroll hitch that only shows up in a device trace.
+
 ## 2026-08-02 — Playback intent fires on scroll *settle*, not continuously
 The feed tracks the current index continuously for display, but only a settled page starts playback.
 Continuous intent would acquire and release a player at every rounding boundary during a drag, thrashing the

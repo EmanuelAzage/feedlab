@@ -28,6 +28,7 @@
 		9F9999A87D71D91363AA176B /* PlaceholderPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = C199E322193E213C7440D2CA /* PlaceholderPalette.swift */; };
 		A44D56E9EB281ACD151208A1 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A390099E8495C9B8392753 /* Log.swift */; };
 		A613202F38878B53B7A80754 /* PlayerPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FEFDD6582A6770CBEF1F992 /* PlayerPool.swift */; };
+		A9264F27D5818BE4EBB67E8F /* ItemPreparer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18BD2B788C7D72C2C86F7DEA /* ItemPreparer.swift */; };
 		AAC07437B3CDBF218F5B700F /* RootFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06753A66FAA344D6184BC805 /* RootFactory.swift */; };
 		AEC676B1B7059FE7B2B37AEB /* Manifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9982AF5941E025CBC72679F /* Manifest.swift */; };
 		B3E6FD8CB62E593A59156A39 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF76A8D14D4F28B46477238 /* AppDelegate.swift */; };
@@ -51,6 +52,7 @@
 		031E241B9110B92BD1718054 /* ManifestLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManifestLoaderTests.swift; sourceTree = "<group>"; };
 		06753A66FAA344D6184BC805 /* RootFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootFactory.swift; sourceTree = "<group>"; };
 		15A390099E8495C9B8392753 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		18BD2B788C7D72C2C86F7DEA /* ItemPreparer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemPreparer.swift; sourceTree = "<group>"; };
 		1F0792F54CA34E863CD110A8 /* FeedCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCoordinator.swift; sourceTree = "<group>"; };
 		25894674E81297F1F81C4BE8 /* PlayerRenderTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRenderTarget.swift; sourceTree = "<group>"; };
 		29F712F8ED1DB2E16272CB1B /* FakePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakePlayer.swift; sourceTree = "<group>"; };
@@ -127,6 +129,7 @@
 			children = (
 				79936D5CE8277537950D8469 /* AudioSessionConfigurator.swift */,
 				A327E69BFC82A76B0F645ACD /* AVFoundationAdapters.swift */,
+				18BD2B788C7D72C2C86F7DEA /* ItemPreparer.swift */,
 				8FEFDD6582A6770CBEF1F992 /* PlayerPool.swift */,
 				E741CD2746F14461ADAB2AAD /* PlayerProviding.swift */,
 				25894674E81297F1F81C4BE8 /* PlayerRenderTarget.swift */,
@@ -323,6 +326,7 @@
 				3F3C57325209955CC5FDFB4F /* FeedItem.swift in Sources */,
 				DBE409941F30FCC5EB765CAA /* FeedViewController+DebugMenu.swift in Sources */,
 				5858B822C9C96E1205D3F0B3 /* FeedViewController.swift in Sources */,
+				A9264F27D5818BE4EBB67E8F /* ItemPreparer.swift in Sources */,
 				A44D56E9EB281ACD151208A1 /* Log.swift in Sources */,
 				AEC676B1B7059FE7B2B37AEB /* Manifest.swift in Sources */,
 				5A7B61A4D1DC572A6946617D /* ManifestLoader.swift in Sources */,

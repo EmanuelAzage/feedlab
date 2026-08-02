@@ -21,6 +21,7 @@ final class FeedCoordinator {
 
     private let manifest: Manifest
     private let pool: PlayerPool
+    private let preparer = ItemPreparer()
     /// Resolves an index to its on-screen cell, or nil if it is not currently displayed.
     private let renderTarget: @MainActor (Int) -> (any PlayerRenderTarget)?
 
@@ -89,22 +90,15 @@ final class FeedCoordinator {
         preparationTasks[index]?.cancel()
         let feedItem = manifest.items[index]
 
-        preparationTasks[index] = Task { [weak self] in
+        preparationTasks[index] = Task { [weak self, preparer] in
             guard let self else { return }
             defer { self.preparationTasks[index] = nil }
 
-            let asset = AVURLAsset(url: feedItem.url)
+            let item: AVPlayerItemAdapter
             do {
-                // Off the main actor: this is network I/O and it is the single most important
-                // thing to keep off the main thread, because scroll smoothness is a measured
-                // output of this rig.
-                try await withTaskCancellationHandler {
-                    _ = try await asset.load(.isPlayable, .duration)
-                } onCancel: {
-                    // Task cancellation alone does not stop an in-flight asset load.
-                    asset.cancelLoading()
-                }
-                try Task.checkCancellation()
+                // `prepare` is nonisolated async, so this hops off the main actor. Doing the
+                // work inline here would inherit main-actor isolation — see `ItemPreparer`.
+                item = try await preparer.prepare(url: feedItem.url)
             } catch {
                 Log.playback.debug("Asset load cancelled or failed for \(feedItem.id, privacy: .public)")
                 return
@@ -118,16 +112,14 @@ final class FeedCoordinator {
                     await self.pool.release(pooled)
                     return
                 }
-                self.attach(pooled: pooled, asset: asset, at: index)
+                self.attach(pooled: pooled, item: item, at: index)
             } catch {
                 Log.playback.debug("Player acquire cancelled for \(feedItem.id, privacy: .public)")
             }
         }
     }
 
-    private func attach(pooled: PooledPlayer, asset: AVURLAsset, at index: Int) {
-        let item = AVPlayerItemAdapter(asset: asset)
-
+    private func attach(pooled: PooledPlayer, item: AVPlayerItemAdapter, at index: Int) {
         // Looping by seek-to-zero rather than AVPlayerLooper, which would require an
         // AVQueuePlayer and fragment the item's access log — see `docs/decisions.md`.
         let token = NotificationCenter.default.addObserver(
