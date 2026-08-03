@@ -4,7 +4,7 @@ title: iOS Playback Learning Notes
 description: Living doc of AVFoundation and feed-playback internals - seeded with topics, filled in with notes as they come up in practice
 status: living
 tags: [learning, avfoundation, playback, performance]
-timestamp: 2026-08-02T22:51:05Z
+timestamp: 2026-08-03T00:29:26Z
 related: [playback-engine.md, qoe-metrics.md]
 ---
 
@@ -130,6 +130,48 @@ bug looks like a result.
 
 ## Access log and error log
 `accessLog()`/`errorLog()` and their `New...LogEntry` notifications are the media stack's own telemetry — the closest thing to a free QoE feed. Note the quirks discovered in practice (entries appended for non-stall reasons, fields that stay zero on progressive assets).
+
+**M3 — how a bitrate "switch" is actually counted.** `accessLog()` returns a *snapshot* of every entry so
+far; `newAccessLogEntryNotification` fires when one is appended. `PlaybackObserver` takes the last entry on
+each notification and flattens it into an `AccessLogSnapshot`.
+
+Three fields carry the ABR story, and the first two are the pairing that makes it legible:
+
+| Field | Meaning |
+|---|---|
+| `indicatedBitrate` | the **declared** bitrate of the variant currently selected — straight from the playlist's `BANDWIDTH` attribute |
+| `observedBitrate` | the **measured** throughput actually achieved |
+| `switchBitrate` | corroborating signal for a change |
+
+A *switch* is a rung change on the ladder — the player deciding, before fetching the next ~10 s segment,
+that a different variant suits current conditions. Observed falling below indicated is the precondition for
+a downswitch. Comparing a declared number against a measured one is the whole mechanism.
+
+Counting switches means **diffing `indicatedBitrate` against the previous entry, not counting entries.**
+Entries are appended for playlist reloads and server address changes too, so counting entries reports
+switches that never happened. There is a test pinning exactly this.
+
+Three traps found in practice:
+
+1. **`-1` means "not available", not zero.** Mapped to nil at the observer, which is where the metrics
+   layer's "optional means not applicable, never zero" convention originates rather than being imposed on
+   it. A progressive MP4 leaves most of these unpopulated.
+2. **`startupTime` is not our TTFF.** It is the media stack's own view — network/decode oriented — where
+   ours starts at playback intent and includes pool wait and layer attach. Both are recorded because *the
+   delta between them isolates app-induced latency from media-stack latency*, which is the number that
+   tells us whether a slow start is our fault or the network's.
+3. **The audio-only rung.** A deep enough downswitch lands on gear0, which has no video: frozen frame,
+   audio continuing. It feels like a stall to the user but produces no stall event and no dropped frames —
+   a degradation invisible to every metric we currently collect. Worth watching for under throttling.
+
+First real observation (simulator, warm cache, three Apple streams under identical conditions): **2, 0 and
+3** switches respectively. The variation is the cheap sanity check — a broken implementation (always zero,
+or counting every entry) would most likely produce a constant across streams. Weak evidence, but the only
+kind available without a controlled network.
+
+**Bridge to prior experience:** `srcset` picks an image size once per viewport; ABR re-decides every
+segment against a live bandwidth estimate, mid-playback. Same idea — serve from a ladder — but the decision
+is continuous rather than one-shot, which is why it needs telemetry to reason about at all.
 
 ## Player pooling and decode resources
 Why live `AVPlayer` count matters: memory, decode sessions, dropped frames. Note the actual numbers observed at pool sizes 3, 4, and unbounded.
