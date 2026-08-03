@@ -28,14 +28,27 @@ extension FeedViewController {
     @objc
     func presentDebugMenu() {
         guard presentedViewController == nil else { return }
-        let menu = DebugMenuView(manifest: manifest) { [weak self] in
+        let menu = DebugMenuView(manifest: manifest, settings: toolsSettings) { [weak self] in
             self?.dismiss(animated: true) {
                 // A sheet dismissal does not re-fire viewDidAppear on the presenter, so
                 // first responder has to be reclaimed here or shake stops working.
                 self?.becomeFirstResponder()
+                self?.syncHUDVisibility()
             }
         }
         present(UIHostingController(rootView: menu), animated: true)
+    }
+
+    /// Applies the HUD toggle. Called when the debug menu closes rather than observed continuously,
+    /// because the toggle is the only thing that changes it and a sheet dismissal is the moment the
+    /// operator is done deciding.
+    func syncHUDVisibility() {
+        guard let hudController else { return }
+        if toolsSettings.isHUDVisible, !hudController.isVisible {
+            hudController.show()
+        } else if !toolsSettings.isHUDVisible, hudController.isVisible {
+            hudController.hide()
+        }
     }
 }
 #endif

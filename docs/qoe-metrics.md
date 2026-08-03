@@ -4,7 +4,7 @@ title: QoE Metrics — Definitions and Measurement
 description: What each quality-of-experience metric means and exactly how FeedLab measures it from AVFoundation
 status: living
 tags: [qoe, metrics, avfoundation, measurement]
-timestamp: 2026-08-02T23:58:21Z
+timestamp: 2026-08-03T01:16:46Z
 related: [playback-engine.md, observability.md, experiment-harness.md]
 ---
 
@@ -65,7 +65,17 @@ support. Instantiation cost is a property of the player, not of contention; if i
 gets its own name.
 
 ### Peak resident memory
-Sampled during a session via `task_vm_info` / `mach_task_basic_info` (resident size), and validated against Instruments on device. Attributed to the arm, not to individual items.
+Sampled during a session via `task_vm_info` and validated against Instruments on device. Attributed to the arm, not to individual items.
+
+**Measured as:** `phys_footprint`, at 5 Hz, running whether or not the HUD is visible — a session metric
+must not depend on whether anyone was watching it. `phys_footprint` rather than `resident_size` because it
+is what Instruments shows in its Memory column and what jetsam uses to decide what to kill, so it is both
+the number a reader recognises and the number that actually constrains the app; `resident_size` counts
+shared and file-backed pages the process did not really cost.
+
+**Report it as "peak observed", not "peak."** Sampling cannot see a spike that begins and ends between two
+samples, so the figure is a **lower bound** on true peak. Faster sampling narrows the window without ever
+closing it. Any README figure must carry the sampling rate, or it claims a precision it does not have.
 
 ## Measurement discipline: when the clock is read
 

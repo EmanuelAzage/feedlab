@@ -4,7 +4,7 @@ title: FeedLab Build Plan
 description: Milestones M1-M6 with acceptance criteria, sized for incremental sessions
 status: living
 tags: [plan, milestones]
-timestamp: 2026-08-03T00:56:40Z
+timestamp: 2026-08-03T01:16:46Z
 related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
 ---
 
@@ -42,8 +42,8 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
   - *Every **per-item** metric in `qoe-metrics.md` is now computed.* Peak memory is a **session** metric attributed to the arm rather than the item, and belongs to M4's sampler — so M3's criterion is met.
 
 ## M4 — Live HUD
-- [ ] HUD overlay per `observability.md`, ≤4 Hz updates, arm name prominent, debug-only.
-- [ ] Memory sampler (resident size) feeding session peak.
+- [x] HUD overlay per `observability.md`, 4 Hz **sampled** (not throttled push), arm name prominent, `FEEDLAB_TOOLS`-only and verified absent from `Release` by symbol count. Off by default, toggled from the debug menu.
+- [x] Memory sampler feeding session peak. `phys_footprint` at 5 Hz, running whether or not the HUD is visible. Reports **peak observed**, never true peak — a spike between samples is invisible, so the figure is a lower bound.
 - [ ] **On-device confirmation of the buffer/memory relationship.** The macOS probe (`playback-engine.md`) showed ~91 MB vs ~1.5 MB for four attached items at default vs 5 s cap, but macOS `phys_footprint` is not iOS memory and it was a single run. Re-measure on device with the sampler before any claim about capping reaches the README.
 - **Accept:** HUD numbers move sensibly under Network Link Conditioner throttling; enabling the HUD doesn't measurably change TTFF (compare a run with it off); the capped-vs-uncapped footprint difference is confirmed on device or the strategy table is revised.
 

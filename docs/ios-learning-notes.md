@@ -4,7 +4,7 @@ title: iOS Playback Learning Notes
 description: Living doc of AVFoundation and feed-playback internals - seeded with topics, filled in with notes as they come up in practice
 status: living
 tags: [learning, avfoundation, playback, performance]
-timestamp: 2026-08-03T00:56:40Z
+timestamp: 2026-08-03T01:16:46Z
 related: [playback-engine.md, qoe-metrics.md]
 ---
 
@@ -150,6 +150,15 @@ a downswitch. Comparing a declared number against a measured one is the whole me
 Counting switches means **diffing `indicatedBitrate` against the previous entry, not counting entries.**
 Entries are appended for playlist reloads and server address changes too, so counting entries reports
 switches that never happened. There is a test pinning exactly this.
+
+**M4 — `observedBitrate` is throughput, not media bitrate, and the numbers look wrong until you know that.**
+The HUD's first live reading was `66930k / 3216k` for a stream whose top variant is 8 Mbps. Not a bug:
+`indicatedBitrate` is the *declared* rate of the selected variant (3216k matched
+`BANDWIDTH=3216424` in the advanced fMP4 playlist exactly — a free confirmation the mapping is right),
+while `observedBitrate` is how fast the last segment actually *downloaded*. On a fast link a 10 s segment
+arrives in a fraction of a second, so throughput far exceeds the media rate. The pairing only becomes
+meaningful when observed drops **below** indicated, which is the downswitch precondition. Worth knowing
+before putting a HUD screenshot in a README, where 66 Mbps would read as a broken instrument.
 
 Three traps found in practice:
 

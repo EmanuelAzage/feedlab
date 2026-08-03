@@ -24,7 +24,11 @@ final class FeedCoordinator {
     }
 
     private let manifest: Manifest
-    private let pool: PlayerPool
+    let pool: PlayerPool
+    /// Session-level, so it belongs beside the recorder rather than inside the HUD: peak memory is
+    /// attributed to the arm and must be tracked whether or not anyone is looking at it.
+    let memoryTracker = MemoryPeakTracker()
+    private var memorySamplingTask: Task<Void, Never>?
     private let preparer = ItemPreparer()
     private let clock: any TimestampSource
     private let pipe = PlaybackEventPipe()
@@ -71,11 +75,22 @@ final class FeedCoordinator {
                 await recorder.record(event)
             }
         }
+
+        // Runs regardless of HUD visibility — a session metric must not depend on whether it was
+        // being watched. 5 Hz; the figure remains a peak *observed*, never a true peak.
+        let tracker = memoryTracker
+        memorySamplingTask = Task.detached(priority: .utility) {
+            while !Task.isCancelled {
+                await tracker.sample()
+                try? await Task.sleep(for: MemoryPeakTracker.sampleInterval)
+            }
+        }
     }
 
     deinit {
         pipe.finish()
         forwardingTask?.cancel()
+        memorySamplingTask?.cancel()
     }
 
     /// Hands an event to the ordered pipe. Synchronous and thread-safe; the forwarding task drains

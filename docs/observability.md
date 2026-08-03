@@ -4,7 +4,7 @@ title: Observability — HUD, Dashboard, Signposts, Export
 description: How measurements are surfaced live, charted after the fact, exported, and captured as README screenshots
 status: living
 tags: [observability, hud, charts, signposts, screenshots]
-timestamp: 2026-08-01T22:15:43Z
+timestamp: 2026-08-03T01:16:46Z
 related: [qoe-metrics.md, experiment-harness.md, product-spec.md]
 ---
 
@@ -27,6 +27,16 @@ precisely when the HUD is most interesting — cannot turn the HUD into a load s
 measurement. A throttled push still pays per-event delivery cost before discarding.
 
 The M4 acceptance criterion (enabling the HUD must not measurably change TTFF) is the check on this.
+
+**Implemented M4.** Off by default, toggled from the debug menu — off has to be the baseline, since the
+criterion above can only be checked against runs without it. The timer is added to `RunLoop.Mode.common`,
+or it would freeze during a scroll drag and hide the numbers exactly when they change fastest. The overlay
+is `allowsHitTesting(false)`: it must never intercept the gestures whose effects it is measuring. Gated on
+`FEEDLAB_TOOLS` and verified absent from `Release` by symbol count.
+
+Reading the bitrate row: it shows **observed / indicated**, and observed is download *throughput*, so on a
+fast link it legitimately reads far above the media rate (66930k / 3216k was a real first reading). The row
+matters when observed falls *below* indicated — see `ios-learning-notes.md`.
 
 ## Dashboard (SwiftUI + Swift Charts)
 

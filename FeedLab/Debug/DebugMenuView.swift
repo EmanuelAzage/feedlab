@@ -9,6 +9,7 @@ import SwiftUI
 /// would be indistinguishable from a menu full of broken ones.
 struct DebugMenuView: View {
     let manifest: Manifest
+    @Bindable var settings: ToolsSettings
     /// Explicit rather than `@Environment(\.dismiss)` so the presenter can restore first
     /// responder afterwards — without that, the shake gesture works exactly once.
     let onDone: () -> Void
@@ -16,6 +17,7 @@ struct DebugMenuView: View {
     var body: some View {
         NavigationStack {
             List {
+                measurementSection
                 contentSection
                 buildSection
             }
@@ -26,6 +28,21 @@ struct DebugMenuView: View {
                     Button("Done", action: onDone)
                 }
             }
+        }
+    }
+
+    private var measurementSection: some View {
+        Section {
+            Toggle("Live HUD", isOn: $settings.isHUDVisible)
+        } header: {
+            Text("Measurement")
+        } footer: {
+            Text(
+                """
+                Off by default. M4's criterion is that enabling the HUD does not measurably change \
+                time-to-first-frame, which can only be checked against runs with it off.
+                """
+            )
         }
     }
 

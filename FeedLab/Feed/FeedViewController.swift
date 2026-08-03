@@ -28,6 +28,11 @@ final class FeedViewController: UIViewController {
     private var dataSource: UICollectionViewDiffableDataSource<Section, FeedItem>?
     private(set) var coordinator: FeedCoordinator?
 
+    #if FEEDLAB_TOOLS
+    let toolsSettings = ToolsSettings()
+    private(set) var hudController: HUDController?
+    #endif
+
     /// Resolves an index to its visible cell, or nil when it is not on screen.
     func collectionViewCell(at index: Int) -> FeedCell? {
         collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? FeedCell
@@ -97,6 +102,11 @@ final class FeedViewController: UIViewController {
         coordinator?.onProgress = { [weak self] index, elapsed, duration in
             self?.collectionViewCell(at: index)?.setProgress(elapsed: elapsed, duration: duration)
         }
+        #if FEEDLAB_TOOLS
+        if let coordinator {
+            hudController = HUDController(coordinator: coordinator, host: view)
+        }
+        #endif
     }
 
     /// Until `ArmRegistry` exists (M5) every session is the control arm, which is what the current
