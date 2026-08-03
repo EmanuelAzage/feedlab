@@ -4,7 +4,7 @@ title: FeedLab Build Plan
 description: Milestones M1-M6 with acceptance criteria, sized for incremental sessions
 status: living
 tags: [plan, milestones]
-timestamp: 2026-08-02T22:51:05Z
+timestamp: 2026-08-03T00:56:40Z
 related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
 ---
 
@@ -36,10 +36,10 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
 - [x] Pure `MetricsEngine` folding events → `PlaybackRecord`; session aggregation with p90 (nearest-rank, stated in `SessionSummary`).
 - [x] Full unit suite per `testing.md` — 62 tests across 5 suites, including the `Metrics/` purity guard.
 - [x] **Playback gestures** (specified in `product-spec.md`, previously missing from every milestone): tap → play/pause emitting `.userPaused`/`.userResumed`, double-tap → seek to start, long-press → source info. Landed here because the pause events are a metrics correctness requirement, not a UI nicety. *Verified end to end: an item on screen ~12.5 s with a ~4 s deliberate pause recorded `watch 8.80s`.*
-- [ ] Minimal scrubber with elapsed/duration (`product-spec.md`).
+- [x] Minimal scrubber with elapsed/duration (`product-spec.md`). Read-only, driven by a 4 Hz periodic time observer removed on teardown alongside every other registration. Deliberately not draggable: seeking mid-run is something the measurement protocol has no way to account for.
 - **Accept:** every metric in `qoe-metrics.md` computed for each item; metrics tests pass; `Metrics/` imports no AVFoundation.
   - *Verified end to end on simulator 2026-08-02*, real playback producing e.g. `apple-bipbop-fmp4: ttff 356 ms, watch 5.40s, stalls 0, ratio 0.000, switches 3` — observation, callback-site stamping, ordered delivery and the pure fold all working together. Switch counts of 2/0/3 across three streams confirm ABR detection is real rather than constant.
-  - *Outstanding:* peak memory (needs M4's sampler) and the gestures/scrubber below.
+  - *Every **per-item** metric in `qoe-metrics.md` is now computed.* Peak memory is a **session** metric attributed to the arm rather than the item, and belongs to M4's sampler — so M3's criterion is met.
 
 ## M4 — Live HUD
 - [ ] HUD overlay per `observability.md`, ≤4 Hz updates, arm name prominent, debug-only.

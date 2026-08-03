@@ -4,7 +4,7 @@ title: iOS Playback Learning Notes
 description: Living doc of AVFoundation and feed-playback internals - seeded with topics, filled in with notes as they come up in practice
 status: living
 tags: [learning, avfoundation, playback, performance]
-timestamp: 2026-08-03T00:29:26Z
+timestamp: 2026-08-03T00:56:40Z
 related: [playback-engine.md, qoe-metrics.md]
 ---
 
@@ -178,6 +178,11 @@ is continuous rather than one-shot, which is why it needs telemetry to reason ab
 switch is visually observable, which means the access-log switch count can be validated against something
 that does not come from the access log. Useful for the throttled runs in M6: force a downswitch with
 Network Link Conditioner and watch the gear number fall.
+
+The same trick validates the clock: BipBop also burns in its own timecode, and at the moment our scrubber
+read `0:07` the picture read `00:00:07.00`. Two independent confirmations from one test pattern — worth
+preferring BipBop over prettier content when checking instrumentation, because prettier content tells you
+nothing about itself.
 
 ## Player pooling and decode resources
 Why live `AVPlayer` count matters: memory, decode sessions, dropped frames. Note the actual numbers observed at pool sizes 3, 4, and unbounded.

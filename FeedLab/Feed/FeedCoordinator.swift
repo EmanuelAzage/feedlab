@@ -18,6 +18,9 @@ final class FeedCoordinator {
         let item: AVPlayerItemAdapter
         let endOfItemToken: NSObjectProtocol
         let observer: PlaybackObserver
+        /// Periodic time observer driving the scrubber. Another registration that must come off
+        /// before the player is recycled, or it keeps firing against the next item's playback.
+        var timeObserverToken: Any?
     }
 
     private let manifest: Manifest
@@ -40,6 +43,12 @@ final class FeedCoordinator {
     /// while buffering and during teardown. Only the coordinator knows a pause was *intended*, and
     /// that distinction is the whole basis for excluding it from rebuffer ratio.
     private(set) var isCurrentItemPaused = false
+
+    /// Reports playback progress for the scrubber: index, elapsed, and duration when known.
+    ///
+    /// A closure rather than a method on `PlayerRenderTarget`, which is about binding a player to a
+    /// surface; presenting progress is a separate concern and does not belong on that protocol.
+    var onProgress: (@MainActor (Int, TimeInterval, TimeInterval?) -> Void)?
 
     init(
         manifest: Manifest,
@@ -272,6 +281,7 @@ final class FeedCoordinator {
             endOfItemToken: token,
             observer: observer
         )
+        installProgressObserver(for: pooled, at: index)
 
         pooled.player.play()
 
@@ -281,6 +291,29 @@ final class FeedCoordinator {
             (pool wait \(pooled.waitDuration * 1000, format: .fixed(precision: 1), privacy: .public) ms)
             """
         )
+    }
+
+    /// Drives the scrubber at 4 Hz.
+    ///
+    /// The interval is the same budget the HUD gets (`docs/observability.md`): fast enough to look
+    /// continuous, slow enough not to become a load source. Note this cost is present in *every*
+    /// arm, so it shifts absolute numbers without biasing the comparison between them — but it is
+    /// still real, and it is the reason the interval is a stated choice rather than a default.
+    private func installProgressObserver(for pooled: PooledPlayer, at index: Int) {
+        guard let avPlayer = (pooled.player as? AVPlayerAdapter)?.player else { return }
+        let interval = CMTime(seconds: 0.25, preferredTimescale: 600)
+        let token = avPlayer.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            MainActor.assumeIsolated {
+                self?.reportProgress(at: index, elapsed: time.seconds)
+            }
+        }
+        attachments[index]?.timeObserverToken = token
+    }
+
+    private func reportProgress(at index: Int, elapsed: TimeInterval) {
+        guard let attachment = attachments[index] else { return }
+        let duration = attachment.item.item.duration
+        onProgress?(index, elapsed, duration.isNumeric ? duration.seconds : nil)
     }
 
     /// Reports the folded record once the item view closes.
@@ -333,6 +366,10 @@ final class FeedCoordinator {
         renderTarget(index)?.attachPlayer(nil)
         attachment.observer.invalidate()
         NotificationCenter.default.removeObserver(attachment.endOfItemToken)
+        if let token = attachment.timeObserverToken,
+           let avPlayer = (attachment.pooled.player as? AVPlayerAdapter)?.player {
+            avPlayer.removeTimeObserver(token)
+        }
 
         let itemID = manifest.items[index].id
         Task { [pool, recorder] in

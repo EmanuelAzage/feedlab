@@ -17,6 +17,12 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
     private let attributionLabel = UILabel()
     private let formatBadge = UILabel()
     private let pauseIndicator = UIImageView()
+    private let timeLabel = UILabel()
+    private let progressTrack = UIView()
+    /// A plain layer rather than a constrained subview: this is updated 4×/s, and a layout pass at
+    /// that cadence is avoidable work in a rig whose scroll smoothness is a measured output.
+    private let progressFill = CALayer()
+    private var progressFraction: Double = 0
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -42,7 +48,17 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
             width: bounds.width,
             height: Layout.scrimHeight
         )
+        layoutProgressFill()
         CATransaction.commit()
+    }
+
+    private func layoutProgressFill() {
+        progressFill.frame = CGRect(
+            x: 0,
+            y: 0,
+            width: progressTrack.bounds.width * progressFraction,
+            height: progressTrack.bounds.height
+        )
     }
 
     override func prepareForReuse() {
@@ -52,6 +68,7 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
         formatBadge.text = nil
         placeholderView.backgroundColor = .black
         setPaused(false)
+        setProgress(elapsed: 0, duration: nil)
         // A recycled cell must never keep the previous item's player: the collection view can
         // reuse this cell for a different index before the coordinator has torn the old
         // attachment down, and the leftover layer would show one video inside another's cell.
@@ -77,6 +94,32 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
         pauseIndicator.isHidden = !isPaused
     }
 
+    /// Elapsed / duration and the progress bar.
+    ///
+    /// Deliberately read-only: `product-spec.md` calls for a scrubber that is "minimal and
+    /// non-blocking", and this "isn't a player UI showcase". A draggable scrubber would also let
+    /// the operator seek mid-run, which the run protocol has no way to account for.
+    func setProgress(elapsed: TimeInterval, duration: TimeInterval?) {
+        if let duration, duration > 0, duration.isFinite {
+            timeLabel.text = "\(Self.formatted(elapsed)) / \(Self.formatted(duration))"
+            progressFraction = min(max(elapsed / duration, 0), 1)
+        } else {
+            // Live or not yet known. Show elapsed alone rather than a bar that means nothing.
+            timeLabel.text = Self.formatted(elapsed)
+            progressFraction = 0
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layoutProgressFill()
+        CATransaction.commit()
+    }
+
+    private static func formatted(_ seconds: TimeInterval) -> String {
+        guard seconds.isFinite, seconds >= 0 else { return "--:--" }
+        let total = Int(seconds.rounded(.down))
+        return String(format: "%d:%02d", total / 60, total % 60)
+    }
+
     func configure(with item: FeedItem) {
         placeholderView.backgroundColor = PlaceholderPalette.color(for: item.id)
         titleLabel.text = item.title
@@ -88,6 +131,24 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
     }
 
     // MARK: - Setup
+
+    private func configureTextStyles() {
+        titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        titleLabel.textColor = .white
+        titleLabel.numberOfLines = 2
+
+        attributionLabel.font = .systemFont(ofSize: 13, weight: .regular)
+        attributionLabel.textColor = UIColor.white.withAlphaComponent(0.7)
+        attributionLabel.numberOfLines = 2
+
+        formatBadge.font = .monospacedSystemFont(ofSize: 11, weight: .semibold)
+        formatBadge.textColor = UIColor.white.withAlphaComponent(0.85)
+
+        // Monospaced digits so the numbers do not jitter as they tick — the same rule the HUD
+        // follows (`docs/observability.md`).
+        timeLabel.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular)
+        timeLabel.textColor = UIColor.white.withAlphaComponent(0.6)
+    }
 
     private func configureHierarchy() {
         contentView.backgroundColor = .black
@@ -109,16 +170,13 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
         scrimLayer.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.75).cgColor]
         contentView.layer.addSublayer(scrimLayer)
 
-        titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
-        titleLabel.textColor = .white
-        titleLabel.numberOfLines = 2
+        configureTextStyles()
 
-        attributionLabel.font = .systemFont(ofSize: 13, weight: .regular)
-        attributionLabel.textColor = UIColor.white.withAlphaComponent(0.7)
-        attributionLabel.numberOfLines = 2
-
-        formatBadge.font = .monospacedSystemFont(ofSize: 11, weight: .semibold)
-        formatBadge.textColor = UIColor.white.withAlphaComponent(0.85)
+        progressTrack.backgroundColor = UIColor.white.withAlphaComponent(0.2)
+        progressTrack.translatesAutoresizingMaskIntoConstraints = false
+        progressFill.backgroundColor = UIColor.white.withAlphaComponent(0.85).cgColor
+        progressTrack.layer.addSublayer(progressFill)
+        contentView.addSubview(progressTrack)
 
         pauseIndicator.image = UIImage(
             systemName: "play.fill",
@@ -129,7 +187,7 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
         pauseIndicator.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(pauseIndicator)
 
-        let stack = UIStackView(arrangedSubviews: [formatBadge, titleLabel, attributionLabel])
+        let stack = UIStackView(arrangedSubviews: [formatBadge, titleLabel, attributionLabel, timeLabel])
         stack.axis = .vertical
         stack.spacing = Layout.stackSpacing
         stack.setCustomSpacing(Layout.badgeSpacing, after: formatBadge)
@@ -146,6 +204,11 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
             pauseIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             pauseIndicator.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
 
+            progressTrack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            progressTrack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            progressTrack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            progressTrack.heightAnchor.constraint(equalToConstant: Layout.progressHeight),
+
             stack.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: Layout.margin),
             stack.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -Layout.margin),
             stack.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -Layout.margin)
@@ -157,5 +220,6 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
         static let stackSpacing: CGFloat = 6
         static let badgeSpacing: CGFloat = 10
         static let scrimHeight: CGFloat = 220
+        static let progressHeight: CGFloat = 2
     }
 }

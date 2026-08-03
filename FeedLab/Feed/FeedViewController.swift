@@ -94,6 +94,9 @@ final class FeedViewController: UIViewController {
         ) { [weak self] index in
             self?.collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? FeedCell
         }
+        coordinator?.onProgress = { [weak self] index, elapsed, duration in
+            self?.collectionViewCell(at: index)?.setProgress(elapsed: elapsed, duration: duration)
+        }
     }
 
     /// Until `ArmRegistry` exists (M5) every session is the control arm, which is what the current
