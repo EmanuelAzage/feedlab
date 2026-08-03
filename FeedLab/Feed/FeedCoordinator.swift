@@ -34,6 +34,13 @@ final class FeedCoordinator {
     private var attachments: [Int: Attachment] = [:]
     private var preparationTasks: [Int: Task<Void, Never>] = [:]
 
+    /// Whether the user has deliberately paused the current item.
+    ///
+    /// Tracked here rather than read from `timeControlStatus`, because the player is also `.paused`
+    /// while buffering and during teardown. Only the coordinator knows a pause was *intended*, and
+    /// that distinction is the whole basis for excluding it from rebuffer ratio.
+    private(set) var isCurrentItemPaused = false
+
     init(
         manifest: Manifest,
         pool: PlayerPool,
@@ -83,6 +90,8 @@ final class FeedCoordinator {
             teardown(index: previous)
         }
         currentIndex = index
+        // A new item always starts playing; pause does not carry across items.
+        isCurrentItemPaused = false
 
         // `t0` for time-to-first-frame: stamped the moment intent exists, *before* any asset work
         // begins. Stamping after the load would measure only the tail of startup and would make
@@ -93,6 +102,50 @@ final class FeedCoordinator {
             to: recorder
         )
         beginPlayback(at: index)
+    }
+
+    // MARK: - User intent
+
+    /// Tap-to-toggle. Emits the events that make the pause exclusion in `qoe-metrics.md` possible:
+    /// a deliberate pause is removed from **both** the numerator and denominator of rebuffer ratio,
+    /// because a user who walked away did not experience that time as rebuffering.
+    ///
+    /// Returns the resulting paused state so the caller can update its affordance.
+    @discardableResult
+    func toggleUserPause() -> Bool {
+        guard let index = currentIndex, let attachment = attachments[index] else {
+            return isCurrentItemPaused
+        }
+        let itemID = manifest.items[index].id
+        let now = clock.now()
+
+        if isCurrentItemPaused {
+            attachment.pooled.player.play()
+            emit(PlaybackEvent(itemID: itemID, timestamp: now, kind: .userResumed), to: recorder)
+            isCurrentItemPaused = false
+        } else {
+            attachment.pooled.player.pause()
+            emit(PlaybackEvent(itemID: itemID, timestamp: now, kind: .userPaused), to: recorder)
+            isCurrentItemPaused = true
+        }
+        return isCurrentItemPaused
+    }
+
+    /// Double-tap. Restarts the current item from the beginning.
+    ///
+    /// Emits nothing: watch duration is wall-clock from intent to teardown, so replaying does not
+    /// change how long the user watched. Seeking is a navigation action, not a measurement event.
+    func seekCurrentItemToStart() {
+        guard let index = currentIndex, let attachment = attachments[index] else { return }
+        attachment.pooled.player.seekToStart()
+        if !isCurrentItemPaused {
+            attachment.pooled.player.play()
+        }
+    }
+
+    /// The item currently under playback intent, for the long-press source sheet.
+    var currentItem: FeedItem? {
+        currentIndex.flatMap { manifest.items.indices.contains($0) ? manifest.items[$0] : nil }
     }
 
     /// A cell became visible. Re-binds the layer if this index already holds a player, which

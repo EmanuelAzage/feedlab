@@ -16,6 +16,7 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
     private let titleLabel = UILabel()
     private let attributionLabel = UILabel()
     private let formatBadge = UILabel()
+    private let pauseIndicator = UIImageView()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -50,6 +51,7 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
         attributionLabel.text = nil
         formatBadge.text = nil
         placeholderView.backgroundColor = .black
+        setPaused(false)
         // A recycled cell must never keep the previous item's player: the collection view can
         // reuse this cell for a different index before the coordinator has torn the old
         // attachment down, and the leftover layer would show one video inside another's cell.
@@ -67,6 +69,12 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
     /// The layer whose `isReadyForDisplay` marks the first rendered frame.
     var readinessLayer: AVPlayerLayer? {
         playerLayer
+    }
+
+    /// Shows a paused affordance. Without it a tap that stops playback is indistinguishable from
+    /// the video having frozen — which in a rig about stalls is exactly the wrong ambiguity.
+    func setPaused(_ isPaused: Bool) {
+        pauseIndicator.isHidden = !isPaused
     }
 
     func configure(with item: FeedItem) {
@@ -112,6 +120,15 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
         formatBadge.font = .monospacedSystemFont(ofSize: 11, weight: .semibold)
         formatBadge.textColor = UIColor.white.withAlphaComponent(0.85)
 
+        pauseIndicator.image = UIImage(
+            systemName: "play.fill",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 56, weight: .semibold)
+        )
+        pauseIndicator.tintColor = UIColor.white.withAlphaComponent(0.85)
+        pauseIndicator.isHidden = true
+        pauseIndicator.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(pauseIndicator)
+
         let stack = UIStackView(arrangedSubviews: [formatBadge, titleLabel, attributionLabel])
         stack.axis = .vertical
         stack.spacing = Layout.stackSpacing
@@ -125,6 +142,9 @@ final class FeedCell: UICollectionViewCell, PlayerRenderTarget {
             placeholderView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             placeholderView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             placeholderView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+
+            pauseIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            pauseIndicator.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
 
             stack.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: Layout.margin),
             stack.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -Layout.margin),

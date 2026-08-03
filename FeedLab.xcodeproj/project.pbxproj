@@ -19,6 +19,7 @@
 		3F3C57325209955CC5FDFB4F /* FeedItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FBECBBFAAC668FECB2EED6F /* FeedItem.swift */; };
 		4ED32950C51616806EC5775D /* ManifestValidationError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE392A89317ECA0AE6C81A4 /* ManifestValidationError.swift */; };
 		52EB5FF0199A86445A7A6FB3 /* FakePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29F712F8ED1DB2E16272CB1B /* FakePlayer.swift */; };
+		573BE1590E5A829665478FBC /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = FC3509FBA34A55D9DF3F8B70 /* .swiftlint.yml */; };
 		5858B822C9C96E1205D3F0B3 /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9091FF0FDC5F59EE0F6BFC11 /* FeedViewController.swift */; };
 		5A7B61A4D1DC572A6946617D /* ManifestLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E92AC52751D2627A561867 /* ManifestLoader.swift */; };
 		5C7DD2D1844DEB29465E8BAB /* PlaybackEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26A72398BEA48EF1A19701B3 /* PlaybackEvent.swift */; };
@@ -31,6 +32,7 @@
 		7E7FEB7EC6B4E4017F1F321A /* PlaybackObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0374DBBE1E627D0C5AA8C8E8 /* PlaybackObserver.swift */; };
 		7E8459ADBC92D53D0A85045E /* PlayerPoolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D574E9F342F791E9401F1C2 /* PlayerPoolTests.swift */; };
 		873FA2253C5772BE7B259279 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41662360310B5E8DEA736153 /* BuildInfo.swift */; };
+		957E2E705F27DA418F4EEFAD /* FeedViewController+Gestures.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACCA71D457BA3598DE1ED18 /* FeedViewController+Gestures.swift */; };
 		9F9999A87D71D91363AA176B /* PlaceholderPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = C199E322193E213C7440D2CA /* PlaceholderPalette.swift */; };
 		A44D56E9EB281ACD151208A1 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A390099E8495C9B8392753 /* Log.swift */; };
 		A613202F38878B53B7A80754 /* PlayerPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FEFDD6582A6770CBEF1F992 /* PlayerPool.swift */; };
@@ -90,6 +92,7 @@
 		9BF76A8D14D4F28B46477238 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9ED2B28D7EB737F4598E76DF /* FeedLabTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FeedLabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A327E69BFC82A76B0F645ACD /* AVFoundationAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVFoundationAdapters.swift; sourceTree = "<group>"; };
+		AACCA71D457BA3598DE1ED18 /* FeedViewController+Gestures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedViewController+Gestures.swift"; sourceTree = "<group>"; };
 		B03DAF750F6F11D6C2E485A1 /* PlaybackEventPipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackEventPipe.swift; sourceTree = "<group>"; };
 		B54BFF866EB77A3FF110D9D0 /* SessionSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionSummary.swift; sourceTree = "<group>"; };
 		C199E322193E213C7440D2CA /* PlaceholderPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderPalette.swift; sourceTree = "<group>"; };
@@ -99,6 +102,7 @@
 		E8B04C76361FED9757D9ECF9 /* MetricsEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsEngineTests.swift; sourceTree = "<group>"; };
 		F9982AF5941E025CBC72679F /* Manifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Manifest.swift; sourceTree = "<group>"; };
 		FC2B8393D6A5799A2E126A3D /* ContentSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSource.swift; sourceTree = "<group>"; };
+		FC3509FBA34A55D9DF3F8B70 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -210,6 +214,7 @@
 				39F432DCABEF16D4FF63F9CB /* FeedCell.swift */,
 				1F0792F54CA34E863CD110A8 /* FeedCoordinator.swift */,
 				9091FF0FDC5F59EE0F6BFC11 /* FeedViewController.swift */,
+				AACCA71D457BA3598DE1ED18 /* FeedViewController+Gestures.swift */,
 				C199E322193E213C7440D2CA /* PlaceholderPalette.swift */,
 			);
 			path = Feed;
@@ -257,6 +262,7 @@
 				FF54D7B98F416CD1354AF9E2 /* Fakes */,
 				250743080934B53D38360B53 /* Metrics */,
 				9718BA4A6F166F60368A2516 /* Playback */,
+				FC3509FBA34A55D9DF3F8B70 /* .swiftlint.yml */,
 			);
 			path = FeedLabTests;
 			sourceTree = "<group>";
@@ -285,6 +291,7 @@
 			buildConfigurationList = F058D56C076A411D0F8C5698 /* Build configuration list for PBXNativeTarget "FeedLabTests" */;
 			buildPhases = (
 				E3CAEC24F9BDA73623B1F175 /* Sources */,
+				6003171AA5080EB2E283BFA7 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -354,6 +361,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		6003171AA5080EB2E283BFA7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				573BE1590E5A829665478FBC /* .swiftlint.yml in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F61267ED3153E8A0381D9403 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -379,6 +394,7 @@
 				756132C87B2BF46E1A7D4915 /* FeedCoordinator.swift in Sources */,
 				3F3C57325209955CC5FDFB4F /* FeedItem.swift in Sources */,
 				DBE409941F30FCC5EB765CAA /* FeedViewController+DebugMenu.swift in Sources */,
+				957E2E705F27DA418F4EEFAD /* FeedViewController+Gestures.swift in Sources */,
 				5858B822C9C96E1205D3F0B3 /* FeedViewController.swift in Sources */,
 				A9264F27D5818BE4EBB67E8F /* ItemPreparer.swift in Sources */,
 				A44D56E9EB281ACD151208A1 /* Log.swift in Sources */,

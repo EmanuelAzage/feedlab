@@ -103,7 +103,7 @@ absent, since `"attribution": "  "` satisfies a non-nil check while crediting no
 
 ## Attribution surfaces
 
-- Long-press on a feed item shows title, source, license, attribution. *(Pending.)*
+- Long-press on a feed item shows title, source, license, attribution, stream format and host. *(Done, M3.)*
 - A Credits screen in the debug menu lists every manifest entry's attribution, grouped by rights holder.
   *(Done, M1.)*
 - The README carries a Content & Licensing section naming each source. *(Done.)*

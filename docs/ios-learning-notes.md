@@ -173,6 +173,12 @@ kind available without a controlled network.
 segment against a live bandwidth estimate, mid-playback. Same idea — serve from a ladder — but the decision
 is continuous rather than one-shot, which is why it needs telemetry to reason about at all.
 
+**Free cross-check:** Apple's BipBop test pattern burns the selected variant into the picture —
+`NTSC SQUARE 1280 x 720 16x9 - GEAR 4`. The gear number *is* the ladder rung, rendered on screen. So a
+switch is visually observable, which means the access-log switch count can be validated against something
+that does not come from the access log. Useful for the throttled runs in M6: force a downswitch with
+Network Link Conditioner and watch the gear number fall.
+
 ## Player pooling and decode resources
 Why live `AVPlayer` count matters: memory, decode sessions, dropped frames. Note the actual numbers observed at pool sizes 3, 4, and unbounded.
 

@@ -26,7 +26,12 @@ final class FeedViewController: UIViewController {
         collectionViewLayout: Self.makeLayout()
     )
     private var dataSource: UICollectionViewDiffableDataSource<Section, FeedItem>?
-    private var coordinator: FeedCoordinator?
+    private(set) var coordinator: FeedCoordinator?
+
+    /// Resolves an index to its visible cell, or nil when it is not on screen.
+    func collectionViewCell(at index: Int) -> FeedCell? {
+        collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? FeedCell
+    }
 
     init(manifest: Manifest) {
         self.manifest = manifest
@@ -44,6 +49,7 @@ final class FeedViewController: UIViewController {
         configureCollectionView()
         applySnapshot()
         configureCoordinator()
+        installPlaybackGestures()
         #if FEEDLAB_TOOLS
         installDebugAffordance()
         #endif
