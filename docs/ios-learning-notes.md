@@ -4,7 +4,7 @@ title: iOS Playback Learning Notes
 description: Living doc of AVFoundation and feed-playback internals - seeded with topics, filled in with notes as they come up in practice
 status: living
 tags: [learning, avfoundation, playback, performance]
-timestamp: 2026-08-03T01:16:46Z
+timestamp: 2026-08-03T01:28:25Z
 related: [playback-engine.md, qoe-metrics.md]
 ---
 
@@ -216,6 +216,29 @@ The absence that mattered: no `-[AVURLAsset initWithURL:options:]` and no `-[AVP
 on main, confirming the `ItemPreparer` fix independently of the debug assert. Note that system frameworks
 symbolicate from the device support bundle even when the optimized app binary does not — which is lucky,
 because the question is answered entirely by framework symbols.
+
+## Simulator memory is not device memory — with numbers
+The rule was assumed from the start; M4 produced evidence. Same build, same manifest, same first item,
+HUD readings side by side:
+
+| | Simulator (iPhone 17, macOS host) | Device (iPhone 12 Pro) |
+|---|---|---|
+| peak footprint | **159.5 MB** | **26.8 MB** |
+| observed bitrate | 66 930 k | 5 931 k |
+| time to first frame | 374–1282 ms across runs | 1100 ms |
+
+**Peak memory differs by roughly 6×.** Not a margin — a different order of magnitude, and in the direction
+that would make a simulator-derived memory claim wildly pessimistic. The practical consequence: the macOS
+buffer probe's absolute deltas (+91 MB uncapped vs +1.5 MB capped) will not transfer to device. Whether the
+*ratio* transfers is the open question, and it is what M4's remaining item has to settle.
+
+Observed bitrate differs for a mundane reason — a Mac on ethernet-class wifi versus a phone — but it is a
+reminder that ABR behaviour is a property of the link, so ABR findings from a simulator describe the host's
+network rather than a phone's.
+
+TTFF is the one not to draw conclusions from: 1100 ms sits inside the simulator's own 165–1282 ms spread,
+which was dominated by CDN cache warmth rather than platform. Comparing single runs across platforms says
+nothing until cold starts and repeats are controlled — which is what the run protocol in `testing.md` is for.
 
 ## AVAudioSession is a measurement variable, not just a UX detail
 The default category is `.soloAmbient`: silenced by the ringer switch, and deactivated when the app
