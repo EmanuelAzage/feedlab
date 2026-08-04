@@ -4,13 +4,43 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-04T05:00:00Z
+timestamp: 2026-08-04T18:00:00Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-04 — The scroll script is an XCUITest target, not a hand gesture
+The run protocol requires an identical script across arms and originally accepted human timing as
+"approximate". It is not approximate enough: a hand-driven run measured 8 s median dwell against a
+3 s target, and dwell is watch duration — the *denominator* of aggregate rebuffer ratio. An operator
+tiring across an 18-run batch drifts in exactly the shape of an arm effect, and nothing in the data
+would distinguish the two.
+
+`FeedLabRunner` takes arm, dwell and swipe counts as environment variables, so one built runner
+serves every cell of the matrix, and the protocol becomes reproducible by anyone with the repo
+rather than a description of what the author did. It lives on its own scheme: a device run is three
+minutes, and `xcodebuild -scheme FeedLab test` has to stay a fast unit run.
+
+Accepted costs, stated in `experiment-harness.md` rather than hidden: XCUITest enables accessibility
+in the app process and read ~1.9 MB higher peak footprint, making runner and hand-driven memory
+figures separate populations; and the runner flicks at `.fast` velocity rather than using the default
+interpolated drag, whose duration would otherwise sit inside the transition being measured.
+
+## 2026-08-04 — The run is 26 item views, because 7 is not enough for a percentile
+The comparison is reported over the HLS subset (see the 2026-08-03 entry below), but the manifest
+holds 7 HLS items. Nearest-rank p90 over 7 samples *is* the maximum, so the "p90" moved 706→4559 ms
+across three runs of one arm while the median moved 24 ms — a one-sample statistic wearing a
+percentile's name. Lengthening the script to 20 forward + 5 back gives 26 views per run and roughly
+doubles HLS coverage through repeat views on the way back.
+
+The alternative — keep short runs and headline the median — was rejected because p90 is the headline
+startup figure precisely for being tail-sensitive (`qoe-metrics.md`), and swapping to the median to
+make a small sample behave is choosing the statistic that flatters the data. The cost is re-running
+the two arms already measured; those runs keep their original purpose (M4's memory question) and are
+preserved in `measurements/` labelled as a separate population.
 
 ## 2026-08-03 — The frozen-frame finding is recorded, not fixed; HLS is what this rig is about
 27% of progressive MP4 item views never reach playback (`qoe-metrics.md`). The obvious response is to
