@@ -4,7 +4,7 @@ title: QoE Metrics — Definitions and Measurement
 description: What each quality-of-experience metric means and exactly how FeedLab measures it from AVFoundation
 status: living
 tags: [qoe, metrics, avfoundation, measurement]
-timestamp: 2026-08-04T21:00:00Z
+timestamp: 2026-08-04T22:00:00Z
 related: [playback-engine.md, observability.md, experiment-harness.md]
 ---
 
@@ -78,6 +78,25 @@ Two things make it worth stating plainly:
   reason as the progressive case, and only `frozenCount` distinguishes them. That the metric was
   built for a progressive-format problem and then caught a *strategy* problem is the argument for
   keeping it.
+
+### Item views that leave no record *(constrained networks)*
+An item view only produces a record once `itemBecameCurrent` is emitted, and that happens at
+**promotion** — after the asset has loaded and a player has adopted the item. An item scrolled past
+before promotion completes leaves nothing behind at all: no record, no events, no row in any table.
+
+Unthrottled this is invisible, because promotion takes ~100 ms. Under a 2 Mbps profile at 5 s dwell
+it dominates: `baseline` recorded **13 views from 25 flicks**, of which 3 ever played. The missing 12
+are not zeros to be averaged in — they are views the rig cannot describe.
+
+Two consequences:
+
+- **Reconstruct navigation from event timestamps, not record order.** Records are appended on
+  *release*, so their order is release order. Reading record order as a scroll path produced apparent
+  multi-page jumps that never happened, and briefly sent a run-script bug hunt after a bug that did
+  not exist. `StoredSession.views[i][0].timestamp` is the honest ordering key.
+- **A constrained profile needs a longer dwell**, or the comparison has too few samples to rank
+  anything. Arms are only ever compared within a profile, so a per-profile dwell is legitimate — but
+  it must be stated beside the numbers, because rebuffer ratio's denominator moves with it.
 
 ### Stall count
 Number of rebuffering interruptions. Distinct from ratio: one 4-second stall and eight 0.5-second stalls score the same ratio but feel very different.
