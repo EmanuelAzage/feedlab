@@ -6,7 +6,7 @@ import Foundation
 /// progressive MP4 has no bitrate ladder, so reporting `bitrateSwitchCount == 0` for it would look
 /// like an excellent result rather than an inapplicable question. Those cases fall out of the event
 /// stream naturally — if no access-log entry ever carried an indicated bitrate, the count stays nil.
-struct PlaybackRecord: Equatable, Sendable, Identifiable {
+struct PlaybackRecord: Equatable, Sendable, Identifiable, Codable {
     let itemID: String
     let arm: String
 

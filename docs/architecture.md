@@ -77,7 +77,19 @@ separate is why pool capacity can be an experiment variable at all.
 ## State
 
 - `FeedStore` — items from the manifest, current index.
-- `SessionStore` — active arm, in-flight `PlaybackRecord`s, completed `SessionSummary`s, persisted to disk (JSON via Codable, no database needed).
+- `SessionStore` — completed sessions, persisted to disk (JSON via Codable, no database needed).
+  **One file per session**, not one file holding an array: a session is immutable once sealed, and a
+  truncated or unreadable file then costs one session rather than the whole study. `load()` skips
+  what it cannot decode and reports how many, because refusing to show any arm because one file is
+  corrupt turns a small loss into a total one.
+  Each file stores the `SessionSummary` **and the raw `PlaybackEvent`s it was folded from** — the
+  persistence half of `SessionRecorder`'s reason for archiving events. Records are a projection; the
+  events are the source of truth, so a metric definition can change and be re-derived against runs
+  already performed instead of the device runs being repeated. A test asserts the invariant across
+  the boundary: re-folding persisted events reproduces the persisted records.
+  A session is sealed on arm change and on entering background — the two moments a session really
+  ends. Teardown happens *before* sealing, or the item still on screen has emitted no
+  `.itemReleased`, has no record, and is silently missing from every run.
 - `SettingsStore` — HUD/signpost toggles, selected manifest.
 
 ## Data model (sketch)

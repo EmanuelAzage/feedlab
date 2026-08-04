@@ -69,6 +69,9 @@ final class FeedCoordinator {
     private let pipe = PlaybackEventPipe()
     private var forwardingTask: Task<Void, Never>?
     let recorder: SessionRecorder
+    /// Where completed sessions go. Optional so a coordinator still runs when the store cannot
+    /// reach its directory — the feed is degraded, not broken.
+    let store: SessionStore?
     /// Resolves an index to its on-screen cell, or nil if it is not currently displayed.
     let renderTarget: @MainActor (Int) -> (any PlayerRenderTarget)?
 
@@ -94,6 +97,7 @@ final class FeedCoordinator {
         arm: Arm,
         pool: PlayerPool,
         recorder: SessionRecorder,
+        store: SessionStore?,
         clock: any TimestampSource = MonotonicTimestampSource(),
         renderTarget: @escaping @MainActor (Int) -> (any PlayerRenderTarget)?
     ) {
@@ -101,6 +105,7 @@ final class FeedCoordinator {
         self.arm = arm
         self.pool = pool
         self.recorder = recorder
+        self.store = store
         self.clock = clock
         self.renderTarget = renderTarget
 
@@ -108,8 +113,14 @@ final class FeedCoordinator {
         // from the stream; this task is the single serial consumer `architecture.md` specifies.
         let pipe = self.pipe
         forwardingTask = Task.detached(priority: .utility) {
-            for await event in pipe.events {
-                await recorder.record(event)
+            for await element in pipe.elements {
+                switch element {
+                case .event(let event):
+                    await recorder.record(event)
+                case .barrier(let resume):
+                    // Reached only after every event queued ahead of it has been recorded.
+                    resume()
+                }
             }
         }
 
@@ -286,6 +297,7 @@ final class FeedCoordinator {
     /// and an arm is a capacity as much as it is a strategy.
     func apply(arm: Arm, pool newPool: PlayerPool) async {
         teardownAll()
+        await sealSession()
 
         let retired = pool
         self.arm = arm
@@ -300,6 +312,41 @@ final class FeedCoordinator {
         await memoryTracker.reset()
 
         Log.playback.info("Arm → \(arm.name, privacy: .public), session reset")
+    }
+
+    /// Persists the session as it stands, if it measured anything.
+    ///
+    /// Called before an arm switch and when the app backgrounds — the two moments a session
+    /// genuinely ends. Draining the pipe first is load-bearing: teardown emits `.itemReleased` for
+    /// the item still on screen, and that is what closes its record, so reading the summary without
+    /// waiting would persist a session missing its final item view on **every** run.
+    ///
+    /// A session with no records is not written. An arm selected and immediately changed again
+    /// measured nothing, and an empty session in the dashboard is indistinguishable from an arm
+    /// that failed.
+    func sealSession() async {
+        await pipe.drain()
+
+        let peak = await memoryTracker.peakBytes
+        let summary = await recorder.summary(peakMemoryBytes: peak)
+        guard !summary.records.isEmpty else { return }
+
+        let events = await recorder.allArchivedEvents
+        let session = StoredSession(summary: summary, events: events)
+        do {
+            try await store?.save(session)
+            Log.metrics.info(
+                """
+                Sealed session [\(summary.arm, privacy: .public)] — \
+                \(summary.records.count, privacy: .public) items, \
+                peak \(Double(peak) / 1_048_576, format: .fixed(precision: 1), privacy: .public) MB
+                """
+            )
+        } catch {
+            // Loud, because the alternative is discovering after a device afternoon that nothing
+            // was written.
+            Log.metrics.error("Failed to persist session: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     // MARK: - Planning

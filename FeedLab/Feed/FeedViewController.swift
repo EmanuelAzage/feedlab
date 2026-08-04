@@ -54,6 +54,7 @@ final class FeedViewController: UIViewController {
         configureCollectionView()
         applySnapshot()
         configureCoordinator()
+        observeAppLifecycle()
         installPlaybackGestures()
         #if FEEDLAB_TOOLS
         installDebugAffordance()
@@ -78,6 +79,47 @@ final class FeedViewController: UIViewController {
         coordinator?.teardownAll()
     }
 
+    /// Backgrounding ends the session; returning starts a new item view.
+    ///
+    /// Backgrounding is the natural boundary — the operator has stopped scrolling — and it is also
+    /// the last moment the app is reliably alive: a session left only in memory dies with the app
+    /// if the system reclaims it, which after a long measurement run is exactly when it is most
+    /// likely to.
+    ///
+    /// **Teardown comes before sealing**, and that ordering was a bug when it was the other way
+    /// round. Sealing alone left the on-screen item still live, so it had emitted no `.itemReleased`
+    /// and had no record — every session silently lost the item the operator was looking at when
+    /// they stopped. Tearing down first closes that item view honestly: backgrounding really did
+    /// end it.
+    private func observeAppLifecycle() {
+        let center = NotificationCenter.default
+
+        center.addObserver(
+            forName: UIApplication.didEnterBackgroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let coordinator = self?.coordinator else { return }
+                coordinator.teardownAll()
+                Task { await coordinator.sealSession() }
+            }
+        }
+
+        center.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                // A new item view under the same arm. `viewDidAppear` does not fire on foreground
+                // return, so without this the feed comes back to a torn-down, silent player.
+                self.coordinator?.settled(on: self.currentIndex)
+            }
+        }
+    }
+
     #if FEEDLAB_TOOLS
     // Motion events are delivered to the first responder, so the feed has to claim it.
     // `motionEnded` cannot live in the debug extension: Swift does not allow overriding
@@ -93,11 +135,18 @@ final class FeedViewController: UIViewController {
     private func configureCoordinator() {
         let arm = self.arm
         let recorder = SessionRecorder(arm: arm.name)
+        // A store that cannot reach its directory is reported here rather than at the end of a
+        // measurement run. It does not stop the feed, which is still usable as a feed.
+        let store = try? SessionStore()
+        if store == nil {
+            Log.metrics.error("Session store unavailable — this run will not be persisted")
+        }
         coordinator = FeedCoordinator(
             manifest: manifest,
             arm: arm,
             pool: PlayerPool(capacity: arm.poolCapacity),
-            recorder: recorder
+            recorder: recorder,
+            store: store
         ) { [weak self] index in
             self?.collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? FeedCell
         }

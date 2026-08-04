@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Aggregation rules are specified in `docs/qoe-metrics.md` and are deliberately not the obvious
 /// ones — see `aggregateRebufferRatio` in particular.
-struct SessionSummary: Equatable, Sendable {
+struct SessionSummary: Equatable, Sendable, Codable {
     let arm: String
     let records: [PlaybackRecord]
     let peakMemoryBytes: UInt64

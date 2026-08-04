@@ -70,4 +70,13 @@ actor SessionRecorder {
     func events(for itemID: String) -> [PlaybackEvent] {
         archivedEvents[itemID] ?? pending[itemID] ?? []
     }
+
+    /// Every closed item view's events, for persistence.
+    ///
+    /// Pending items are excluded deliberately: an item view that has not been released has no
+    /// record, so persisting its half-stream would store events that no record accounts for — and
+    /// the whole point of keeping events is that re-folding them reproduces the records.
+    var allArchivedEvents: [String: [PlaybackEvent]] {
+        archivedEvents
+    }
 }

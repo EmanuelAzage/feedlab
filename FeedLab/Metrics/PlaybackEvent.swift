@@ -10,13 +10,13 @@ import Foundation
 /// **Timestamps are stamped at the observation callback**, before any queue or actor hop, from a
 /// monotonic source. See the measurement-discipline section of `docs/qoe-metrics.md`: taking the
 /// clock reading where an event is *consumed* would fold delivery jitter into every interval.
-struct PlaybackEvent: Equatable, Sendable {
+struct PlaybackEvent: Equatable, Sendable, Codable {
     let itemID: String
     /// Monotonic seconds from an arbitrary origin. Never wall-clock.
     let timestamp: TimeInterval
     let kind: Kind
 
-    enum Kind: Equatable, Sendable {
+    enum Kind: Equatable, Sendable, Codable {
         /// Playback intent begins — `t0` for time-to-first-frame. Fires on scroll settle, not
         /// while scrolling (`docs/decisions.md`).
         case itemBecameCurrent
@@ -68,7 +68,7 @@ struct PlaybackEvent: Equatable, Sendable {
 /// real — progressive assets leave most of the ABR fields unpopulated. Optional forces the
 /// distinction between "zero switches" and "switching is not a meaningful concept here" to be made
 /// explicitly rather than by accident.
-struct AccessLogSnapshot: Equatable, Sendable {
+struct AccessLogSnapshot: Equatable, Sendable, Codable {
     /// Bitrate of the variant currently selected from the ladder — a *declared* number.
     let indicatedBitrate: Double?
     /// Throughput actually achieved — a *measured* number. Falling below indicated is the
@@ -102,7 +102,7 @@ struct AccessLogSnapshot: Equatable, Sendable {
 }
 
 /// A non-fatal streaming error from the item's error log.
-struct PlaybackErrorEvent: Equatable, Sendable {
+struct PlaybackErrorEvent: Equatable, Sendable, Codable {
     let statusCode: Int
     let domain: String
     let comment: String?

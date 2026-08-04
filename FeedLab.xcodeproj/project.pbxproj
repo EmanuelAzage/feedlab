@@ -15,6 +15,7 @@
 		0E69E1817F7F138638F85D12 /* short-form.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BB8F52B336E524421F90971 /* short-form.json */; };
 		11DF6E0010E9F372429AB365 /* MemoryPeakTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B05B9B6AA706E5406281DD9 /* MemoryPeakTrackerTests.swift */; };
 		14C2BA042C9835EA43BB1EA5 /* MetricsPurityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9AE5EC777578D8FE109B5F /* MetricsPurityTests.swift */; };
+		173E35C4687160E0D0C3ECEC /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2C03B169022CBF0A21E1420 /* SessionStore.swift */; };
 		1A5C44DCD25693BC9F4120AA /* TimestampSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D628DE5C72326B41E9E943E4 /* TimestampSource.swift */; };
 		1E7F69EAB0155F75737581CF /* SessionSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = B54BFF866EB77A3FF110D9D0 /* SessionSummary.swift */; };
 		260773A02575D57D00B99D60 /* ContentSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC2B8393D6A5799A2E126A3D /* ContentSource.swift */; };
@@ -51,6 +52,7 @@
 		B30F2336226D73C8A4F5165D /* PlaybackEventPipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = B03DAF750F6F11D6C2E485A1 /* PlaybackEventPipe.swift */; };
 		B3E6FD8CB62E593A59156A39 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF76A8D14D4F28B46477238 /* AppDelegate.swift */; };
 		BB1A030820CADCFE8BE689EB /* PlayerTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764FEACE8172E3048819CE64 /* PlayerTypes.swift */; };
+		C57C24284E8B4982F0DA56B3 /* SessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7E605089332595DF63C7E0 /* SessionStoreTests.swift */; };
 		D3CFEBCA053E8663D49A27E1 /* MetricsEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23A9348BC9301667800E259A /* MetricsEngine.swift */; };
 		D667FDB3619DCE627201F39D /* AudioSessionConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79936D5CE8277537950D8469 /* AudioSessionConfigurator.swift */; };
 		DBE409941F30FCC5EB765CAA /* FeedViewController+DebugMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01818ABA706AC98CD8E75A8E /* FeedViewController+DebugMenu.swift */; };
@@ -98,6 +100,7 @@
 		55DE29D36AA10B574C2403AA /* AggregationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AggregationTests.swift; sourceTree = "<group>"; };
 		659D525B44C8EE415080E4BE /* PreloadStrategyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreloadStrategyTests.swift; sourceTree = "<group>"; };
 		689E21EBB2DD133F6A32EB0E /* PlaybackRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackRecord.swift; sourceTree = "<group>"; };
+		6B7E605089332595DF63C7E0 /* SessionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStoreTests.swift; sourceTree = "<group>"; };
 		75E92AC52751D2627A561867 /* ManifestLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManifestLoader.swift; sourceTree = "<group>"; };
 		764FEACE8172E3048819CE64 /* PlayerTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTypes.swift; sourceTree = "<group>"; };
 		79936D5CE8277537950D8469 /* AudioSessionConfigurator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionConfigurator.swift; sourceTree = "<group>"; };
@@ -111,6 +114,7 @@
 		9BF76A8D14D4F28B46477238 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9ED2B28D7EB737F4598E76DF /* FeedLabTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FeedLabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2ACAC0E2D3638F1547D1613 /* ToolsSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolsSettings.swift; sourceTree = "<group>"; };
+		A2C03B169022CBF0A21E1420 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		A327E69BFC82A76B0F645ACD /* AVFoundationAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVFoundationAdapters.swift; sourceTree = "<group>"; };
 		AACCA71D457BA3598DE1ED18 /* FeedViewController+Gestures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedViewController+Gestures.swift"; sourceTree = "<group>"; };
 		B03DAF750F6F11D6C2E485A1 /* PlaybackEventPipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackEventPipe.swift; sourceTree = "<group>"; };
@@ -173,6 +177,14 @@
 				D628DE5C72326B41E9E943E4 /* TimestampSource.swift */,
 			);
 			path = Instrumentation;
+			sourceTree = "<group>";
+		};
+		1D133F2D6A6870EBAC3DFEA2 /* Experiments */ = {
+			isa = PBXGroup;
+			children = (
+				6B7E605089332595DF63C7E0 /* SessionStoreTests.swift */,
+			);
+			path = Experiments;
 			sourceTree = "<group>";
 		};
 		1F51F987A8FFADD51A931D5D /* Metrics */ = {
@@ -280,6 +292,7 @@
 			children = (
 				2AD8553B3BCA3BD24DE7E0FD /* ArmRegistry.swift */,
 				0FA71A53FEE0AFB3E0BD9CD8 /* SessionRecorder.swift */,
+				A2C03B169022CBF0A21E1420 /* SessionStore.swift */,
 			);
 			path = Experiments;
 			sourceTree = "<group>";
@@ -302,6 +315,7 @@
 			isa = PBXGroup;
 			children = (
 				BFF11451AB8BC0EBD7DCDFE8 /* Content */,
+				1D133F2D6A6870EBAC3DFEA2 /* Experiments */,
 				FF54D7B98F416CD1354AF9E2 /* Fakes */,
 				41FEE92FA2C3B59D8FDF8458 /* Instrumentation */,
 				250743080934B53D38360B53 /* Metrics */,
@@ -466,6 +480,7 @@
 				AAC07437B3CDBF218F5B700F /* RootFactory.swift in Sources */,
 				7E76F5BA4A782D5D83C2DBF7 /* SceneDelegate.swift in Sources */,
 				7BCEC3ACD2C02DD9F388DB52 /* SessionRecorder.swift in Sources */,
+				173E35C4687160E0D0C3ECEC /* SessionStore.swift in Sources */,
 				1E7F69EAB0155F75737581CF /* SessionSummary.swift in Sources */,
 				1A5C44DCD25693BC9F4120AA /* TimestampSource.swift in Sources */,
 				A614F728ED75A210F60DA649 /* ToolsSettings.swift in Sources */,
@@ -485,6 +500,7 @@
 				7E8459ADBC92D53D0A85045E /* PlayerPoolTests.swift in Sources */,
 				3EE0BD266E502183015CA3E2 /* PreloadStrategyTests.swift in Sources */,
 				F2F2948793FCDD1DCFA12DA4 /* PreparationPlannerTests.swift in Sources */,
+				C57C24284E8B4982F0DA56B3 /* SessionStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
