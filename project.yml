@@ -38,6 +38,10 @@ targets:
   FeedLab:
     type: application
     platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Measure: Signing.xcconfig
+      Release: Signing.xcconfig
     sources:
       - path: FeedLab
         excludes:

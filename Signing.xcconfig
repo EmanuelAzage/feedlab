@@ -1,0 +1,17 @@
+// Signing configuration.
+//
+// Device builds need a DEVELOPMENT_TEAM, but this is a public repo and a team id is a
+// personal identifier, so the value lives in an untracked file beside this one.
+//
+// Create `Signing.local.xcconfig` with:
+//
+//     DEVELOPMENT_TEAM = YOURTEAMID
+//
+// `#include?` is the optional form: a fresh clone without that file still generates and
+// still builds for the simulator. Only device builds need it, and they fail with Xcode's
+// own "requires a development team" message, which is a clear enough signpost.
+//
+// This exists because `xcodegen generate` overwrites the project, so a team id set in
+// Xcode's Signing & Capabilities editor survives only until the next regeneration —
+// which is why CLAUDE.md forbids setting it there.
+#include? "Signing.local.xcconfig"

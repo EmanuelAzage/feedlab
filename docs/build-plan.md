@@ -45,6 +45,7 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
 - [x] HUD overlay per `observability.md`, 4 Hz **sampled** (not throttled push), arm name prominent, `FEEDLAB_TOOLS`-only and verified absent from `Release` by symbol count. Off by default, toggled from the debug menu.
 - [x] Memory sampler feeding session peak. `phys_footprint` at 5 Hz, running whether or not the HUD is visible. Reports **peak observed**, never true peak — a spike between samples is invisible, so the figure is a lower bound.
 - [ ] **On-device confirmation of the buffer/memory relationship.** The macOS probe (`playback-engine.md`) showed ~91 MB vs ~1.5 MB for four attached items at default vs 5 s cap, but macOS `phys_footprint` is not iOS memory and it was a single run. Re-measure on device with the sampler before any claim about capping reaches the README.
+  - *Unblocked 2026-08-03:* the comparison was not previously expressible — `PreloadNext3Capped` was the only deep-preload arm, so there was nothing to compare it against. `preload3-uncapped` now holds depth and pool capacity fixed and varies only the buffer configuration, which is what isolates the lever.
 - **Accept:** HUD numbers move sensibly under Network Link Conditioner throttling; enabling the HUD doesn't measurably change TTFF (compare a run with it off); the capped-vs-uncapped footprint difference is confirmed on device or the strategy table is revised.
 
 ## M5 — Preload strategies and experiment harness

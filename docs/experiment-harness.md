@@ -32,8 +32,16 @@ Arms are declared in a single `ArmRegistry` so the set under test is legible in 
 | `baseline` | `NoPreload` | 3 | Control. Establishes worst-case TTFF and lowest memory. |
 | `preload1` | `PreloadNext1` | 3 | One-ahead preparation should cut TTFF substantially on forward scroll for modest cost. |
 | `preload3-capped` | `PreloadNext3Capped` | 4 | Deeper preloading helps fast scrollers; capped buffers should contain the memory cost. |
+| `preload3-uncapped` | `PreloadNext3Uncapped` | 4 | Negative control for the **buffer cap**. Same depth, same pool, system-default buffers. |
 | `window` | `PreloadWindow` | 4 | Preparing backward too should help back-scroll TTFF; costs a slot. |
 | `pool-unbounded` | `PreloadNext1` | ∞ | Deliberate negative control — demonstrates *why* bounding exists (memory, dropped frames). |
+
+**Two arms exist to lose, and they lose for different reasons.** `preload3-uncapped` is paired with
+`preload3-capped` because that pair is the only one that isolates the buffer cap: `preload3-capped`
+differs from `preload1` in *two* ways at once — more depth and capped buffers — so any difference
+between those two is unattributable. Holding depth and capacity fixed and varying only the
+configuration is what makes "capping is what makes deep preload viable" a measurement rather than a
+retelling of the M2 macOS probe.
 
 `pool-unbounded` is the arm that makes the point: it should look fine on TTFF and bad on memory and dropped frames. A rig that only tests good ideas proves nothing.
 

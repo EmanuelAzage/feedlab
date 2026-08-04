@@ -99,6 +99,7 @@ Implementations (these are the experiment arms — see `experiment-harness.md`):
 | `NoPreload` | current only | system defaults | Baseline. Worst TTFF, least bandwidth. |
 | `PreloadNext1` | current, next | default forward buffer | Big TTFF win for the common forward scroll. |
 | `PreloadNext3Capped` | current + next 3 | forward buffer capped to ~1 segment (**see granularity note**), peak bitrate capped on non-current | Better TTFF on fast scroll; risks memory and wasted bytes. |
+| `PreloadNext3Uncapped` | current + next 3 | system defaults | **Control for the cap.** Identical prepared set to the capped arm; only the configuration differs, which is what isolates the lever. |
 | `PreloadWindow` | previous 1 + next 2 | default | Handles back-scroll; costs a pool slot. |
 
 Strategies are **pure and unit-tested** — index math and configuration only, no AVFoundation. That keeps the interesting logic verifiable without a device.

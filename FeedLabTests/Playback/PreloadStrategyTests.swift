@@ -13,6 +13,7 @@ struct PreloadStrategyTests {
             ("none", [10]),
             ("next-1", [10, 11]),
             ("next-3-capped", [10, 11, 12, 13]),
+            ("next-3-uncapped", [10, 11, 12, 13]),
             ("window", [10, 11, 9, 12])
         ]
     )
@@ -33,7 +34,7 @@ struct PreloadStrategyTests {
 
     @Test(
         "At the first item, nothing is prepared before it — feeds do not wrap",
-        arguments: ["none", "next-1", "next-3-capped", "window"]
+        arguments: ["none", "next-1", "next-3-capped", "next-3-uncapped", "window"]
     )
     func startBoundary(name: String) throws {
         let strategy = try #require(Self.strategy(named: name))
@@ -46,7 +47,7 @@ struct PreloadStrategyTests {
 
     @Test(
         "At the last item, nothing is prepared past the end",
-        arguments: ["none", "next-1", "next-3-capped", "window"]
+        arguments: ["none", "next-1", "next-3-capped", "next-3-uncapped", "window"]
     )
     func endBoundary(name: String) throws {
         let strategy = try #require(Self.strategy(named: name))
@@ -65,7 +66,7 @@ struct PreloadStrategyTests {
 
     @Test(
         "A single-item manifest prepares only that item",
-        arguments: ["none", "next-1", "next-3-capped", "window"]
+        arguments: ["none", "next-1", "next-3-capped", "next-3-uncapped", "window"]
     )
     func singleItemManifest(name: String) throws {
         let strategy = try #require(Self.strategy(named: name))
@@ -75,7 +76,7 @@ struct PreloadStrategyTests {
 
     @Test(
         "An empty manifest prepares nothing rather than crashing",
-        arguments: ["none", "next-1", "next-3-capped", "window"]
+        arguments: ["none", "next-1", "next-3-capped", "next-3-uncapped", "window"]
     )
     func emptyManifest(name: String) throws {
         let strategy = try #require(Self.strategy(named: name))
@@ -119,6 +120,25 @@ struct PreloadStrategyTests {
         #expect(configuration.preferredPeakBitRate == PreloadTuning.nonCurrentPeakBitRate)
     }
 
+    @Test("Capped and uncapped prepare identical sets, so only the cap differs", arguments: [0, 5, 10, 19])
+    func cappedAndUncappedDifferOnlyInConfiguration(currentIndex: Int) {
+        // The property that makes `preload3-uncapped` a control rather than a fifth strategy. If
+        // the prepared sets ever diverge, the pair stops isolating the buffer cap and any memory
+        // difference between them becomes unattributable — while still looking like a clean result.
+        let capped = PreloadNext3Capped()
+        let uncapped = PreloadNext3Uncapped()
+
+        #expect(
+            capped.itemsToPrepare(currentIndex: currentIndex, totalCount: 22)
+                == uncapped.itemsToPrepare(currentIndex: currentIndex, totalCount: 22)
+        )
+    }
+
+    @Test("The uncapped control caps nothing, including the items being preloaded", arguments: [0, 1, 2, 3])
+    func uncappedCapsNothing(offset: Int) {
+        #expect(PreloadNext3Uncapped().bufferConfiguration(for: offset) == .systemDefault)
+    }
+
     @Test("The forward-buffer cap is at least one segment, or it does nothing at all")
     func capIsAtLeastOneSegment() {
         // Measured in M2: `preferredForwardBufferDuration` cannot go below one segment, and the
@@ -138,7 +158,7 @@ struct PreloadStrategyTests {
     // MARK: - Helpers
 
     private static func strategy(named name: String) -> (any PreloadStrategy)? {
-        [NoPreload(), PreloadNext1(), PreloadNext3Capped(), PreloadWindow()]
+        [NoPreload(), PreloadNext1(), PreloadNext3Capped(), PreloadNext3Uncapped(), PreloadWindow()]
             .first { $0.name == name }
     }
 }

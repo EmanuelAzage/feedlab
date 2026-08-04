@@ -351,6 +351,17 @@ final class FeedCoordinator {
                 peak \(Double(peak) / 1_048_576, format: .fixed(precision: 1), privacy: .public) MB
                 """
             )
+            // **A sealed session is finished**, so the next one starts empty. Without this the
+            // recorder keeps accumulating and every later seal rewrites the same records into
+            // another file: background twice and the first items exist in both sessions, counted
+            // twice in n and twice in every median. Peak memory carries over identically, so an
+            // arm inherits the highest figure any earlier arm reached. Found on the first device
+            // pull, where session B was session A plus one item and both reported the same peak.
+            //
+            // Only after a successful write: resetting on a failed save would discard the run that
+            // failed to persist, which is the one case where the in-memory copy is all there is.
+            await recorder.reset(arm: arm.name)
+            await memoryTracker.reset()
         } catch {
             // Loud, because the alternative is discovering after a device afternoon that nothing
             // was written.

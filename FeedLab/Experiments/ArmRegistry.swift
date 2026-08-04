@@ -37,6 +37,16 @@ enum ArmRegistry {
             hypothesis: "Depth helps fast scrollers; capped buffers and bitrate should contain the cost."
         ),
         Arm(
+            name: "preload3-uncapped",
+            strategy: PreloadNext3Uncapped(),
+            poolCapacity: .bounded(4),
+            hypothesis: """
+            Negative control for the buffer cap — same depth and pool as preload3-capped, \
+            system-default buffers. Isolates what capping actually saves, which no other pair \
+            of arms can, and is expected to lose on memory.
+            """
+        ),
+        Arm(
             name: "window",
             strategy: PreloadWindow(),
             poolCapacity: .bounded(4),

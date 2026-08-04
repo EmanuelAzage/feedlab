@@ -8,6 +8,9 @@ import SwiftUI
 struct DebugMenuView: View {
     let manifest: Manifest
     @Bindable var settings: ToolsSettings
+    /// Passed through to the dashboard. The same store the coordinator seals into, so what the
+    /// dashboard shows is what was actually written rather than a second view of memory.
+    let store: SessionStore?
     /// Explicit rather than `@Environment(\.dismiss)` so the presenter can restore first
     /// responder afterwards — without that, the shake gesture works exactly once.
     let onDone: () -> Void
@@ -17,6 +20,7 @@ struct DebugMenuView: View {
             List {
                 armSection
                 measurementSection
+                resultsSection
                 contentSection
                 buildSection
             }
@@ -85,6 +89,14 @@ struct DebugMenuView: View {
                 provably absent rather than merely small.
                 """
             )
+        }
+    }
+
+    private var resultsSection: some View {
+        Section("Results") {
+            NavigationLink("Dashboard") {
+                DashboardView(store: store)
+            }
         }
     }
 

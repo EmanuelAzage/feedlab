@@ -28,7 +28,11 @@ extension FeedViewController {
     @objc
     func presentDebugMenu() {
         guard presentedViewController == nil else { return }
-        let menu = DebugMenuView(manifest: manifest, settings: toolsSettings) { [weak self] in
+        let menu = DebugMenuView(
+            manifest: manifest,
+            settings: toolsSettings,
+            store: coordinator?.store
+        ) { [weak self] in
             self?.dismiss(animated: true) {
                 guard let self else { return }
                 // A sheet dismissal does not re-fire viewDidAppear on the presenter, so

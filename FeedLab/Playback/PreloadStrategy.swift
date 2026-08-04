@@ -94,6 +94,36 @@ struct PreloadNext3Capped: PreloadStrategy {
     }
 }
 
+/// Identical to `PreloadNext3Capped` except that nothing is capped.
+///
+/// **The negative control for the buffer cap**, and the only way to measure what capping is worth.
+/// `PreloadNext3Capped` bundles two changes against `PreloadNext1` — more depth *and* capped buffers
+/// — so any difference between them is unattributable. This arm holds depth and pool capacity fixed
+/// and varies only the configuration, which is what isolates the lever.
+///
+/// It exists for the same reason `pool-unbounded` does: the M2 probe measured ~60× more footprint
+/// growth uncapped, but on macOS and in a single run. A claim that capping is what makes deep
+/// preload viable needs the uncapped case measured on device, not inferred.
+///
+/// Expected to lose on memory. If it does not, the strategy table is wrong and
+/// `playback-engine.md` says so rather than the arm being quietly dropped.
+struct PreloadNext3Uncapped: PreloadStrategy {
+    let name = "next-3-uncapped"
+
+    func itemsToPrepare(currentIndex: Int, totalCount: Int) -> [Int] {
+        // Deliberately the same expression as `PreloadNext3Capped`. A test asserts the two prepare
+        // identical sets, because the moment they diverge the comparison stops isolating anything.
+        Index.clamped(
+            [currentIndex, currentIndex + 1, currentIndex + 2, currentIndex + 3],
+            totalCount: totalCount
+        )
+    }
+
+    func bufferConfiguration(for offset: Int) -> BufferConfiguration {
+        .systemDefault
+    }
+}
+
 /// Previous one, current, next two.
 ///
 /// Spends a slot backwards on the theory that scrolling back should be instant too. Whether that is

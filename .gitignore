@@ -13,3 +13,6 @@ DerivedData/
 
 # macOS
 .DS_Store
+
+# Signing: team id is personal, and this is a public repo. See Signing.xcconfig.
+Signing.local.xcconfig
