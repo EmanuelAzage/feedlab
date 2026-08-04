@@ -46,6 +46,22 @@ iOS 26.2 sims, which have no "iPhone 16"; `xcrun simctl list devices available` 
 
 Measurement runs happen **on a real device** (see `docs/testing.md`) — the simulator misreports video memory and decode performance.
 
+### Driving the simulator UI (`idb`)
+
+`xcrun simctl` cannot tap or swipe; `idb` can. Two things cost a cycle each, so they are written down:
+
+- **Switches need a drag, not a tap.** `idb ui tap` on a SwiftUI `Toggle` reports success and changes
+  nothing — the row accepts the tap, the control does not. Drag across it instead:
+  `idb ui swipe <udid> 336 528 378 528 --duration 0.3`. Pickers can need the same treatment.
+- **Read the accessibility tree rather than guessing coordinates.** `idb ui describe-all` returns JSON
+  (a list, not one object per line) with each element's `AXLabel`, `AXValue`, and `frame` in *points*.
+  It is also how to confirm a control actually changed: check `AXValue` went `0` → `1` rather than
+  inferring it from a screenshot, where a toggle's on and off states are nearly indistinguishable at
+  screenshot scale.
+
+App logs need `--level debug`, or `Logger.debug`/`.info` lines never appear:
+`xcrun simctl spawn <udid> log stream --level debug --predicate 'subsystem == "dev.emanuelazage.FeedLab"'`
+
 ## Conventions
 
 - Swift 6, iOS 17+ deployment target. UIKit for the feed surface; SwiftUI + Swift Charts for the dashboard.
