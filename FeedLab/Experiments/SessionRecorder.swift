@@ -9,11 +9,18 @@ import Foundation
 /// Raw events are retained for completed items as well as the folded record. That is deliberate —
 /// it is what makes a metric *definition* change re-derivable from runs already performed, rather
 /// than requiring the runs to be repeated. `MetricsEngine` is a pure function of these.
+///
+/// **The archive is per item *view*, parallel to `records`, not keyed by item id.** Keyed by id it
+/// silently dropped the earlier stream whenever an item was viewed twice — which a run script that
+/// scrolls back does constantly. Records kept both views and the event log kept one, so the archive
+/// no longer re-folded to the records it was supposed to explain, and the failure was invisible in
+/// the summary: only a run whose navigation path was reconstructed from the events showed a gap
+/// where the second visit had overwritten the first.
 actor SessionRecorder {
     private(set) var arm: String
     private var pending: [String: [PlaybackEvent]] = [:]
     private(set) var records: [PlaybackRecord] = []
-    private var archivedEvents: [String: [PlaybackEvent]] = [:]
+    private var archivedViews: [[PlaybackEvent]] = []
     private var startedAt = Date()
 
     init(arm: String) {
@@ -27,7 +34,7 @@ actor SessionRecorder {
         self.arm = arm
         pending.removeAll()
         records.removeAll()
-        archivedEvents.removeAll()
+        archivedViews.removeAll()
         startedAt = Date()
     }
 
@@ -45,7 +52,9 @@ actor SessionRecorder {
         guard let events = pending.removeValue(forKey: itemID), !events.isEmpty else { return nil }
         let record = MetricsEngine.record(from: events, itemID: itemID, arm: arm)
         records.append(record)
-        archivedEvents[itemID] = events
+        // Appended in lockstep with `records`, so `archivedViews[i]` is the stream `records[i]` was
+        // folded from. A test pins the correspondence.
+        archivedViews.append(events)
         return record
     }
 
@@ -67,16 +76,21 @@ actor SessionRecorder {
     }
 
     /// The raw stream for an item, retained so records can be re-derived if a definition changes.
+    ///
+    /// The **most recent** closed view of the item, falling back to the one in flight. Callers that
+    /// need every view want `allArchivedViews`; this exists for the HUD and for debugging, where
+    /// "what happened to the item I am looking at" is the question.
     func events(for itemID: String) -> [PlaybackEvent] {
-        archivedEvents[itemID] ?? pending[itemID] ?? []
+        if let pending = pending[itemID], !pending.isEmpty { return pending }
+        return archivedViews.last { $0.first?.itemID == itemID } ?? []
     }
 
-    /// Every closed item view's events, for persistence.
+    /// Every closed item view's events, in view order, for persistence.
     ///
     /// Pending items are excluded deliberately: an item view that has not been released has no
     /// record, so persisting its half-stream would store events that no record accounts for — and
     /// the whole point of keeping events is that re-folding them reproduces the records.
-    var allArchivedEvents: [String: [PlaybackEvent]] {
-        archivedEvents
+    var allArchivedViews: [[PlaybackEvent]] {
+        archivedViews
     }
 }

@@ -43,7 +43,7 @@ struct SessionStoreTests {
                 startedAt: startedAt,
                 endedAt: startedAt.addingTimeInterval(60)
             ),
-            events: [itemID: events]
+            views: [events]
         )
     }
 
@@ -87,12 +87,45 @@ struct SessionStoreTests {
 
         let loaded = try #require(await store.load().first)
         let record = try #require(loaded.summary.records.first)
-        let events = try #require(loaded.events[record.itemID])
+        let events = try #require(loaded.views.first)
 
         let refolded = MetricsEngine.record(from: events, itemID: record.itemID, arm: loaded.summary.arm)
 
         #expect(refolded == record, "re-folding persisted events must reproduce the persisted record")
         try await store.deleteAll()
+    }
+
+    @Test("Every view is archived, including repeat views of the same item")
+    func repeatViewsAreNotOverwritten() async throws {
+        // The run script scrolls back, so items are viewed more than once — and an archive keyed by
+        // item id kept only the last view. Records held both, the event log held one, and the
+        // re-folding invariant above was false on every real run while still passing on synthetic
+        // single-view data. The failure was invisible in every published metric: it only showed up
+        // when a run's navigation path was reconstructed from its events and had a hole in it.
+        let recorder = SessionRecorder(arm: "window")
+        for timestamp in [0.0, 10.0] {
+            for event in [
+                PlaybackEvent(itemID: "revisited", timestamp: timestamp, kind: .itemBecameCurrent),
+                PlaybackEvent(itemID: "revisited", timestamp: timestamp + 0.2, kind: .readyForDisplay),
+                PlaybackEvent(itemID: "revisited", timestamp: timestamp + 0.2, kind: .playbackStarted),
+                PlaybackEvent(itemID: "revisited", timestamp: timestamp + 5, kind: .itemReleased)
+            ] {
+                await recorder.record(event)
+            }
+        }
+
+        let records = await recorder.records
+        let views = await recorder.allArchivedViews
+
+        #expect(records.count == 2, "two views of one item are two records")
+        #expect(views.count == 2, "and two archived streams, not one overwriting the other")
+        // Parallel arrays, not merely equal counts: views[i] must be what records[i] came from.
+        for (index, record) in records.enumerated() {
+            let refolded = MetricsEngine.record(from: views[index], itemID: record.itemID, arm: "window")
+            #expect(refolded == record, "views[\(index)] must re-fold to records[\(index)]")
+        }
+        // Distinct streams — the same view archived twice would satisfy the counts above.
+        #expect(views[0].first?.timestamp != views[1].first?.timestamp)
     }
 
     // MARK: - Multiple sessions
@@ -180,7 +213,7 @@ struct SessionStoreTests {
         #expect(record.timeToFirstFrame == nil, "precondition: never rendered means nil, not zero")
 
         try await store.save(
-            StoredSession(summary: SessionSummary(arm: "baseline", records: [record]), events: [itemID: events])
+            StoredSession(summary: SessionSummary(arm: "baseline", records: [record]), views: [events])
         )
         let reloaded = try #require(await store.load().first?.summary.records.first)
 

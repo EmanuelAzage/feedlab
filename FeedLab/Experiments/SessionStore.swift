@@ -13,13 +13,15 @@ import Foundation
 struct StoredSession: Codable, Identifiable, Equatable, Sendable {
     let id: UUID
     let summary: SessionSummary
-    /// Raw events per item id, as archived by `SessionRecorder`.
-    let events: [String: [PlaybackEvent]]
+    /// One entry per item **view**, in view order and parallel to `summary.records` — not keyed by
+    /// item id. Keying by id lost every view but the last of any item the run returned to, which
+    /// broke the re-folding invariant above without changing a single published metric.
+    let views: [[PlaybackEvent]]
 
-    init(id: UUID = UUID(), summary: SessionSummary, events: [String: [PlaybackEvent]]) {
+    init(id: UUID = UUID(), summary: SessionSummary, views: [[PlaybackEvent]]) {
         self.id = id
         self.summary = summary
-        self.events = events
+        self.views = views
     }
 }
 

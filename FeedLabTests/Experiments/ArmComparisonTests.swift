@@ -30,7 +30,7 @@ struct ArmComparisonTests {
         let records = ttffs.enumerated().map { record("item-\($0.offset)", arm: arm, ttff: $0.element) }
         return StoredSession(
             summary: SessionSummary(arm: arm, records: records, peakMemoryBytes: peak, startedAt: startedAt),
-            events: [:]
+            views: []
         )
     }
 
@@ -112,7 +112,7 @@ struct ArmComparisonTests {
     func neverRenderedReportsNil() throws {
         let never = StoredSession(
             summary: SessionSummary(arm: "baseline", records: [record("a", arm: "baseline", ttff: nil)]),
-            events: [:]
+            views: []
         )
 
         let result = try #require(ArmComparison.results(from: [never]).first)
@@ -134,7 +134,7 @@ struct ArmComparisonTests {
                     arm: "baseline",
                     records: [record("progressive", arm: "baseline", ttff: nil, switches: nil)]
                 ),
-                events: [:]
+                views: []
             )
         ]
 
@@ -168,7 +168,7 @@ struct ArmComparisonTests {
                     arm: "baseline",
                     records: [record("item,with,commas", arm: "baseline", ttff: 0.1)]
                 ),
-                events: [:]
+                views: []
             )
         ]
 

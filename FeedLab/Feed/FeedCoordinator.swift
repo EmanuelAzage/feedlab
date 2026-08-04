@@ -340,8 +340,8 @@ final class FeedCoordinator {
         let summary = await recorder.summary(peakMemoryBytes: peak)
         guard !summary.records.isEmpty else { return }
 
-        let events = await recorder.allArchivedEvents
-        let session = StoredSession(summary: summary, events: events)
+        let views = await recorder.allArchivedViews
+        let session = StoredSession(summary: summary, views: views)
         do {
             try await store?.save(session)
             Log.metrics.info(

@@ -245,7 +245,7 @@ struct BitrateOverTimeChart: View {
     /// Flattened from the raw access-log events — the reason sessions persist their events and not
     /// only their records.
     private var samples: [Sample] {
-        let events = session.events.values.flatMap { $0 }.sorted { $0.timestamp < $1.timestamp }
+        let events = session.views.flatMap { $0 }.sorted { $0.timestamp < $1.timestamp }
         guard let origin = events.first?.timestamp else { return [] }
 
         return events.flatMap { event -> [Sample] in
