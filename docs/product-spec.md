@@ -4,7 +4,7 @@ title: FeedLab Product Spec
 description: Feed behavior, screens, HUD, debug menu, and UX rules for the playback measurement rig
 status: living
 tags: [spec, ux, feed, hud]
-timestamp: 2026-08-02T23:11:54Z
+timestamp: 2026-08-04T01:05:00Z
 related: [architecture.md, playback-engine.md, observability.md]
 ---
 
@@ -31,10 +31,18 @@ Toggleable from the debug menu. Renders live over the feed:
 In-app SwiftUI + Swift Charts view of the completed session(s): see `observability.md` for the chart set. Reachable from the debug menu. Supports export.
 
 ### Debug menu
-- Select active **experiment arm** (see `experiment-harness.md`), which resets the session.
-- Toggle HUD, toggle signpost emission.
+- Select active **experiment arm** (see `experiment-harness.md`), which resets the session. *(M5.)*
+  The picker shows the arm's **strategy and pool capacity alongside its name**, because an arm is all
+  three — a name-only picker would let the operator select `preload3-capped` without noticing that it
+  also moves pool capacity from 3 to 4, and then attribute the difference to preload depth alone.
+  The hypothesis is shown too, so the reason an arm exists is legible at the moment it is chosen.
+- Toggle HUD *(M4)*, toggle signpost emission *(M6)*.
 - Start/stop/reset a measurement session; export results.
 - Pick content manifest (short-form clips vs. long-form HLS).
+
+Changes apply on **Done**, not on selection: switching arms tears the session down and rebuilds the
+pool, and doing that while the operator is still scrolling the picker would reset the session several
+times over.
 
 ## Feed behavior rules
 

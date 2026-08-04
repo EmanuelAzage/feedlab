@@ -3,10 +3,9 @@ import SwiftUI
 
 /// The rig's control surface.
 ///
-/// Deliberately contains only controls whose subsystem exists. Arm selection arrives with
-/// `ArmRegistry` (M5), HUD and signpost toggles with the instrumentation they gate (M3–M4),
-/// and session start/stop/export with `SessionStore` (M5). A menu full of inert switches
-/// would be indistinguishable from a menu full of broken ones.
+/// Deliberately contains only controls whose subsystem exists. Signpost toggles arrive with the
+/// signposts (M6). A menu full of inert switches would be indistinguishable from a menu full of
+/// broken ones.
 struct DebugMenuView: View {
     let manifest: Manifest
     @Bindable var settings: ToolsSettings
@@ -17,6 +16,7 @@ struct DebugMenuView: View {
     var body: some View {
         NavigationStack {
             List {
+                armSection
                 measurementSection
                 contentSection
                 buildSection
@@ -28,6 +28,44 @@ struct DebugMenuView: View {
                     Button("Done", action: onDone)
                 }
             }
+        }
+    }
+
+    /// The experiment selector.
+    ///
+    /// Shows the arm's hypothesis, its strategy and its pool capacity together, because an arm *is*
+    /// those three things — a picker that showed only a name would let the operator select
+    /// `preload3-capped` without seeing that it also changes pool capacity from 3 to 4.
+    private var armSection: some View {
+        Section {
+            Picker("Arm", selection: $settings.selectedArmName) {
+                ForEach(ArmRegistry.all) { arm in
+                    Text(arm.name).tag(arm.name)
+                }
+            }
+            LabeledContent("Strategy", value: settings.selectedArm.strategy.name)
+            LabeledContent("Pool capacity", value: Self.describe(settings.selectedArm.poolCapacity))
+        } header: {
+            Text("Experiment arm")
+        } footer: {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(settings.selectedArm.hypothesis)
+                Text(
+                    """
+                    Applied on Done. Selecting an arm **resets the session** and returns to the \
+                    first item: records carry the arm name, and peak memory is a session figure, \
+                    so a session spanning two arms would attribute items to the wrong condition \
+                    and a memory peak to neither.
+                    """
+                )
+            }
+        }
+    }
+
+    private static func describe(_ capacity: PoolCapacity) -> String {
+        switch capacity {
+        case .bounded(let limit): "\(limit)"
+        case .unbounded: "Unbounded"
         }
     }
 

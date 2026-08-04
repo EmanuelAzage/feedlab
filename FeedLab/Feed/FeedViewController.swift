@@ -115,8 +115,29 @@ final class FeedViewController: UIViewController {
     /// makes an arm a single choice rather than two settings that could drift apart.
     ///
     /// Starts at the control, so a launch with nothing selected measures the same thing the engine
-    /// did before arms existed. Selection from the debug menu arrives in the next change.
+    /// did before arms existed.
     private(set) var arm: Arm = ArmRegistry.control
+
+    #if FEEDLAB_TOOLS
+    /// Switches arm, resets the session, and returns to the first item.
+    ///
+    /// **Scroll-to-top is part of the reset, not a courtesy.** The run protocol
+    /// (`docs/experiment-harness.md`) requires the same item order for every arm; resuming a fresh
+    /// session at item 14 would make its first records incomparable with another arm's, and the
+    /// warm-up item the protocol says to discard would not be the same item.
+    func applyArm(_ arm: Arm) {
+        guard arm.name != self.arm.name, let coordinator else { return }
+        self.arm = arm
+
+        collectionView.setContentOffset(.zero, animated: false)
+        Task { [weak self] in
+            await coordinator.apply(arm: arm, pool: PlayerPool(capacity: arm.poolCapacity))
+            // Re-asserted after the reset: `teardownAll` clears the coordinator's notion of a
+            // current index, so the first item needs intent the same way it does at launch.
+            self?.coordinator?.settled(on: 0)
+        }
+    }
+    #endif
 
     // MARK: - Layout
 

@@ -4,7 +4,7 @@ title: Experiment Harness
 description: How arms are defined, selected, recorded, and compared so playback strategy choices are data-driven
 status: living
 tags: [experiments, ab-testing, methodology]
-timestamp: 2026-08-01T00:00:00Z
+timestamp: 2026-08-04T01:05:00Z
 related: [playback-engine.md, qoe-metrics.md, observability.md]
 ---
 
@@ -39,7 +39,18 @@ Arms are declared in a single `ArmRegistry` so the set under test is legible in 
 
 ## Assignment
 
-Manual selection from the debug menu, not randomized. This is a single-operator measurement rig, not a live A/B test — randomization would add variance without adding validity at n=1 user. **Say this explicitly in the README**; conflating a manual comparison rig with a real online experiment is the kind of overclaim a reviewer will catch.
+Manual selection from the debug menu, applied on dismissal. Selecting an arm **resets the session**
+and **returns the feed to the first item** — both halves matter:
+
+- *Reset* because records carry the arm name and peak memory is a **session** figure. A session
+  spanning two arms would attribute half its items to the wrong condition, and its memory peak to
+  neither. Records, buffered events, and the memory peak are all discarded; the pool is replaced
+  rather than resized, since capacity is part of what an arm *is*.
+- *Scroll to top* because the run protocol below requires the same item order for every arm. A fresh
+  session resuming at item 14 would produce first records incomparable with another arm's, and the
+  warm-up item that step 5 says to discard would not be the same item.
+
+Not randomized. This is a single-operator measurement rig, not a live A/B test — randomization would add variance without adding validity at n=1 user. **Say this explicitly in the README**; conflating a manual comparison rig with a real online experiment is the kind of overclaim a reviewer will catch.
 
 The harness is nonetheless structured the way an online experiment would be — named arms, per-arm records, aggregate comparison — so the methodology transfers.
 

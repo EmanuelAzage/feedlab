@@ -30,10 +30,14 @@ extension FeedViewController {
         guard presentedViewController == nil else { return }
         let menu = DebugMenuView(manifest: manifest, settings: toolsSettings) { [weak self] in
             self?.dismiss(animated: true) {
+                guard let self else { return }
                 // A sheet dismissal does not re-fire viewDidAppear on the presenter, so
                 // first responder has to be reclaimed here or shake stops working.
-                self?.becomeFirstResponder()
-                self?.syncHUDVisibility()
+                self.becomeFirstResponder()
+                // Arm first: it resets the session, and the HUD reads session state. Applying it
+                // second would leave the HUD showing the outgoing arm's aggregates for a tick.
+                self.applyArm(self.toolsSettings.selectedArm)
+                self.syncHUDVisibility()
             }
         }
         present(UIHostingController(rootView: menu), animated: true)

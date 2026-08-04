@@ -56,7 +56,10 @@ final class FeedCoordinator {
     /// The experimental condition in force: strategy plus pool size. Swapping it is what makes the
     /// arms differ in behaviour rather than only in label.
     private(set) var arm: Arm
-    let pool: PlayerPool
+    /// A `var` because capacity is per-arm and `PlayerPool.capacity` is immutable by design — a pool
+    /// whose capacity could change under its own waiters would not be the thing being measured.
+    /// Switching arms therefore swaps the pool rather than resizing it.
+    private(set) var pool: PlayerPool
     /// Session-level, so it belongs beside the recorder rather than inside the HUD: peak memory is
     /// attributed to the arm and must be tracked whether or not anyone is looking at it.
     let memoryTracker = MemoryPeakTracker()
@@ -267,6 +270,36 @@ final class FeedCoordinator {
             cancelPreparation(at: index)
         }
         currentIndex = nil
+    }
+
+    // MARK: - Arms
+
+    /// Switches the experimental condition and **resets the session**.
+    ///
+    /// Resetting is not tidiness. `docs/experiment-harness.md` treats a session as one arm's run, and
+    /// records carry the arm name — so folding two arms' items into one session would attribute
+    /// half of them to the wrong condition, and the peak-memory figure, which is a *session* metric,
+    /// would belong to neither. Nothing survives the switch: records, buffered events, and the
+    /// memory peak all go.
+    ///
+    /// The pool is replaced rather than resized, because capacity is fixed for the life of a pool
+    /// and an arm is a capacity as much as it is a strategy.
+    func apply(arm: Arm, pool newPool: PlayerPool) async {
+        teardownAll()
+
+        let retired = pool
+        self.arm = arm
+        pool = newPool
+
+        // Idle players in the retired pool are torn down now rather than at deallocation, so the
+        // buffers they hold do not overlap with the incoming arm's — which would land in the new
+        // arm's peak memory and be attributed to it.
+        await retired.drain()
+
+        await recorder.reset(arm: arm.name)
+        await memoryTracker.reset()
+
+        Log.playback.info("Arm → \(arm.name, privacy: .public), session reset")
     }
 
     // MARK: - Planning

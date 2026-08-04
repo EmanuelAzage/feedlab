@@ -14,5 +14,16 @@ final class ToolsSettings {
     /// measurably change time-to-first-frame — which can only be checked by comparing against runs
     /// with it off, so off has to be the baseline.
     var isHUDVisible = false
+
+    /// Selected by name rather than by value: `Arm` holds an `any PreloadStrategy` and so is not
+    /// `Equatable`, and the name is what records and screenshots carry anyway.
+    ///
+    /// Starts at the control, so a launch that touches nothing measures what the engine did before
+    /// arms existed.
+    var selectedArmName = ArmRegistry.control.name
+
+    var selectedArm: Arm {
+        ArmRegistry.arm(named: selectedArmName) ?? ArmRegistry.control
+    }
 }
 #endif
