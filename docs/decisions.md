@@ -4,13 +4,39 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-04T02:10:00Z
+timestamp: 2026-08-04T05:00:00Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-03 — The frozen-frame finding is recorded, not fixed; HLS is what this rig is about
+27% of progressive MP4 item views never reach playback (`qoe-metrics.md`). The obvious response is to
+chase it — larger initial buffers for progressive assets, a different readiness signal, per-format
+tuning. **We are not doing that**, and the reason is scope rather than difficulty.
+
+This project studies **bounded player pooling and preload strategy for adaptive streaming**. HLS is
+where preload depth, buffer caps and the bitrate ladder are meaningful levers; a progressive MP4 has
+no ladder, no segments, and — as measured — no access-log telemetry at all. Fixing progressive
+startup would be a real improvement to the *app* and would teach almost nothing about the *question*.
+
+Three consequences, all of which have to be honoured or the finding becomes an excuse:
+
+- **The metric stays.** `isFrozen` is implemented and reported. Declining to fix a failure is only
+  defensible while it remains visible; the fix that must never happen is deleting the measurement.
+- **Arm comparisons are reported over the HLS subset**, with the full-corpus figures alongside. Nine
+  frozen item views spread unevenly across runs would otherwise move p90 TTFF by more than any
+  preload strategy does, so a whole-corpus comparison would be measuring asset format while
+  appearing to measure strategy. `Manifest.hlsItems` already exists for the ABR metrics; the same
+  boundary now applies to the headline pair.
+- **The README says so.** "7 of 22 items are HLS, and the comparison is over those" is a limitation
+  a reader must be handed, not one they should have to infer from a corpus table.
+
+Revisit if the corpus ever becomes HLS-dominant, which `content-sources.md` explains is unlikely —
+licensable HLS is scarce, and that scarcity is why the corpus is progressive-heavy in the first
+place.
 
 ## 2026-08-03 — Only the current item may block on the pool
 Preload needs a player only if one is going spare, and `acquire()` is the wrong tool for it. Waiters are

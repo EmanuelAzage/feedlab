@@ -4,7 +4,7 @@ title: iOS Playback Learning Notes
 description: Living doc of AVFoundation and feed-playback internals - seeded with topics, filled in with notes as they come up in practice
 status: living
 tags: [learning, avfoundation, playback, performance]
-timestamp: 2026-08-04T02:10:00Z
+timestamp: 2026-08-04T05:00:00Z
 related: [playback-engine.md, qoe-metrics.md]
 ---
 
@@ -258,6 +258,90 @@ mechanism is visible.
 There, prefetching the wrong thing wastes bandwidth; here, prefetching the wrong thing also *holds a
 decoder*, because the resource that makes a preload real is the same resource the visible item needs. That
 is what turns preload from a caching question into a scheduling one.
+
+## A first frame is not playback — and progressive assets prove it
+
+**M6, on device.** The most useful thing this rig has produced so far, and it is a hole it found in
+its own definitions.
+
+27% of progressive MP4 item views (9 of 33) rendered a first frame and then **never played**. Zero of
+42 HLS views did. The event stream for one of them, complete:
+
+```
++    0 ms  itemBecameCurrent
++ 6053 ms  readyForDisplay      ← six seconds of nothing, then a frame
++ 6057 ms  stallBegan
++ 8744 ms  itemReleased         ← scrolled away, still frozen
+```
+
+No `playbackStarted`, ever. `timeControlStatus` never reached `.playing`. The user sees a still
+image for several seconds and scrolls away.
+
+**Three AVFoundation facts stacked up to make this invisible:**
+
+1. **`isReadyForDisplay` means "a frame is available to draw", not "playing".** They are routinely
+   simultaneous, which is why conflating them survives so long. A frozen first frame is exactly the
+   case where they come apart, and it is the case a feed most needs to detect.
+2. **Progressive assets emit no access-log entries at all.** Not sparse — *none*. Every one of those
+   9 item views had zero `accessLogEntry` events. So for a progressive file there is no
+   `observedBitrate`, no `startupTime`, no `numberOfStalls` — no media-stack telemetry whatsoever.
+   `timeControlStatus` is the *only* signal, which makes reading it correctly the whole game.
+3. **Our own stall rule then exempted it.** M3 correctly established that a stall counts only after
+   playback begins, because `AVPlayer` waits `.toMinimizeStalls` during normal startup. But an item
+   that never begins playback can never accrue a stall — so the rule that fixed a double-count
+   created a blind spot for the worst outcome the app can produce. Good TTFF, zero stalls, rebuffer
+   ratio 0.000.
+
+**Bridge to prior experience:** the same shape as a memory graph that looks flat because the metric
+stops sampling when the process wedges. The instrument is not lying — it is answering a narrower
+question than the one being asked, and the gap only shows when a failure mode falls outside the
+question. Worth pairing with the audio-only-rung hazard noted above: both are degradations that
+produce *no event at all*, and both need a metric defined by absence rather than by occurrence.
+
+### How it was found, which is the transferable part
+
+Not by a metric — there wasn't one — and not by re-running. The operator noticed two videos that
+"sometimes don't start before I swipe away", and the finding was then **reconstructed from the raw
+event streams of runs already performed**, including which items, how often, and split by stream
+format.
+
+That is only possible because `SessionStore` persists the events beside the folded records rather
+than the records alone. Records are a projection; events are the source of truth. A metric that did
+not exist at the time of the run was derived retroactively from the run anyway — which is the entire
+argument for keeping the raw stream, and it paid for itself the first time it was needed.
+
+The generalisable version: **when a measurement is expensive to repeat, store the observations, not
+just the conclusions.** A device afternoon is expensive. Re-deriving is free.
+
+## Buffer capping did not transfer from macOS to iOS
+
+**M6, on device — the number this project was most confident about, and it was wrong.**
+
+The M2 macOS probe measured +90.9 MB for four uncapped attached items against +1.5 MB capped, a ~60×
+ratio, and that figure had been driving the design: capping was described as what makes deep preload
+*viable at all*. On an iPhone 12 Pro, with two arms differing only in buffer configuration:
+
+| Arm | Peak memory (median of 3 runs) | Range |
+|---|---|---|
+| `preload3-capped` | 14.1 MB | 14.1–14.2 |
+| `preload3-uncapped` | 14.1 MB | 14.1–14.2 |
+
+Identical. An uncapped run that dwelled 131 s on a single item peaked at 15.5 MB *total footprint* —
+not a delta, the whole process. Nothing resembling 91 MB ever appeared.
+
+Two lessons, and the second is the one worth keeping:
+
+- **iOS manages `AVPlayerItem` buffers very differently from macOS**, or applies its own ceiling
+  regardless of `preferredForwardBufferDuration`. Either way the lever's *memory* justification does
+  not survive the platform change.
+- **A directional result from the wrong platform is not directional.** The M2 note was careful — it
+  said macOS, single run, re-measure on device — and it was still load-bearing in the spec for two
+  milestones, because a number with a caveat still reads as a number. The caveat was correct and
+  insufficient. What actually closed it was building the control arm and running the comparison.
+
+**Bridge to prior experience:** the image-pipeline analogue is trusting a simulator's memory profile
+for a decode-heavy path. The mistake is not using the convenient platform to explore — it is letting
+an exploration set a design premise before the target platform has confirmed it.
 
 ## Where playback CPU actually goes (first device trace)
 36 s Time Profiler on an iPhone 12 Pro under continuous scrolling, one video playing throughout:
