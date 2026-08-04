@@ -12,12 +12,31 @@ enum RootFactory {
     @MainActor
     static func makeFeedViewController() -> UIViewController {
         do {
-            let manifest = try ManifestLoader().load(resource: "short-form", in: .main)
+            let manifest = try ManifestLoader().load(resource: Self.manifestResource, in: .main)
             return FeedViewController(manifest: manifest)
         } catch {
             Log.content.error("Manifest failed validation: \(error.localizedDescription, privacy: .public)")
             return ManifestErrorViewController(message: error.localizedDescription)
         }
+    }
+
+    /// `-manifest <name>` selects the corpus, defaulting to the full one.
+    ///
+    /// The measurement corpus is `hls-only`: preload depth, buffer caps and the bitrate ladder are
+    /// only meaningful levers on adaptive streams (`docs/decisions.md`), and 7 of the 22 items in
+    /// `short-form` are HLS — too few for a per-run percentile, while the progressive remainder
+    /// contributes a 27% never-reaches-playback rate that moves p90 startup more than any strategy
+    /// does. Selecting the corpus at launch keeps the app's default the full, honest feed.
+    private static var manifestResource: String {
+        #if FEEDLAB_TOOLS
+        guard let name = UserDefaults.standard.string(forKey: "manifest"), !name.isEmpty else {
+            return "short-form"
+        }
+        Log.content.info("Manifest from launch argument: \(name, privacy: .public)")
+        return name
+        #else
+        return "short-form"
+        #endif
     }
 }
 

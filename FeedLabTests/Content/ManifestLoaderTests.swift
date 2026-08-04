@@ -161,6 +161,26 @@ struct ManifestLoaderTests {
             #expect(item.url.scheme == "https", "\(item.id) is not HTTPS")
         }
     }
+
+    @Test("The bundled measurement corpus is valid and contains only HLS")
+    func shippedHLSOnlyManifestIsValid() throws {
+        // The corpus every published comparison runs against. One progressive item slipping in
+        // would put the 27% never-reaches-playback population back into the headline p90 while the
+        // README says it was excluded — a discrepancy no number in the output would reveal.
+        let manifest = try loader.load(resource: "hls-only", in: .main)
+
+        #expect(!manifest.items.isEmpty)
+        #expect(manifest.hlsItems.count == manifest.items.count, "the measurement corpus must be all HLS")
+
+        // Every item must also exist in the full corpus, unchanged. The measurement manifest is a
+        // subset, not a second corpus that could drift into different URLs or attributions.
+        let full = try loader.load(resource: "short-form", in: .main)
+        for item in manifest.items {
+            let original = full.items.first { $0.id == item.id }
+            #expect(original?.url == item.url, "\(item.id) differs from the full corpus")
+            #expect(original?.source.attribution == item.source.attribution, "\(item.id) attribution differs")
+        }
+    }
 }
 
 // MARK: - Fixtures

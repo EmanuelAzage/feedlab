@@ -4,7 +4,7 @@ title: Experiment Harness
 description: How arms are defined, selected, recorded, and compared so playback strategy choices are data-driven
 status: living
 tags: [experiments, ab-testing, methodology]
-timestamp: 2026-08-04T17:30:00Z
+timestamp: 2026-08-04T19:00:00Z
 related: [playback-engine.md, qoe-metrics.md, observability.md]
 ---
 
@@ -67,8 +67,8 @@ The harness is nonetheless structured the way an online experiment would be — 
 Documented in `testing.md` and followed for every published number:
 
 1. Physical device, same device for all arms, screen brightness and thermal state comparable, other apps closed.
-2. Same content manifest and same item order.
-3. Same scroll script: **20 items forward, then 5 back, at 5 s dwell** — 26 item views per run. Driven by the `FeedLabRunner` UI test target, not by hand (see below).
+2. Same content manifest and same item order — the measurement corpus is **`hls-only.json`** (7 items), not the app's default `short-form.json`. See `decisions.md`.
+3. Same scroll script: **6 forward, 6 back, twice round, at 5 s dwell** — 25 item views per run, all HLS, of which 22 render a first frame, so p90 is the 20th of 22 rather than the worst of 7. Driven by the `FeedLabRunner` UI test target, not by hand (see below).
 4. Same network condition, set via Network Link Conditioner. Run each arm under at least two profiles: unthrottled Wi-Fi and a constrained profile (e.g. 3G / high-latency).
 5. Cold start before each arm; discard the first item's record as a warm-up outlier (and say so).
 6. Repeat each arm ≥3 times, **alternating arms rather than running each three times consecutively**, so thermal drift and CDN cache warmth spread across arms instead of loading onto whichever ran last. Report median of runs.
@@ -78,11 +78,15 @@ Documented in `testing.md` and followed for every published number:
 The scroll sequence is an XCUITest target (`FeedLabRunner`), parameterised by environment variable:
 
 ```bash
-TEST_RUNNER_FEEDLAB_ARM=preload1 TEST_RUNNER_FEEDLAB_DWELL=5 \
-TEST_RUNNER_FEEDLAB_FORWARD=20 TEST_RUNNER_FEEDLAB_BACK=5 \
+TEST_RUNNER_FEEDLAB_ARM=preload1 \
 xcodebuild test -scheme FeedLabRunner -configuration Measure \
   -destination 'platform=iOS,id=<ECID>'
 ```
+
+Only the arm is required; it has no default, because a run mislabelled as the control is worse than
+one that refuses to start. Everything else defaults to the protocol above and is overridable:
+`FEEDLAB_MANIFEST` (`hls-only`), `FEEDLAB_DWELL` (5), `FEEDLAB_FORWARD` (6), `FEEDLAB_BACK` (6),
+`FEEDLAB_LAPS` (2).
 
 The `TEST_RUNNER_` prefix must be on an **environment variable of `xcodebuild`**, not passed as a
 build-setting argument; `xcodebuild` strips the prefix and forwards the rest to the runner process.
@@ -104,8 +108,14 @@ Two consequences worth stating rather than hiding:
 - **The gesture is a flick, not a drag.** The default interpolated drag is slow enough to look wrong
   on screen and its duration sits inside the transition being measured. The runner drags at
   `XCUIGestureVelocity.fast` (2500 pt/s), so the ~470 pt of travel completes in about 0.19 s.
-  `isPagingEnabled` steps by exactly one page per gesture at any velocity, so one flick is one item
-  and a run's view count is known before it starts.
+- **Every flick is verified.** `isPagingEnabled` steps by exactly one page per gesture at any
+  velocity — but roughly one synthesized flick in ten was *dropped entirely*, concentrated on the
+  reversal from forward to backward scrolling, where a nominal 5-back tail consistently produced 3
+  views. Runs covered a different item set each time and nothing in the output said so: a run short
+  two views looks exactly like a run meant to be that length. The feed publishes its current index as
+  an accessibility identifier (not a value or label — identifiers are not announced by VoiceOver, so
+  the hook cannot degrade the real experience), and the runner reads it back after each flick and
+  retries. A run's view count is now known before it starts *and* asserted while it happens.
 
 ## Comparison
 

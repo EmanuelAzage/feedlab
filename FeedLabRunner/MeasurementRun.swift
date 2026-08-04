@@ -55,7 +55,7 @@ final class MeasurementRun: XCTestCase {
         let config = try RunConfiguration.fromEnvironment()
 
         let app = XCUIApplication()
-        app.launchArguments = ["-arm", config.arm]
+        app.launchArguments = ["-arm", config.arm, "-manifest", config.manifest]
         app.launch()
 
         XCTAssertTrue(
@@ -67,19 +67,23 @@ final class MeasurementRun: XCTestCase {
         // It is also the warm-up item the protocol discards; it is still viewed, so it is still timed.
         wait(config.dwell)
 
-        for _ in 0..<config.forward {
-            page(app, from: Self.dragFrom, to: Self.dragTo)
-            // The settle allowance already elapsed on screen with the new item current, so it counts
-            // as dwell. Adding to it instead would make the measured view longer than the protocol
-            // says, and unequally so between a clean flick and a retried one.
-            wait(config.dwell - Self.settleAllowance)
-        }
-        for _ in 0..<config.back {
-            page(app, from: Self.dragTo, to: Self.dragFrom)
-            // The settle allowance already elapsed on screen with the new item current, so it counts
-            // as dwell. Adding to it instead would make the measured view longer than the protocol
-            // says, and unequally so between a clean flick and a retried one.
-            wait(config.dwell - Self.settleAllowance)
+        // Laps rather than one long pass. The measurement corpus is 7 HLS items, and a per-run p90
+        // over 7 samples is just the worst item wearing a percentile's name; lapping the corpus
+        // gets the sample count up without inventing content the project has no licence to.
+        //
+        // The cost, stated because it is real: the first lap is cold and later laps are not. Views
+        // after the first benefit from a warm CDN and OS cache, which compresses the difference
+        // between arms — every arm equally, so the ranking holds, but the *magnitudes* are a floor
+        // on what a cold audience would see, not an estimate of it.
+        for _ in 0..<config.laps {
+            for _ in 0..<config.forward {
+                page(app, from: Self.dragFrom, to: Self.dragTo)
+                dwell(config)
+            }
+            for _ in 0..<config.back {
+                page(app, from: Self.dragTo, to: Self.dragFrom)
+                dwell(config)
+            }
         }
 
         XCUIDevice.shared.press(.home)
@@ -146,15 +150,24 @@ final class MeasurementRun: XCTestCase {
     private func wait(_ interval: TimeInterval) {
         Thread.sleep(forTimeInterval: max(0, interval))
     }
+
+    /// The settle allowance already elapsed on screen with the new item current, so it counts as
+    /// dwell. Adding to it instead would make the measured view longer than the protocol says, and
+    /// unequally so between a clean flick and a retried one.
+    private func dwell(_ config: RunConfiguration) {
+        wait(config.dwell - Self.settleAllowance)
+    }
 }
 
 /// The run script's parameters, resolved once so a malformed value fails before the app launches
 /// rather than halfway through a run that would then be silently unusable.
 struct RunConfiguration {
     let arm: String
+    let manifest: String
     let dwell: TimeInterval
     let forward: Int
     let back: Int
+    let laps: Int
 
     static func fromEnvironment() throws -> RunConfiguration {
         let env = ProcessInfo.processInfo.environment
@@ -166,9 +179,12 @@ struct RunConfiguration {
         }
         return RunConfiguration(
             arm: arm,
+            // The measurement corpus, not the app's default one — see `RootFactory`.
+            manifest: env["FEEDLAB_MANIFEST"].flatMap { $0.isEmpty ? nil : $0 } ?? "hls-only",
             dwell: try value(env["FEEDLAB_DWELL"], default: 5, name: "FEEDLAB_DWELL"),
-            forward: try value(env["FEEDLAB_FORWARD"], default: 20, name: "FEEDLAB_FORWARD"),
-            back: try value(env["FEEDLAB_BACK"], default: 5, name: "FEEDLAB_BACK")
+            forward: try value(env["FEEDLAB_FORWARD"], default: 6, name: "FEEDLAB_FORWARD"),
+            back: try value(env["FEEDLAB_BACK"], default: 6, name: "FEEDLAB_BACK"),
+            laps: try value(env["FEEDLAB_LAPS"], default: 2, name: "FEEDLAB_LAPS")
         )
     }
 

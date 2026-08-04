@@ -4,7 +4,7 @@ title: Testing and Measurement Protocol
 description: Unit test strategy, what must remain testable without a device, and the protocol for producing publishable numbers
 status: living
 tags: [testing, measurement, protocol]
-timestamp: 2026-08-04T17:30:00Z
+timestamp: 2026-08-04T19:00:00Z
 related: [architecture.md, experiment-harness.md, qoe-metrics.md]
 ---
 
@@ -45,7 +45,7 @@ Numbers published in the README come only from runs following this protocol:
   shows `Optimized: No` precisely so this cannot happen by accident. Never publish a number from `Debug`.
 - **Physical device**, stated by model and iOS version in the README. The simulator misrepresents decode, memory, and thermal behavior — never publish simulator numbers.
 - **Network conditions** set with Network Link Conditioner; each arm run under at least unthrottled Wi-Fi and one constrained profile. State the profile with every number.
-- **Identical run script** across arms — 20 items forward, 5 back, 5 s dwell, driven by the
+- **Identical run script** across arms — 6 forward + 6 back, twice round the HLS-only corpus at 5 s dwell, driven by the
   `FeedLabRunner` UI test target rather than by hand, because human dwell varied by more than 2x and
   dwell is the denominator of rebuffer ratio. Invocation and caveats in `experiment-harness.md`.
 - **≥3 runs per arm per profile**, arms alternated rather than run consecutively; report the median

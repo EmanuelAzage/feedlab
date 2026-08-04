@@ -4,7 +4,7 @@ title: Content Sources and Licensing
 description: The licensed test streams FeedLab uses, why each is included, and the attribution required
 status: living
 tags: [content, licensing, hls, attribution]
-timestamp: 2026-08-01T19:07:52Z
+timestamp: 2026-08-04T19:00:00Z
 related: [product-spec.md, testing.md]
 ---
 
@@ -67,12 +67,21 @@ stated above. This is a real limitation, not an oversight:
   of zero for progressive items as if it were a good result.
 - TTFF, rebuffer ratio, stall count, dropped frames, and peak memory remain valid across the whole corpus.
 - The NASA assets are longer than "short-form" implies. This matters less than it sounds: the run protocol
-  uses a fixed ~2 s dwell, so no item is ever watched to completion under measurement.
+  uses a fixed 5 s dwell, so no item is ever watched to completion under measurement.
+
+**The scarcity has now shaped the protocol, not just the caveats.** 27% of progressive item views never
+reach playback at all (`qoe-metrics.md`), and 7 HLS items is too few for a per-run percentile — so the
+published comparison runs against `hls-only.json` and laps it, rather than against the full corpus. The
+full corpus remains the app's default and the frozen-frame metric remains implemented and reported;
+what changed is which corpus produces published numbers. See `decisions.md`.
 
 ## Manifests
 
 `Content/manifests/*.json`, keyed by scenario:
-- `short-form.json` — the fast-scroll case the preload strategies target. *(Populated, 22 items.)*
+- `short-form.json` — the fast-scroll case the preload strategies target, and the app's default corpus. *(Populated, 22 items.)*
+- `hls-only.json` — **the measurement corpus.** The 7 HLS items of `short-form.json`, unchanged: same
+  URLs, same attributions, asserted by test to be a strict subset. It is a *view* of the full corpus,
+  not a second one, so it cannot drift into different content.
 - `long-form.json` — fewer, longer HLS assets; better for ABR and stall behavior.
 - `mixed.json` — deliberately heterogeneous (resolutions, ladders, durations) to stress the engine.
 

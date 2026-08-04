@@ -4,7 +4,7 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-04T18:00:00Z
+timestamp: 2026-08-04T19:00:00Z
 related: [architecture.md, playback-engine.md]
 ---
 
@@ -28,6 +28,35 @@ Accepted costs, stated in `experiment-harness.md` rather than hidden: XCUITest e
 in the app process and read ~1.9 MB higher peak footprint, making runner and hand-driven memory
 figures separate populations; and the runner flicks at `.fast` velocity rather than using the default
 interpolated drag, whose duration would otherwise sit inside the transition being measured.
+
+## 2026-08-04 — The measurement corpus is HLS-only, and the run laps it
+Supersedes the "26 item views" entry below, which did not survive contact with the data.
+
+Two attempts to get a usable percentile out of a 22-item corpus failed for the same reason. The
+comparison is reported over HLS (see the frozen-frame entry), the manifest holds **7** HLS items, and
+nearest-rank p90 over 7 samples is the maximum. Lengthening the script to 20 forward + 5 back did not
+help, and the reasoning behind it was simply wrong: the turnaround sits at index 20 and the return
+leg ends at 15, so the run never re-enters the HLS block at indices 0–6. HLS coverage stayed at 7.
+
+The corpus is now a separate manifest, `hls-only.json` — the same 7 items, same URLs, same
+attributions, asserted by test to be a strict subset of the full one — and the run **laps** it:
+6 forward, 6 back, twice. 25 views, all HLS, 22 with a first frame, so p90 is the 20th of 22.
+
+What this costs, and why it is still the right trade:
+
+- **Full-corpus figures are no longer produced per run**, which relaxes the "report both" obligation
+  in the frozen-frame entry. The obligation existed so a reader could see that progressive items were
+  excluded and why; that is now discharged by the README stating the exclusion and citing the
+  measured 27%, rather than by carrying a confounded column beside every result. The metric stays
+  implemented and the full manifest remains the app's default — the exclusion is a property of the
+  *measurement*, not a quiet narrowing of the app.
+- **Later laps run warm.** The first lap is cold, the rest benefit from a warm CDN and OS cache. This
+  compresses arm differences — equally for every arm, so the ranking holds, but the magnitudes are a
+  floor on what a cold audience would see rather than an estimate of it. Stated with the numbers.
+
+The alternative, three passes over the full 22-item corpus, would have produced the same 21 HLS views
+inside a 64-view run — three times the device time to collect the same headline sample, most of it
+spent measuring the asset format the comparison excludes.
 
 ## 2026-08-04 — The run is 26 item views, because 7 is not enough for a percentile
 The comparison is reported over the HLS subset (see the 2026-08-03 entry below), but the manifest
@@ -61,6 +90,9 @@ Three consequences, all of which have to be honoured or the finding becomes an e
   preload strategy does, so a whole-corpus comparison would be measuring asset format while
   appearing to measure strategy. `Manifest.hlsItems` already exists for the ABR metrics; the same
   boundary now applies to the headline pair.
+  **Revised 2026-08-04** — the "alongside" half is dropped: runs are now against an HLS-only corpus,
+  so there are no full-corpus figures to carry. The purpose it served, handing the reader the
+  exclusion rather than letting them infer it, moves to the README. See the entry above.
 - **The README says so.** "7 of 22 items are HLS, and the comparison is over those" is a limitation
   a reader must be handed, not one they should have to infer from a corpus table.
 

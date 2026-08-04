@@ -67,6 +67,7 @@
 		E6D5F4C68C96AD3B22680D91 /* DashboardCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7348873E56F9EDFA7318D8 /* DashboardCharts.swift */; };
 		F0A3FE498CA1F27BDB350E03 /* PlaybackRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 689E21EBB2DD133F6A32EB0E /* PlaybackRecord.swift */; };
 		F2F2948793FCDD1DCFA12DA4 /* PreparationPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1071A5A442E5D5901FE5D5D5 /* PreparationPlannerTests.swift */; };
+		F732CBF5D7A85F4147083BEB /* hls-only.json in Resources */ = {isa = PBXBuildFile; fileRef = FCB3543EF86F1FD56ED9A733 /* hls-only.json */; };
 		FC56DA33E7251169A7A30457 /* AggregationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55DE29D36AA10B574C2403AA /* AggregationTests.swift */; };
 		FCDC2391BCC1F016C97D61DF /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB25647E7E5BBAFDAEDF2E71 /* DashboardView.swift */; };
 /* End PBXBuildFile section */
@@ -155,7 +156,8 @@
 		FC2B8393D6A5799A2E126A3D /* ContentSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSource.swift; sourceTree = "<group>"; };
 		FC3509FBA34A55D9DF3F8B70 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		FC4C30D633F5AC193A5FB6A5 /* FeedLabRunner.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FeedLabRunner.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		"TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		FCB3543EF86F1FD56ED9A733 /* hls-only.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "hls-only.json"; sourceTree = "<group>"; };
+		"TEMP_EFB4C776-95AD-4161-8E64-71A2FF365DF5" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -298,6 +300,7 @@
 		68BC9C49ED2A74A2C38F0F02 /* manifests */ = {
 			isa = PBXGroup;
 			children = (
+				FCB3543EF86F1FD56ED9A733 /* hls-only.json */,
 				3BB8F52B336E524421F90971 /* short-form.json */,
 			);
 			path = manifests;
@@ -391,10 +394,10 @@
 			path = Fakes;
 			sourceTree = "<group>";
 		};
-		"TEMP_6F994D20-BB9A-485F-AE63-2F04AB9BFA7E" /* feedlab */ = {
+		"TEMP_085A3F6E-602A-4229-98EC-21CA763AE684" /* feedlab */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */,
+				"TEMP_EFB4C776-95AD-4161-8E64-71A2FF365DF5" /* Signing.xcconfig */,
 			);
 			path = feedlab;
 			sourceTree = "<group>";
@@ -512,6 +515,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F732CBF5D7A85F4147083BEB /* hls-only.json in Resources */,
 				0E69E1817F7F138638F85D12 /* short-form.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -635,7 +639,7 @@
 		};
 		26588EC071BB10B2F85D3616 /* Measure */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_EFB4C776-95AD-4161-8E64-71A2FF365DF5" /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -653,7 +657,7 @@
 		};
 		268E918EEE3E9BCDA05A90CB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_EFB4C776-95AD-4161-8E64-71A2FF365DF5" /* Signing.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -732,7 +736,7 @@
 		};
 		3A947121F6B0A5E1BF72D75A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_EFB4C776-95AD-4161-8E64-71A2FF365DF5" /* Signing.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -750,7 +754,7 @@
 		};
 		4FF92F848FDACA78C6CCCD49 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_EFB4C776-95AD-4161-8E64-71A2FF365DF5" /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -852,7 +856,7 @@
 		};
 		7DDF70B342C32BB9EC89B526 /* Measure */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_EFB4C776-95AD-4161-8E64-71A2FF365DF5" /* Signing.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -948,7 +952,7 @@
 		};
 		CEAFF5460898B294CB825DED /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_EFB4C776-95AD-4161-8E64-71A2FF365DF5" /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";

@@ -1,0 +1,62 @@
+{
+  "id": "hls-only",
+  "title": "HLS only — adaptive streams",
+  "items": [
+    {
+      "id": "apple-bipbop-16x9",
+      "title": "BipBop 16:9",
+      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_16x9/bipbop_16x9_variant.m3u8",
+      "source": "Apple Inc.",
+      "license": "Apple developer test asset",
+      "attribution": "Apple HLS example stream — developer.apple.com"
+    },
+    {
+      "id": "apple-bipbop-4x3",
+      "title": "BipBop 4:3",
+      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8",
+      "source": "Apple Inc.",
+      "license": "Apple developer test asset",
+      "attribution": "Apple HLS example stream — developer.apple.com"
+    },
+    {
+      "id": "apple-bipbop-fmp4",
+      "title": "BipBop Advanced (fMP4)",
+      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
+      "source": "Apple Inc.",
+      "license": "Apple developer test asset",
+      "attribution": "Apple HLS example stream — developer.apple.com"
+    },
+    {
+      "id": "apple-adv-dv-atmos",
+      "title": "Dolby Vision / Atmos Example",
+      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/adv_dv_atmos/main.m3u8",
+      "source": "Apple Inc.",
+      "license": "Apple developer test asset",
+      "attribution": "Apple HLS example stream — developer.apple.com"
+    },
+    {
+      "id": "mux-test-asset",
+      "title": "Mux Test Asset",
+      "url": "https://stream.mux.com/v69RSHhFelSm4701snP22dYz2jICy4E4FUyk02rW4gxRM.m3u8",
+      "source": "Mux, Inc.",
+      "license": "Mux public test asset",
+      "attribution": "Mux public test stream — mux.com"
+    },
+    {
+      "id": "tos-unified-streaming",
+      "title": "Tears of Steel",
+      "url": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+      "source": "Blender Foundation",
+      "license": "CC BY 3.0",
+      "attribution": "(CC) Blender Foundation — mango.blender.org | hosted by Unified Streaming"
+    },
+    {
+      "id": "tos-mux-ismc",
+      "title": "Tears of Steel (alternate packaging)",
+      "url": "https://test-streams.mux.dev/tos_ismc/main.m3u8",
+      "source": "Blender Foundation",
+      "license": "CC BY 3.0",
+      "attribution": "(CC) Blender Foundation — mango.blender.org | hosted by Mux"
+    }
+  ]
+}
