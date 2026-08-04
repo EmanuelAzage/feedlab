@@ -21,6 +21,9 @@ struct PooledPlayer: Sendable {
 protocol PlayerPooling: Sendable {
     var capacity: PoolCapacity { get }
     func acquire() async throws -> PooledPlayer
+    /// A player only if one is free right now. Never blocks, never queues. See the implementation
+    /// note — this exists so speculative preload cannot get in front of the user.
+    func acquireIfAvailable() async -> PooledPlayer?
     func release(_ pooled: PooledPlayer) async
 }
 
@@ -97,6 +100,27 @@ actor PlayerPool: PlayerPooling {
         }
 
         return PooledPlayer(player: player, waitDuration: clock.now() - start)
+    }
+
+    /// Takes a free player, or nothing.
+    ///
+    /// **Only the current item may block.** Waiters are served FIFO, so a preload acquire that
+    /// queued would sit *ahead* of the acquire for whichever item the user scrolls to next — the
+    /// item they are actually waiting on would wait behind speculative work for one they may never
+    /// reach. Preload would then inflate the very metric it exists to reduce, and
+    /// `playerWaitDuration` would stop meaning "genuine contention" (`docs/qoe-metrics.md`).
+    ///
+    /// Returning nil leaves the item at tier 1 — asset loaded, not buffering — which is a
+    /// degradation the rig can see rather than a latency it cannot.
+    ///
+    /// Cannot overtake a queued waiter, and does not need a guard to prevent it: a waiter only
+    /// exists because the free list was empty at capacity, and a subsequent release hands the
+    /// player straight to that waiter without passing through the free list or changing
+    /// `liveCount`. A test asserts this rather than leaving it to the argument.
+    func acquireIfAvailable() -> PooledPlayer? {
+        guard let player = takeImmediately() else { return nil }
+        // Zero by construction, not by measurement: this path cannot have waited.
+        return PooledPlayer(player: player, waitDuration: 0)
     }
 
     func release(_ pooled: PooledPlayer) {

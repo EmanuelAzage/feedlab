@@ -4,7 +4,7 @@ title: iOS Playback Learning Notes
 description: Living doc of AVFoundation and feed-playback internals - seeded with topics, filled in with notes as they come up in practice
 status: living
 tags: [learning, avfoundation, playback, performance]
-timestamp: 2026-08-03T01:28:25Z
+timestamp: 2026-08-03T23:58:00Z
 related: [playback-engine.md, qoe-metrics.md]
 ---
 
@@ -195,6 +195,31 @@ nothing about itself.
 
 ## Player pooling and decode resources
 Why live `AVPlayer` count matters: memory, decode sessions, dropped frames. Note the actual numbers observed at pool sizes 3, 4, and unbounded.
+
+**M5 — preload is not a prefetch, it is a claim on a scarce object, and that makes queue discipline a
+measurement decision.** This follows from the M2 finding above rather than from anything in the pooling
+code: because an `AVPlayerItem` does not buffer until a player adopts it, "preload item 3" cannot be
+fire-and-forget. It has to take a player — the same bounded resource the item the user is *looking at*
+needs. Preload and playback therefore contend for one queue, and who goes first is a choice.
+
+Getting it wrong is a priority inversion: the pool serves waiters FIFO, so a speculative acquire that
+queued would be served *before* the acquire for whichever item the user scrolls to next. Hence
+`acquireIfAvailable()`, which declines rather than queues.
+
+What makes this worth writing down is that **the failure would have been self-concealing.** Preload
+delaying the current item surfaces as worse time-to-first-frame *on the preload arms* — which reads as a
+clean experimental result ("preloading didn't help here") rather than as a bug in the rig. The arms most
+affected are exactly the ones whose hypothesis is under test. This is the same category as the startup-
+counted-as-a-stall correction in M3: a constant bias that survives averaging and arrives dressed as a
+finding.
+
+**Bridge to prior experience:** structurally identical to prefetch priority inversion in an image
+pipeline, where speculative prefetches saturate a bounded download queue ahead of the visible cell's own
+request and the list appears to load *slower* the more aggressively you prefetch. Same failure shape;
+the scarce resource is a player rather than a connection, and here it is also the thing being measured.
+
+Not measured — this is reasoning from the M2 attachment finding, and a unit test pins the ordering
+property. Whether preload actually pays for itself is what the arms are for.
 
 ## Where playback CPU actually goes (first device trace)
 36 s Time Profiler on an iPhone 12 Pro under continuous scrolling, one video playing throughout:

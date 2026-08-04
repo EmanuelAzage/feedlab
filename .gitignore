@@ -1,8 +1,9 @@
 # Xcode
 build/
 DerivedData/
-*.xcodeproj/xcuserdata/
-*.xcworkspace/xcuserdata/
+# Unanchored: the workspace inside a .xcodeproj is a nested path, which a pattern
+# containing a slash would not reach from the repo root.
+**/xcuserdata/
 *.xcworkspace/xcshareddata/swiftpm/
 .swiftpm/
 *.hmap

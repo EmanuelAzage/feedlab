@@ -175,6 +175,74 @@ struct PlayerPoolTests {
         #expect(reacquired.waitDuration == 0)
     }
 
+    // MARK: - Non-blocking acquire (preload)
+
+    @Test("A non-blocking acquire hands over a free player, and reports no wait")
+    func nonBlockingAcquireSucceedsWhenAPlayerIsFree() async throws {
+        let factory = CountingPlayerFactory()
+        // A clock that ticks on every read: any elapsed-time computation on this path would show up.
+        let pool = PlayerPool(capacity: .bounded(2), clock: AdvancingClock(step: 0.05), makePlayer: factory.make)
+
+        let pooled = try #require(await pool.acquireIfAvailable())
+
+        #expect(pooled.waitDuration == 0)
+        #expect(await pool.occupancy == 1)
+        #expect(factory.count == 1)
+    }
+
+    @Test("A non-blocking acquire on an exhausted pool returns nil instead of queueing")
+    func nonBlockingAcquireYieldsNilWhenExhausted() async throws {
+        let factory = CountingPlayerFactory()
+        let pool = PlayerPool(capacity: .bounded(1), clock: FakeClock(), makePlayer: factory.make)
+        let held = try await pool.acquire()
+
+        #expect(await pool.acquireIfAvailable() == nil)
+        // The two things that make this different from `acquire()`: no waiter was created, and
+        // no player was allocated to satisfy the request.
+        #expect(await pool.pendingAcquireCount == 0)
+        #expect(factory.count == 1)
+        #expect(await pool.occupancy == 1)
+
+        await pool.release(held)
+    }
+
+    @Test("A non-blocking acquire cannot overtake a caller already queued")
+    func nonBlockingAcquireCannotOvertakeAWaiter() async throws {
+        // The property preload depends on. If a speculative acquire could take a player while the
+        // current item was blocked for one, preload would delay the item the user is looking at.
+        let pool = PlayerPool(capacity: .bounded(1), clock: FakeClock(), makePlayer: CountingPlayerFactory().make)
+        let held = try await pool.acquire()
+
+        let waiting = Task { try await pool.acquire() }
+        try await waitUntil({ await pool.pendingAcquireCount == 1 }, description: "acquire to block")
+
+        #expect(await pool.acquireIfAvailable() == nil)
+
+        // Releasing serves the queued caller, not the speculative one.
+        await pool.release(held)
+        _ = try await waiting.value
+        #expect(await pool.pendingAcquireCount == 0)
+    }
+
+    @Test("A player taken without blocking is released back like any other")
+    func nonBlockingAcquireReleasesSymmetrically() async throws {
+        let factory = CountingPlayerFactory()
+        let pool = PlayerPool(capacity: .bounded(2), clock: FakeClock(), makePlayer: factory.make)
+
+        let pooled = try #require(await pool.acquireIfAvailable())
+        let player = try #require(pooled.player as? FakePlayer)
+        await pool.release(pooled)
+
+        #expect(player.resetCount == 1, "release must tear down regardless of how the player was obtained")
+        #expect(await pool.occupancy == 0)
+        #expect(await pool.freeCount == 1)
+
+        // And it is genuinely back on the shelf rather than merely uncounted.
+        let reacquired = try #require(await pool.acquireIfAvailable())
+        #expect((reacquired.player as? FakePlayer)?.serial == player.serial)
+        #expect(factory.count == 1)
+    }
+
     // MARK: - Teardown
 
     @Test("Release tears the player down before it can be handed out again")

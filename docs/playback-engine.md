@@ -4,7 +4,7 @@ title: Playback Engine — Player Pool and Preload Strategies
 description: Bounded AVPlayer pooling, item lifecycle, and the swappable preload strategies the experiments compare
 status: living
 tags: [avfoundation, player-pool, preload, performance]
-timestamp: 2026-08-02T21:38:53Z
+timestamp: 2026-08-03T23:47:00Z
 related: [architecture.md, qoe-metrics.md, experiment-harness.md]
 ---
 
@@ -28,7 +28,8 @@ struct PooledPlayer: Sendable {
 
 protocol PlayerPooling: Sendable {
   var capacity: PoolCapacity { get }
-  func acquire() async throws -> PooledPlayer   // waits if none free; wait is measured
+  func acquire() async throws -> PooledPlayer          // waits if none free; wait is measured
+  func acquireIfAvailable() async -> PooledPlayer?     // never waits, never queues
   func release(_ pooled: PooledPlayer) async
 }
 ```
@@ -44,6 +45,12 @@ Rules:
 - Fixed `capacity` (default 3: current, next, previous). Capacity is an experiment variable.
 - `acquire()` never allocates beyond capacity. If all players are in use, the caller waits and the wait is recorded as `playerWaitDuration` — a first-class metric, because a pool that's too small shows up as startup latency.
 - Waiters are served **FIFO**, and a released player is handed straight to the longest-waiting caller rather than round-tripping through the free list, so a queued acquire cannot be overtaken by a fresh one.
+- **Only the current item may block.** FIFO service is what forces this: a preload acquire that queued
+  would sit *ahead* of the acquire for whichever item the user scrolls to next, so the item they are
+  actually waiting on would wait behind speculative work for one they may never reach. Preload would
+  then inflate the very metric it exists to reduce, and `playerWaitDuration` would stop meaning
+  contention. Preload therefore uses `acquireIfAvailable()`, which returns nil rather than queueing;
+  the item stays at tier 1 — a degradation the rig can see, instead of a latency it cannot.
 - `release()` performs full teardown before the player becomes visible to anyone else. Responsibility splits three ways, and all three must happen or the recycling is unsafe:
 
   | Step | Owner | Why there |
