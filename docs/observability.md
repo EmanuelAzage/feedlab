@@ -65,7 +65,19 @@ Deliverable: one Instruments screenshot in the README showing the Points of Inte
 
 ## Export
 
-Session data exports as JSON (full records) and CSV (flat, per item) via the share sheet. The README's results table is generated from an exported CSV, not typed by hand — no transcription drift between what was measured and what's published.
+Session data exports as JSON (full records) and CSV (flat, per item) via the share sheet. CSV is the
+spreadsheet path; JSON is the archival one, and it is what makes a run re-derivable if a metric
+definition changes — which has already happened once, when `didStartPlayback` let the frozen-frame
+count be reconstructed from runs performed before the metric existed.
+
+**The README's results table is generated, not typed.** `Scripts/results_table.py` reads the archival
+session records pulled off the device and emits the table markdown directly, so no number reaches the
+README by transcription. It reads the persisted JSON rather than the share-sheet CSV for a practical
+reason — sessions come off the device over USB with `devicectl`, while the CSV requires a human and a
+share sheet — and it restates the aggregation rules from `qoe-metrics.md` rather than inventing its
+own: nearest-rank p90, total-over-total rebuffer ratio, median of per-run values, warm-up item
+discarded. Where a field is absent because the session predates it, the column prints `—`; defaulting
+it would produce a number that is wrong and plausible at the same time.
 
 ## Screenshot plan (for README)
 

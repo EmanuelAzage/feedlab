@@ -1,0 +1,921 @@
+{
+  "events" : {
+    "apple-adv-dv-atmos" : [
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246330.717081291
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246330.806593958
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 246330.84406725
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 1352128,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 3677353,
+              "startupTime" : 0.021899938583374023
+            }
+          }
+        },
+        "timestamp" : 246331.1072475
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 5186851,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 3935492,
+              "startupTime" : 0.021899938583374023
+            }
+          }
+        },
+        "timestamp" : 246333.560443708
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246334.228348
+      }
+    ],
+    "apple-bipbop-16x9" : [
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246319.06627275
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 246319.310793208
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246319.829382333
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 1924009,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 4075645
+            }
+          }
+        },
+        "timestamp" : 246319.837421958
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 246321.311730125
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 246321.311730125
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 1030138,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 4981379,
+              "startupTime" : 1.9323879480361938
+            }
+          }
+        },
+        "timestamp" : 246322.006184375
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246324.045709125
+      }
+    ],
+    "apple-bipbop-4x3" : [
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246324.046413666
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246324.151448625
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 246324.211466166
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 1927833,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 7713640,
+              "startupTime" : 0.029426932334899902
+            }
+          }
+        },
+        "timestamp" : 246326.185046875
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246327.206065666
+      }
+    ],
+    "apple-bipbop-fmp4" : [
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246327.207016333
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246327.429567083
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 246327.477073875
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 2177116,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 6105593,
+              "startupTime" : 0.035105109214782715
+            }
+          }
+        },
+        "timestamp" : 246327.644946958
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 3438927,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 8748528,
+              "startupTime" : 0.035105109214782715
+            }
+          }
+        },
+        "timestamp" : 246330.274578541
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246330.716790791
+      }
+    ],
+    "mux-test-asset" : [
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246334.24482925
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246334.3597705
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 246334.385854958
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 246334.386196416
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 246334.386196416
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 987800,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 7251090,
+              "startupTime" : 0.03477597236633301
+            }
+          }
+        },
+        "timestamp" : 246335.092577125
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 1696200,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 8456260,
+              "startupTime" : 0.03477597236633301
+            }
+          }
+        },
+        "timestamp" : 246337.182093458
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246337.238134
+      }
+    ],
+    "nasa-aurora-steve" : [
+      {
+        "itemID" : "nasa-aurora-steve",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246345.164871833
+      },
+      {
+        "itemID" : "nasa-aurora-steve",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246345.286788208
+      },
+      {
+        "itemID" : "nasa-aurora-steve",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 246345.290211916
+      },
+      {
+        "itemID" : "nasa-aurora-steve",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 2242931.6202025064,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 5498293.736787796,
+              "startupTime" : 0.026193976402282715
+            }
+          }
+        },
+        "timestamp" : 246345.290362458
+      },
+      {
+        "itemID" : "nasa-aurora-steve",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246348.390788708
+      }
+    ],
+    "nasa-gpm-launch" : [
+      {
+        "itemID" : "nasa-gpm-launch",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246357.386126625
+      },
+      {
+        "itemID" : "nasa-gpm-launch",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246359.668068166
+      },
+      {
+        "itemID" : "nasa-gpm-launch",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 246359.670192708
+      },
+      {
+        "itemID" : "nasa-gpm-launch",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246365.879387416
+      }
+    ],
+    "nasa-gpm-launch-nomusic" : [
+      {
+        "itemID" : "nasa-gpm-launch-nomusic",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246365.880710833
+      },
+      {
+        "itemID" : "nasa-gpm-launch-nomusic",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246365.953817208
+      },
+      {
+        "itemID" : "nasa-gpm-launch-nomusic",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 246365.956122375
+      },
+      {
+        "itemID" : "nasa-gpm-launch-nomusic",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246371.537379291
+      }
+    ],
+    "nasa-solar-flare-trio" : [
+      {
+        "itemID" : "nasa-solar-flare-trio",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246348.391988416
+      },
+      {
+        "itemID" : "nasa-solar-flare-trio",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246348.526824208
+      },
+      {
+        "itemID" : "nasa-solar-flare-trio",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 246348.529266208
+      },
+      {
+        "itemID" : "nasa-solar-flare-trio",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 2228157.5549311717,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2901637.71800255,
+              "startupTime" : 0.04136097431182861
+            }
+          }
+        },
+        "timestamp" : 246348.529334666
+      },
+      {
+        "itemID" : "nasa-solar-flare-trio",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246351.885067583
+      }
+    ],
+    "nasa-top5-solar-3" : [
+      {
+        "itemID" : "nasa-top5-solar-3",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246351.885993125
+      },
+      {
+        "itemID" : "nasa-top5-solar-3",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246351.995644541
+      },
+      {
+        "itemID" : "nasa-top5-solar-3",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 246351.999935791
+      },
+      {
+        "itemID" : "nasa-top5-solar-3",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 246354.468124666
+      },
+      {
+        "itemID" : "nasa-top5-solar-3",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 246354.468124666
+      },
+      {
+        "itemID" : "nasa-top5-solar-3",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 2155845.831300518,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2373148.3857772746,
+              "startupTime" : 1.0992380380630493
+            }
+          }
+        },
+        "timestamp" : 246354.468278583
+      },
+      {
+        "itemID" : "nasa-top5-solar-3",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246357.369525833
+      }
+    ],
+    "tos-mux-ismc" : [
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246341.284203041
+      },
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246341.453491625
+      },
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 246341.488623083
+      },
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246345.163634041
+      }
+    ],
+    "tos-unified-streaming" : [
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 246337.254528625
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 246337.336919916
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 246337.393430708
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 932000,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2633717,
+              "startupTime" : 0.026631951332092285
+            }
+          }
+        },
+        "timestamp" : 246338.629192083
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 1197000,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2813504,
+              "startupTime" : 0.026631951332092285
+            }
+          }
+        },
+        "timestamp" : 246339.489651458
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 246341.268048125
+      }
+    ]
+  },
+  "id" : "D0001E4F-6365-4AC9-B80C-E72419AC2121",
+  "summary" : {
+    "arm" : "preload3-capped",
+    "endedAt" : "2026-08-04T01:52:31Z",
+    "peakMemoryBytes" : 14878720,
+    "records" : [
+      {
+        "arm" : "preload3-capped",
+        "bitrateSwitchCount" : 1,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 1030138,
+        "itemID" : "apple-bipbop-16x9",
+        "mediaStackStartupTime" : 1.9323879480361938,
+        "observedBitrate" : 4981379,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.7631095830001868,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.979436374997022
+      },
+      {
+        "arm" : "preload3-capped",
+        "bitrateSwitchCount" : 0,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 1927833,
+        "itemID" : "apple-bipbop-4x3",
+        "mediaStackStartupTime" : 0.029426932334899902,
+        "observedBitrate" : 7713640,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.10503495900775306,
+        "totalStallDuration" : 0,
+        "watchDuration" : 3.1596520000020973
+      },
+      {
+        "arm" : "preload3-capped",
+        "bitrateSwitchCount" : 1,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 3438927,
+        "itemID" : "apple-bipbop-fmp4",
+        "mediaStackStartupTime" : 0.035105109214782715,
+        "observedBitrate" : 8748528,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.22255074998247437,
+        "totalStallDuration" : 0,
+        "watchDuration" : 3.50977445798344
+      },
+      {
+        "arm" : "preload3-capped",
+        "bitrateSwitchCount" : 1,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 5186851,
+        "itemID" : "apple-adv-dv-atmos",
+        "mediaStackStartupTime" : 0.021899938583374023,
+        "observedBitrate" : 3935492,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.08951266700751148,
+        "totalStallDuration" : 0,
+        "watchDuration" : 3.5112667090143077
+      },
+      {
+        "arm" : "preload3-capped",
+        "bitrateSwitchCount" : 1,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 1696200,
+        "itemID" : "mux-test-asset",
+        "mediaStackStartupTime" : 0.03477597236633301,
+        "observedBitrate" : 8456260,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.11494125000899658,
+        "totalStallDuration" : 0,
+        "watchDuration" : 2.9933047500089742
+      },
+      {
+        "arm" : "preload3-capped",
+        "bitrateSwitchCount" : 1,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 1197000,
+        "itemID" : "tos-unified-streaming",
+        "mediaStackStartupTime" : 0.026631951332092285,
+        "observedBitrate" : 2813504,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.08239129101275466,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.013519500003895
+      },
+      {
+        "arm" : "preload3-capped",
+        "errors" : [
+
+        ],
+        "itemID" : "tos-mux-ismc",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.16928858400206082,
+        "totalStallDuration" : 0,
+        "watchDuration" : 3.8794310000084806
+      },
+      {
+        "arm" : "preload3-capped",
+        "bitrateSwitchCount" : 0,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 2242931.6202025064,
+        "itemID" : "nasa-aurora-steve",
+        "mediaStackStartupTime" : 0.026193976402282715,
+        "observedBitrate" : 5498293.736787796,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.12191637500654906,
+        "totalStallDuration" : 0,
+        "watchDuration" : 3.22591687500244
+      },
+      {
+        "arm" : "preload3-capped",
+        "bitrateSwitchCount" : 0,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 2228157.5549311717,
+        "itemID" : "nasa-solar-flare-trio",
+        "mediaStackStartupTime" : 0.04136097431182861,
+        "observedBitrate" : 2901637.71800255,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.13483579200692475,
+        "totalStallDuration" : 0,
+        "watchDuration" : 3.4930791670049075
+      },
+      {
+        "arm" : "preload3-capped",
+        "bitrateSwitchCount" : 0,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 2155845.831300518,
+        "itemID" : "nasa-top5-solar-3",
+        "mediaStackStartupTime" : 1.0992380380630493,
+        "observedBitrate" : 2373148.3857772746,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.1096514159871731,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.483532707992708
+      },
+      {
+        "arm" : "preload3-capped",
+        "errors" : [
+
+        ],
+        "itemID" : "nasa-gpm-launch",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 2.281941541004926,
+        "totalStallDuration" : 0,
+        "watchDuration" : 8.493260791001376
+      },
+      {
+        "arm" : "preload3-capped",
+        "errors" : [
+
+        ],
+        "itemID" : "nasa-gpm-launch-nomusic",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.0731063749990426,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.656668457988417
+      }
+    ],
+    "startedAt" : "2026-08-04T01:51:38Z"
+  }
+}
