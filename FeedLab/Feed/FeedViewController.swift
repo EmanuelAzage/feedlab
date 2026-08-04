@@ -174,6 +174,10 @@ final class FeedViewController: UIViewController {
         #if FEEDLAB_TOOLS
         if let coordinator {
             hudController = HUDController(coordinator: coordinator, host: view)
+            // `-hud 1` has to be honoured here, not only when the debug menu closes. Without this
+            // the flag is read and then ignored, so the HUD-on half of the perturbation pair would
+            // run with no HUD — and report, convincingly, that the HUD costs nothing.
+            syncHUDVisibility()
         }
         #endif
     }

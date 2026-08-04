@@ -70,6 +70,19 @@ final class MeasurementRun: XCTestCase {
             "App never reached the foreground — the run would have measured nothing."
         )
 
+        // The HUD-perturbation criterion is a comparison against runs with the HUD off, so a
+        // requested HUD that never appeared would report — convincingly — that the HUD is free.
+        // The flag was in fact read and ignored at launch for exactly one build; assert, don't trust.
+        let hudLabel = app.staticTexts["ARM"]
+        if config.hud {
+            XCTAssertTrue(
+                hudLabel.waitForExistence(timeout: 10),
+                "-hud 1 was passed but the HUD is not on screen; this run would understate its cost."
+            )
+        } else {
+            XCTAssertFalse(hudLabel.exists, "HUD is visible on a run that did not ask for it.")
+        }
+
         // The first item is already on screen at launch, so it gets its dwell before any swipe.
         // It is also the warm-up item the protocol discards; it is still viewed, so it is still timed.
         wait(config.dwell)
