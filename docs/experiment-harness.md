@@ -4,7 +4,7 @@ title: Experiment Harness
 description: How arms are defined, selected, recorded, and compared so playback strategy choices are data-driven
 status: living
 tags: [experiments, ab-testing, methodology]
-timestamp: 2026-08-04T01:05:00Z
+timestamp: 2026-08-04T17:30:00Z
 related: [playback-engine.md, qoe-metrics.md, observability.md]
 ---
 
@@ -68,10 +68,44 @@ Documented in `testing.md` and followed for every published number:
 
 1. Physical device, same device for all arms, screen brightness and thermal state comparable, other apps closed.
 2. Same content manifest and same item order.
-3. Same scroll script: a fixed sequence (e.g. 20 items forward at ~2s dwell, 5 back, 5 forward fast-scroll), performed as consistently as possible — note in the README that scroll input is human and therefore approximate.
+3. Same scroll script: **20 items forward, then 5 back, at 5 s dwell** — 26 item views per run. Driven by the `FeedLabRunner` UI test target, not by hand (see below).
 4. Same network condition, set via Network Link Conditioner. Run each arm under at least two profiles: unthrottled Wi-Fi and a constrained profile (e.g. 3G / high-latency).
 5. Cold start before each arm; discard the first item's record as a warm-up outlier (and say so).
-6. Repeat each arm ≥3 times; report median of runs.
+6. Repeat each arm ≥3 times, **alternating arms rather than running each three times consecutively**, so thermal drift and CDN cache warmth spread across arms instead of loading onto whichever ran last. Report median of runs.
+
+### The run script is code
+
+The scroll sequence is an XCUITest target (`FeedLabRunner`), parameterised by environment variable:
+
+```bash
+TEST_RUNNER_FEEDLAB_ARM=preload1 TEST_RUNNER_FEEDLAB_DWELL=5 \
+TEST_RUNNER_FEEDLAB_FORWARD=20 TEST_RUNNER_FEEDLAB_BACK=5 \
+xcodebuild test -scheme FeedLabRunner -configuration Measure \
+  -destination 'platform=iOS,id=<ECID>'
+```
+
+The `TEST_RUNNER_` prefix must be on an **environment variable of `xcodebuild`**, not passed as a
+build-setting argument; `xcodebuild` strips the prefix and forwards the rest to the runner process.
+Passed as a build setting it is silently ignored and the run starts with no arm.
+
+**Why it is not driven by hand.** The original protocol said "performed as consistently as possible"
+and accepted human timing as approximate. It is not approximate enough. A hand-driven run of this
+script came in at **8 s median dwell against a 3 s target** — and dwell lands directly in watch
+duration, which is the *denominator* of aggregate rebuffer ratio. An operator who tires across an
+18-run batch produces a drift that reads exactly like an arm effect. Encoding the script removes the
+operator from the measurement and makes the protocol reproducible by anyone with the repo.
+
+Two consequences worth stating rather than hiding:
+
+- **XCUITest is not free.** It enables accessibility in the app process; peak footprint read ~1.9 MB
+  higher under the runner than hand-driven on an otherwise comparable run. The overhead is constant
+  across arms, so comparisons hold, but runner and hand-driven memory figures are not the same
+  population and must not be pooled.
+- **The gesture is a flick, not a drag.** The default interpolated drag is slow enough to look wrong
+  on screen and its duration sits inside the transition being measured. The runner drags at
+  `XCUIGestureVelocity.fast` (2500 pt/s), so the ~470 pt of travel completes in about 0.19 s.
+  `isPagingEnabled` steps by exactly one page per gesture at any velocity, so one flick is one item
+  and a run's view count is known before it starts.
 
 ## Comparison
 

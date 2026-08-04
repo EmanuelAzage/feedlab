@@ -27,6 +27,7 @@
 		3EE0BD266E502183015CA3E2 /* PreloadStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659D525B44C8EE415080E4BE /* PreloadStrategyTests.swift */; };
 		3F3C57325209955CC5FDFB4F /* FeedItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FBECBBFAAC668FECB2EED6F /* FeedItem.swift */; };
 		4ED32950C51616806EC5775D /* ManifestValidationError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE392A89317ECA0AE6C81A4 /* ManifestValidationError.swift */; };
+		52284CE76CCA0AC3B42F0AB0 /* MeasurementRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84A08BE41B81997BF27805AD /* MeasurementRun.swift */; };
 		52EB5FF0199A86445A7A6FB3 /* FakePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29F712F8ED1DB2E16272CB1B /* FakePlayer.swift */; };
 		573BE1590E5A829665478FBC /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = FC3509FBA34A55D9DF3F8B70 /* .swiftlint.yml */; };
 		5858B822C9C96E1205D3F0B3 /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9091FF0FDC5F59EE0F6BFC11 /* FeedViewController.swift */; };
@@ -78,6 +79,13 @@
 			remoteGlobalIDString = 8CE43245A76A2C02D669B893;
 			remoteInfo = FeedLab;
 		};
+		2F7EFE570897150056360EB6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 596485BD505729ED02516169 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8CE43245A76A2C02D669B893;
+			remoteInfo = FeedLab;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -115,6 +123,7 @@
 		7CE392A89317ECA0AE6C81A4 /* ManifestValidationError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManifestValidationError.swift; sourceTree = "<group>"; };
 		7FBECBBFAAC668FECB2EED6F /* FeedItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedItem.swift; sourceTree = "<group>"; };
 		839ABD2AD061422F4EE91F8D /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		84A08BE41B81997BF27805AD /* MeasurementRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementRun.swift; sourceTree = "<group>"; };
 		8B82B6C3F0224DDD96533C5B /* PreparationPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreparationPlanner.swift; sourceTree = "<group>"; };
 		8D574E9F342F791E9401F1C2 /* PlayerPoolTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPoolTests.swift; sourceTree = "<group>"; };
 		8FEFDD6582A6770CBEF1F992 /* PlayerPool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPool.swift; sourceTree = "<group>"; };
@@ -145,7 +154,8 @@
 		FBA88634B5DFF5552595FB2D /* MemorySampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySampler.swift; sourceTree = "<group>"; };
 		FC2B8393D6A5799A2E126A3D /* ContentSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSource.swift; sourceTree = "<group>"; };
 		FC3509FBA34A55D9DF3F8B70 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
-		"TEMP_436B752B-A803-4BC7-947C-9A180E5D297D" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		FC4C30D633F5AC193A5FB6A5 /* FeedLabRunner.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FeedLabRunner.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		"TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -158,6 +168,14 @@
 				CD66FC97E815EE3DA015F3D2 /* SessionExporter.swift */,
 			);
 			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		072B8EE17586B334864167A2 /* FeedLabRunner */ = {
+			isa = PBXGroup;
+			children = (
+				84A08BE41B81997BF27805AD /* MeasurementRun.swift */,
+			);
+			path = FeedLabRunner;
 			sourceTree = "<group>";
 		};
 		0FB6D336E20A0A4C6A1D51A5 /* App */ = {
@@ -188,6 +206,7 @@
 			isa = PBXGroup;
 			children = (
 				3D9E6A949DD63B43D2E60115 /* FeedLab.app */,
+				FC4C30D633F5AC193A5FB6A5 /* FeedLabRunner.xctest */,
 				9ED2B28D7EB737F4598E76DF /* FeedLabTests.xctest */,
 			);
 			name = Products;
@@ -301,6 +320,7 @@
 			isa = PBXGroup;
 			children = (
 				55B6381A5DB8C9AD06F523E8 /* FeedLab */,
+				072B8EE17586B334864167A2 /* FeedLabRunner */,
 				B6FD1A23820BB217C5B4AED5 /* FeedLabTests */,
 				1301F7056F8901C6CD2E3E6E /* Products */,
 			);
@@ -371,10 +391,10 @@
 			path = Fakes;
 			sourceTree = "<group>";
 		};
-		"TEMP_C173067D-D791-4E19-BAEF-C06E38921B21" /* feedlab */ = {
+		"TEMP_6F994D20-BB9A-485F-AE63-2F04AB9BFA7E" /* feedlab */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_436B752B-A803-4BC7-947C-9A180E5D297D" /* Signing.xcconfig */,
+				"TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */,
 			);
 			path = feedlab;
 			sourceTree = "<group>";
@@ -382,6 +402,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2AF900D9BB5EBA6190AD7874 /* FeedLabRunner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8B99089BC0683476A74971F7 /* Build configuration list for PBXNativeTarget "FeedLabRunner" */;
+			buildPhases = (
+				DB27A7B906AD50CE5B9A3EA7 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CCD945742118A5EA4EFE34C6 /* PBXTargetDependency */,
+			);
+			name = FeedLabRunner;
+			packageProductDependencies = (
+			);
+			productName = FeedLabRunner;
+			productReference = FC4C30D633F5AC193A5FB6A5 /* FeedLabRunner.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		60C6566EDBB129BA8805D397 /* FeedLabTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F058D56C076A411D0F8C5698 /* Build configuration list for PBXNativeTarget "FeedLabTests" */;
@@ -428,6 +466,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					2AF900D9BB5EBA6190AD7874 = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = 8CE43245A76A2C02D669B893;
+					};
 					60C6566EDBB129BA8805D397 = {
 						ProvisioningStyle = Automatic;
 					};
@@ -451,6 +493,7 @@
 			projectRoot = "";
 			targets = (
 				8CE43245A76A2C02D669B893 /* FeedLab */,
+				2AF900D9BB5EBA6190AD7874 /* FeedLabRunner */,
 				60C6566EDBB129BA8805D397 /* FeedLabTests */,
 			);
 		};
@@ -531,6 +574,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DB27A7B906AD50CE5B9A3EA7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				52284CE76CCA0AC3B42F0AB0 /* MeasurementRun.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E3CAEC24F9BDA73623B1F175 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -557,6 +608,11 @@
 			target = 8CE43245A76A2C02D669B893 /* FeedLab */;
 			targetProxy = 1AC680DA6FC0C6CB5873CB9F /* PBXContainerItemProxy */;
 		};
+		CCD945742118A5EA4EFE34C6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8CE43245A76A2C02D669B893 /* FeedLab */;
+			targetProxy = 2F7EFE570897150056360EB6 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -579,7 +635,7 @@
 		};
 		26588EC071BB10B2F85D3616 /* Measure */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_436B752B-A803-4BC7-947C-9A180E5D297D" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -594,6 +650,24 @@
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Measure;
+		};
+		268E918EEE3E9BCDA05A90CB /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.emanuelazage.FeedLabRunner;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = FeedLab;
+			};
+			name = Release;
 		};
 		39E6DAF75172A6D0933C1EDF /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -656,9 +730,27 @@
 			};
 			name = Release;
 		};
+		3A947121F6B0A5E1BF72D75A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.emanuelazage.FeedLabRunner;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = FeedLab;
+			};
+			name = Debug;
+		};
 		4FF92F848FDACA78C6CCCD49 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_436B752B-A803-4BC7-947C-9A180E5D297D" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -758,6 +850,24 @@
 			};
 			name = Measure;
 		};
+		7DDF70B342C32BB9EC89B526 /* Measure */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.emanuelazage.FeedLabRunner;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = FeedLab;
+			};
+			name = Measure;
+		};
 		898A1A77639740C65E9E2FD2 /* Measure */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -838,7 +948,7 @@
 		};
 		CEAFF5460898B294CB825DED /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_436B752B-A803-4BC7-947C-9A180E5D297D" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_4DE5083E-264C-4165-A7A7-B53907B6D61C" /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -863,6 +973,16 @@
 				4FF92F848FDACA78C6CCCD49 /* Debug */,
 				26588EC071BB10B2F85D3616 /* Measure */,
 				CEAFF5460898B294CB825DED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8B99089BC0683476A74971F7 /* Build configuration list for PBXNativeTarget "FeedLabRunner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3A947121F6B0A5E1BF72D75A /* Debug */,
+				7DDF70B342C32BB9EC89B526 /* Measure */,
+				268E918EEE3E9BCDA05A90CB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

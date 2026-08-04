@@ -4,7 +4,7 @@ title: Testing and Measurement Protocol
 description: Unit test strategy, what must remain testable without a device, and the protocol for producing publishable numbers
 status: living
 tags: [testing, measurement, protocol]
-timestamp: 2026-08-02T22:51:05Z
+timestamp: 2026-08-04T17:30:00Z
 related: [architecture.md, experiment-harness.md, qoe-metrics.md]
 ---
 
@@ -45,8 +45,11 @@ Numbers published in the README come only from runs following this protocol:
   shows `Optimized: No` precisely so this cannot happen by accident. Never publish a number from `Debug`.
 - **Physical device**, stated by model and iOS version in the README. The simulator misrepresents decode, memory, and thermal behavior — never publish simulator numbers.
 - **Network conditions** set with Network Link Conditioner; each arm run under at least unthrottled Wi-Fi and one constrained profile. State the profile with every number.
-- **Identical run script** across arms (fixed manifest, item order, and scroll sequence — see `experiment-harness.md`).
-- **≥3 runs per arm per profile**; report the median and the observed spread.
+- **Identical run script** across arms — 20 items forward, 5 back, 5 s dwell, driven by the
+  `FeedLabRunner` UI test target rather than by hand, because human dwell varied by more than 2x and
+  dwell is the denominator of rebuffer ratio. Invocation and caveats in `experiment-harness.md`.
+- **≥3 runs per arm per profile**, arms alternated rather than run consecutively; report the median
+  and the observed spread.
 - **Cold start** before each arm; discard and note the warm-up item.
 - Export via CSV; the README table is generated from the export, never hand-typed.
 
@@ -70,6 +73,18 @@ Learned the hard way; each of these cost a cycle.
 - **Symbolication:** system frameworks (AVFCore, CoreMedia, UIKitCore) symbolicate from the device support
   bundle, but an optimized app binary shows raw addresses. That is usually fine — the question "is asset
   work on the main thread" is answered by *framework* symbols, which do resolve.
+- **A locked device fails the launch**, with `FBSOpenApplicationErrorDomain error 7` rather than anything
+  naming the lock. Set Auto-Lock to Never before an unattended batch; a 50-minute run dies at whichever
+  arm the screen happened to sleep on, and that arm is then the one missing runs.
+- **Pull sessions with `devicectl device copy from`**, `--domain-type appDataContainer --user mobile`,
+  source `Library/Application Support/FeedLab/Sessions`. Reinstalling preserves the container; only
+  `devicectl device uninstall` clears it, which is how a batch starts from a clean corpus.
+
+## Running the measurement batch
+
+`FeedLabRunner` is its own scheme deliberately: `xcodebuild -scheme FeedLab test` must stay a fast unit
+run, not a three-minute device session. See `experiment-harness.md` for the invocation and for what the
+UI-test harness costs the measurement.
 
 ## Regression check
 

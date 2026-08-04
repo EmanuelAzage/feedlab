@@ -1,6 +1,7 @@
 included:
   - FeedLab
   - FeedLabTests
+  - FeedLabRunner
 
 excluded:
   - build

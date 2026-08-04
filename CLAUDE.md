@@ -44,7 +44,17 @@ swiftlint
 The destination must name a simulator that exists on the current Xcode's newest runtime — Xcode 26.3 ships
 iOS 26.2 sims, which have no "iPhone 16"; `xcrun simctl list devices available` shows what is there.
 
-Measurement runs happen **on a real device** (see `docs/testing.md`) — the simulator misreports video memory and decode performance.
+Measurement runs happen **on a real device** (see `docs/testing.md`) — the simulator misreports video memory and decode performance. The scroll script is code, not a hand gesture: the `FeedLabRunner` UI-test scheme drives one run per invocation.
+
+```bash
+TEST_RUNNER_FEEDLAB_ARM=preload1 TEST_RUNNER_FEEDLAB_DWELL=5 \
+TEST_RUNNER_FEEDLAB_FORWARD=20 TEST_RUNNER_FEEDLAB_BACK=5 \
+xcodebuild test -scheme FeedLabRunner -configuration Measure -destination 'platform=iOS,id=<ECID>'
+```
+
+`TEST_RUNNER_*` must be **environment variables of `xcodebuild`**, not trailing build-setting arguments —
+as a build setting they are silently dropped and the run starts with no arm. Set Auto-Lock to Never first;
+a locked device fails the launch with `FBSOpenApplicationErrorDomain error 7`, which does not mention locking.
 
 ### Driving the simulator UI (`idb`)
 

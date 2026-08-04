@@ -86,6 +86,27 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.emanuelazage.FeedLabTests
         GENERATE_INFOPLIST_FILE: YES
 
+  # The measurement run script, as code. It asserts nothing about the app — it drives the
+  # scroll sequence from `experiment-harness.md` with exact dwell timing so run-to-run
+  # variance stops being a property of the operator's thumb. Deliberately kept out of the
+  # FeedLab scheme's test action: `xcodebuild -scheme FeedLab test` must stay a fast unit
+  # run, not a three-minute device session.
+  FeedLabRunner:
+    type: bundle.ui-testing
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Measure: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: FeedLabRunner
+    dependencies:
+      - target: FeedLab
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.emanuelazage.FeedLabRunner
+        GENERATE_INFOPLIST_FILE: YES
+
 schemes:
   FeedLab:
     build:
@@ -104,3 +125,18 @@ schemes:
       config: Debug
     archive:
       config: Release
+
+  FeedLabRunner:
+    build:
+      targets:
+        FeedLab: all
+        FeedLabRunner: [test]
+    # Measure only. A run driven against a Debug build would be measuring the build settings.
+    test:
+      config: Measure
+      targets:
+        - FeedLabRunner
+    profile:
+      config: Measure
+    archive:
+      config: Measure
