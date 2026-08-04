@@ -141,12 +141,19 @@ final class FeedViewController: UIViewController {
         if store == nil {
             Log.metrics.error("Session store unavailable — this run will not be persisted")
         }
+        #if FEEDLAB_TOOLS
+        let signposter = PlaybackSignposter(enabled: toolsSettings.areSignpostsEnabled)
+        #else
+        // `Release` has no measurement purpose, so it carries no signpost emission either.
+        let signposter = PlaybackSignposter.disabled
+        #endif
         coordinator = FeedCoordinator(
             manifest: manifest,
             arm: arm,
             pool: PlayerPool(capacity: arm.poolCapacity),
             recorder: recorder,
-            store: store
+            store: store,
+            signposter: signposter
         ) { [weak self] index in
             self?.collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? FeedCell
         }

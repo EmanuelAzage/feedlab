@@ -38,6 +38,7 @@ extension FeedViewController {
                 // second would leave the HUD showing the outgoing arm's aggregates for a tick.
                 self.applyArm(self.toolsSettings.selectedArm)
                 self.syncHUDVisibility()
+                self.coordinator?.signposter.setEnabled(self.toolsSettings.areSignpostsEnabled)
             }
         }
         present(UIHostingController(rootView: menu), animated: true)

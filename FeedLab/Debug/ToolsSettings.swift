@@ -15,6 +15,11 @@ final class ToolsSettings {
     /// with it off, so off has to be the baseline.
     var isHUDVisible = false
 
+    /// Signposts default **on**: they are what makes an Instruments trace readable, and unlike the
+    /// HUD they render nothing and sample nothing. The toggle exists so a run can be made with them
+    /// provably absent rather than merely cheap — the same discipline the HUD's default-off applies.
+    var areSignpostsEnabled = true
+
     /// Selected by name rather than by value: `Arm` holds an `any PreloadStrategy` and so is not
     /// `Equatable`, and the name is what records and screenshots carry anyway.
     ///

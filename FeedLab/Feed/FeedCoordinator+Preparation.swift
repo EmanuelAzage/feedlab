@@ -69,14 +69,17 @@ extension FeedCoordinator {
             // an index promote from warm to backed without re-fetching its playlist.
             if self.preparations[index] == nil {
                 let item: AVPlayerItemAdapter
+                self.signposter.begin(.assetLoad, itemID: feedItem.id)
                 do {
                     // `prepare` is nonisolated async, so this hops off the main actor. Doing the
                     // work inline here would inherit main-actor isolation — see `ItemPreparer`.
                     item = try await preparer.prepare(url: feedItem.url)
                 } catch {
+                    self.signposter.end(.assetLoad, itemID: feedItem.id)
                     Log.playback.debug("Asset load cancelled or failed for \(feedItem.id, privacy: .public)")
                     return
                 }
+                self.signposter.end(.assetLoad, itemID: feedItem.id)
                 guard !Task.isCancelled, self.isPlanned(index) else { return }
                 // Item-level levers applied before any player can adopt it, so a capped arm is
                 // never briefly uncapped — at the system default the forward buffer fills to
@@ -92,7 +95,11 @@ extension FeedCoordinator {
             // reaches, since waiters are FIFO. See `PlayerPool.acquireIfAvailable`.
             let pooled: PooledPlayer?
             if tier == .current {
+                // Bracketed even when it does not block: a span of near-zero width against one that
+                // is visibly wide is exactly how contention reads on the track.
+                self.signposter.begin(.playerAcquire, itemID: feedItem.id)
                 pooled = try? await self.pool.acquire()
+                self.signposter.end(.playerAcquire, itemID: feedItem.id)
             } else {
                 pooled = await self.pool.acquireIfAvailable()
             }
@@ -119,12 +126,14 @@ extension FeedCoordinator {
             return
         }
 
+        signposter.begin(.attach, itemID: manifest.items[index].id)
         pooled.player.replaceCurrentItem(with: preparation.item)
         // *After* `replaceCurrentItem`, not before: `AVPlayerAdapter.apply` forwards the item-level
         // levers to whatever item is currently attached, so applying first would configure nothing.
         pooled.player.apply(configuration(forIndex: index))
         preparation.pooled = pooled
         preparations[index] = preparation
+        signposter.end(.attach, itemID: manifest.items[index].id)
 
         if index == currentIndex {
             recordPoolWait(pooled, itemID: manifest.items[index].id)
@@ -231,6 +240,8 @@ extension FeedCoordinator {
         preparations[index] = preparation
 
         let itemID = manifest.items[index].id
+        // An interval left open would run to the end of the trace and read as a multi-minute stall.
+        signposter.abandon(itemID: itemID)
         Task { [recorder] in
             await Self.logRecord(for: itemID, from: recorder)
         }

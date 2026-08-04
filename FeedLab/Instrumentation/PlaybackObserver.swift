@@ -20,6 +20,7 @@ final class PlaybackObserver: @unchecked Sendable {
     private let player: AVPlayer
     private let item: AVPlayerItem
     private let clock: any TimestampSource
+    private let signposter: PlaybackSignposter
     private let emit: @Sendable (PlaybackEvent) -> Void
 
     /// Guards the small state machine below. A lock rather than an actor because the state has to
@@ -38,12 +39,14 @@ final class PlaybackObserver: @unchecked Sendable {
         item: AVPlayerItem,
         layer: AVPlayerLayer?,
         clock: any TimestampSource,
+        signposter: PlaybackSignposter = .disabled,
         emit: @escaping @Sendable (PlaybackEvent) -> Void
     ) {
         self.itemID = itemID
         self.player = player
         self.item = item
         self.clock = clock
+        self.signposter = signposter
         self.emit = emit
 
         registerPlayerObservations()
@@ -94,7 +97,9 @@ final class PlaybackObserver: @unchecked Sendable {
         observations.append(
             layer.observe(\.isReadyForDisplay, options: [.new, .initial]) { [weak self] layer, _ in
                 guard let self, layer.isReadyForDisplay else { return }
-                // t1 for time-to-first-frame.
+                // t1 for time-to-first-frame. The signpost closes here rather than at consumption,
+                // so the Points of Interest span matches the recorded interval.
+                self.signposter.end(.firstFrame, itemID: self.itemID)
                 self.send(.readyForDisplay, at: self.clock.now())
             }
         )

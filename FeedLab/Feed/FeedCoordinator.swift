@@ -72,6 +72,9 @@ final class FeedCoordinator {
     /// Where completed sessions go. Optional so a coordinator still runs when the store cannot
     /// reach its directory — the feed is degraded, not broken.
     let store: SessionStore?
+    /// The Points of Interest track. A second view of the same moments the metrics layer folds, so
+    /// the two can be checked against each other in Instruments.
+    let signposter: PlaybackSignposter
     /// Resolves an index to its on-screen cell, or nil if it is not currently displayed.
     let renderTarget: @MainActor (Int) -> (any PlayerRenderTarget)?
 
@@ -98,6 +101,7 @@ final class FeedCoordinator {
         pool: PlayerPool,
         recorder: SessionRecorder,
         store: SessionStore?,
+        signposter: PlaybackSignposter = .disabled,
         clock: any TimestampSource = MonotonicTimestampSource(),
         renderTarget: @escaping @MainActor (Int) -> (any PlayerRenderTarget)?
     ) {
@@ -106,6 +110,7 @@ final class FeedCoordinator {
         self.pool = pool
         self.recorder = recorder
         self.store = store
+        self.signposter = signposter
         self.clock = clock
         self.renderTarget = renderTarget
 
@@ -164,6 +169,7 @@ final class FeedCoordinator {
             item: item.item,
             layer: layer,
             clock: clock,
+            signposter: signposter,
             emit: { [pipe] event in pipe.send(event) }
         )
     }
@@ -193,6 +199,9 @@ final class FeedCoordinator {
         // preload strategies look better than they are, since preparation is exactly what they move
         // out of this interval. A preloaded item is fast here because it really is ready, not
         // because the clock started late.
+        // Begun at the same site that stamps `t0`, so the signposted span and the computed
+        // `timeToFirstFrame` describe the same interval rather than two nearby ones.
+        signposter.begin(.firstFrame, itemID: manifest.items[index].id)
         emit(.itemBecameCurrent, at: index)
         reconcile()
     }

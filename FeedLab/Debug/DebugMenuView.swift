@@ -3,9 +3,8 @@ import SwiftUI
 
 /// The rig's control surface.
 ///
-/// Deliberately contains only controls whose subsystem exists. Signpost toggles arrive with the
-/// signposts (M6). A menu full of inert switches would be indistinguishable from a menu full of
-/// broken ones.
+/// Deliberately contains only controls whose subsystem exists — a menu full of inert switches would
+/// be indistinguishable from a menu full of broken ones.
 struct DebugMenuView: View {
     let manifest: Manifest
     @Bindable var settings: ToolsSettings
@@ -72,13 +71,18 @@ struct DebugMenuView: View {
     private var measurementSection: some View {
         Section {
             Toggle("Live HUD", isOn: $settings.isHUDVisible)
+            Toggle("Signposts", isOn: $settings.areSignpostsEnabled)
         } header: {
             Text("Measurement")
         } footer: {
             Text(
                 """
-                Off by default. M4's criterion is that enabling the HUD does not measurably change \
-                time-to-first-frame, which can only be checked against runs with it off.
+                The HUD is off by default. M4's criterion is that enabling it does not measurably \
+                change time-to-first-frame, which can only be checked against runs with it off.
+
+                Signposts are on by default — they render nothing and sample nothing, and they are \
+                what makes an Instruments trace readable. Turn them off to make a run's overhead \
+                provably absent rather than merely small.
                 """
             )
         }
