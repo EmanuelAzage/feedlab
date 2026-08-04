@@ -4,7 +4,7 @@ title: Observability — HUD, Dashboard, Signposts, Export
 description: How measurements are surfaced live, charted after the fact, exported, and captured as README screenshots
 status: living
 tags: [observability, hud, charts, signposts, screenshots]
-timestamp: 2026-08-04T17:00:00Z
+timestamp: 2026-08-04T23:00:00Z
 related: [qoe-metrics.md, experiment-harness.md, product-spec.md]
 ---
 
@@ -27,6 +27,30 @@ precisely when the HUD is most interesting — cannot turn the HUD into a load s
 measurement. A throttled push still pays per-event delivery cost before discarding.
 
 The M4 acceptance criterion (enabling the HUD must not measurably change TTFF) is the check on this.
+
+**Measured 2026-08-04 — free on startup, not free on memory.** `window`, 6 runs alternating HUD off
+and on so the pair shares any drift, 51–53 pooled item views per condition:
+
+| | Median TTFF | Peak memory |
+|---|---|---|
+| HUD off | 97 ms | 16.5 MB <sub>16.4–16.7</sub> |
+| HUD on | 94 ms | 18.5 MB <sub>18.4–18.7</sub> |
+| delta | **−3 ms** | **+2.0 MB** |
+
+The startup delta is 3 ms in the *faster* direction — noise, and the criterion passes. Sampling at
+4 Hz rather than subscribing to the event stream is doing its job.
+
+The memory cost is real: **+2.0 MB with non-overlapping ranges** across three runs each. Peak memory
+is a published metric, so **HUD-on and HUD-off runs must never be pooled for it**. Nothing in a
+session file records whether the HUD was visible, which is a gap — the pairing above is recovered
+from run order. Until that is stored, a HUD-on run is only identifiable from the batch log that
+produced it.
+
+One near-miss worth recording: `-hud 1` set the flag and nothing acted on it at launch, because
+`syncHUDVisibility()` only ran when the debug menu closed. The HUD-on half would have run with no HUD
+and the criterion would have passed for the worst possible reason — the thing under test being
+absent. The runner now asserts the HUD is on screen when it asked for one, and absent when it did
+not.
 
 **Implemented M4.** Off by default, toggled from the debug menu — off has to be the baseline, since the
 criterion above can only be checked against runs without it. The timer is added to `RunLoop.Mode.common`,
