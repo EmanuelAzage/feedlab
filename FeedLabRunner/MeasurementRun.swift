@@ -38,9 +38,12 @@ final class MeasurementRun: XCTestCase {
     /// run before that completes would truncate the very file the run exists to produce.
     private static let sealTimeout: TimeInterval = 6
 
-    /// Long enough for the paging animation to land before the index is read back. Charged against
-    /// the dwell budget rather than added to it, so verification does not lengthen the item view.
-    private static let settleAllowance: TimeInterval = 0.6
+    /// How long a flick has to show up as an index change before it is treated as dropped. Generous
+    /// because the penalty for being wrong is a spurious second flick, which silently corrupts the
+    /// item set; waiting too long merely costs dwell, which is accounted for.
+    private static let pageSettleTimeout: TimeInterval = 3.0
+
+    private static let pagePollInterval: TimeInterval = 0.05
 
     private static let pageRetries = 2
 
@@ -81,12 +84,10 @@ final class MeasurementRun: XCTestCase {
         // on what a cold audience would see, not an estimate of it.
         for _ in 0..<config.laps {
             for _ in 0..<config.forward {
-                page(app, from: Self.dragFrom, to: Self.dragTo)
-                dwell(config)
+                dwell(config, after: page(app, from: Self.dragFrom, to: Self.dragTo))
             }
             for _ in 0..<config.back {
-                page(app, from: Self.dragTo, to: Self.dragFrom)
-                dwell(config)
+                dwell(config, after: page(app, from: Self.dragTo, to: Self.dragFrom))
             }
         }
 
@@ -110,19 +111,36 @@ final class MeasurementRun: XCTestCase {
     /// Retried rather than asserted, because the goal is a complete run, not a diagnosis. If the
     /// page still has not moved after `pageRetries` attempts the feed is genuinely at a boundary or
     /// wedged, and that *is* worth failing on.
-    private func page(_ app: XCUIApplication, from: CGVector, to: CGVector) {
+    /// Returns how long verification consumed, so the caller can charge it against dwell.
+    @discardableResult
+    private func page(_ app: XCUIApplication, from: CGVector, to: CGVector) -> TimeInterval {
+        let start = Date()
         let before = currentIndex(app)
         for attempt in 0...Self.pageRetries {
             swipe(app, from: from, to: to)
-            // The gesture returns before the paging animation settles; give it a moment before
-            // reading, or a successful flick reads as a failed one and gets flicked again.
-            Thread.sleep(forTimeInterval: Self.settleAllowance)
-            if currentIndex(app) != before { return }
+            if awaitIndexChange(app, from: before) { return Date().timeIntervalSince(start) }
             if attempt < Self.pageRetries {
                 XCTContext.runActivity(named: "flick dropped at index \(before ?? -1) — retrying") { _ in }
             }
         }
         XCTFail("Feed did not page away from index \(before ?? -1) after \(Self.pageRetries + 1) flicks.")
+        return Date().timeIntervalSince(start)
+    }
+
+    /// Polls for the index to change rather than sampling once after a fixed delay.
+    ///
+    /// A single read is only correct when the app answers promptly. Under a constrained network the
+    /// index came back stale, the flick was judged dropped, and the retry fired a *second* real
+    /// flick — producing runs that skipped items and jumped four pages at once. Verification that
+    /// over-pages under load is worse than none: it corrupts the item set while reporting success.
+    /// Polling costs nothing on the happy path, where the change is visible almost immediately.
+    private func awaitIndexChange(_ app: XCUIApplication, from before: Int?) -> Bool {
+        let deadline = Date().addingTimeInterval(Self.pageSettleTimeout)
+        repeat {
+            if currentIndex(app) != before { return true }
+            Thread.sleep(forTimeInterval: Self.pagePollInterval)
+        } while Date() < deadline
+        return false
     }
 
     /// The feed publishes its current index as an accessibility identifier. Read from the collection
@@ -155,11 +173,12 @@ final class MeasurementRun: XCTestCase {
         Thread.sleep(forTimeInterval: max(0, interval))
     }
 
-    /// The settle allowance already elapsed on screen with the new item current, so it counts as
-    /// dwell. Adding to it instead would make the measured view longer than the protocol says, and
-    /// unequally so between a clean flick and a retried one.
-    private func dwell(_ config: RunConfiguration) {
-        wait(config.dwell - Self.settleAllowance)
+    /// Verification time already elapsed on screen with the new item current, so it counts as dwell.
+    /// Adding to it instead would make the measured view longer than the protocol says, and
+    /// unequally so between a fast confirmation and a slow one — which is exactly the operator-drift
+    /// problem the runner exists to remove, reintroduced by the runner itself.
+    private func dwell(_ config: RunConfiguration, after verification: TimeInterval) {
+        wait(config.dwell - verification)
     }
 }
 
