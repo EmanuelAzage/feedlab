@@ -4,13 +4,36 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-04T19:00:00Z
+timestamp: 2026-08-05T00:00:00Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-04 — Screenshots are captured by a UI test, and looking at them is a test
+`ScreenshotRun` drives the device and captures the README images as XCTest attachments. Two reasons
+beyond reproducibility: the HUD renders live session figures, so a simulator capture would put
+simulator numbers in the README; and a hand-taken screenshot silently goes stale when a chart
+changes shape.
+
+It immediately earned itself. Two defects were visible in the output and invisible to 127 passing
+tests: the startup-vs-smoothness scatter's point labels collided into an unreadable smear whenever
+arms clustered — which is what happens whenever a strategy *works* — and the peak-memory chart drew
+nothing at all, because `map(Double.init)` over `[UInt64]` resolves to `Double.init(bitPattern:)`
+rather than the numeric conversion, turning 16 MB into 7.9e-317.
+
+The memory bug is the instructive one. It produced **zero-height bars beside a correctly labelled
+axis**, which reads as "this arm used no memory" — a plausible claim in a project that had just
+reported memory as undifferentiated across arms. It could have been screenshotted, published, and
+believed. Nothing caught it because no test asserted `medianPeakMemoryBytes`; the field had a
+computation, a chart, and a table, and no assertion anywhere. Two tests now cover it, one through the
+aggregation and one across `Codable`, since the dashboard reads sessions from disk.
+
+Published numbers were unaffected — the README's memory figures come from `Scripts/results_table.py`
+over the raw JSON, and the HUD reads the sampler directly — which is itself an argument for the
+generated-table rule: the bug lived on the *display* path, and the publication path never touched it.
 
 ## 2026-08-04 — The scroll script is an XCUITest target, not a hand gesture
 The run protocol requires an identical script across arms and originally accepted human timing as

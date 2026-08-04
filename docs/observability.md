@@ -4,7 +4,7 @@ title: Observability — HUD, Dashboard, Signposts, Export
 description: How measurements are surfaced live, charted after the fact, exported, and captured as README screenshots
 status: living
 tags: [observability, hud, charts, signposts, screenshots]
-timestamp: 2026-08-04T23:00:00Z
+timestamp: 2026-08-05T00:00:00Z
 related: [qoe-metrics.md, experiment-harness.md, product-spec.md]
 ---
 
@@ -105,12 +105,29 @@ it would produce a number that is wrong and plausible at the same time.
 
 ## Screenshot plan (for README)
 
-Captured on device, light and dark:
-- `feed.png` — the feed playing, HUD off (it's still a real app).
-- `hud.png` — HUD active mid-session, arm name visible.
-- `dashboard-tradeoff.png` — the startup-vs-smoothness scatter. **Hero image.**
-- `dashboard-ttff.png` — TTFF by arm with p90.
-- `dashboard-memory.png` — peak memory by arm, including the unbounded control.
-- `instruments-signposts.png` — Points of Interest trace with memory track.
+**Captured by a UI test, not by hand** — `FeedLabRunner/ScreenshotRun.swift`, on the device, so they
+are reproducible and so the figures in them are device figures. The HUD in particular renders live
+session numbers, and a simulator capture would put simulator numbers in the README.
+
+- [x] `feed.png` — the feed playing, HUD off (it's still a real app).
+- [x] `hud.png` — HUD active mid-session, arm name visible.
+- [x] `dashboard-tradeoff.png` — the startup-vs-smoothness scatter. **Hero image.** Shot against the
+      *constrained* corpus deliberately: unthrottled, every rebuffer ratio is 0.000 and the scatter
+      collapses to a line, so the chart whose entire subject is a tradeoff would show none.
+- [x] `dashboard-memory.png` — peak memory by arm, including the unbounded control.
+- [x] `debug-menu.png` — arm selection and build configuration.
+- [ ] `instruments-signposts.png` — Points of Interest trace with memory track.
+
+Two defects were found by looking at the output rather than by any test, which is the argument for
+capturing screenshots as a routine step rather than once at the end:
+
+- **The scatter's point labels collided** into an unreadable smear whenever arms clustered — which is
+  what happens whenever a strategy works. Removed; the colour legend beneath already names them.
+- **The memory chart rendered empty**, because `map(Double.init)` over `[UInt64]` resolved to
+  `Double.init(bitPattern:)`. See `decisions.md`.
+
+Charts also need a settle delay before capture: Swift Charts lays out lazily inside a scroll view,
+and a chart photographed too early shows axes with no marks — indistinguishable from an arm with no
+data.
 
 Store under `docs/images/` (or `Screenshots/`), referenced from the README and from this doc. Keep them current: if a chart's shape changes materially, retake the screenshot in the same change.
