@@ -6,7 +6,15 @@ A bounded pool of recycled `AVPlayer`s, swappable preload strategies behind an e
 
 > **Status:** in active development — see [docs/build-plan.md](docs/build-plan.md) for milestone progress.
 
-<!-- M6: hero image — docs/images/dashboard-tradeoff.png (p90 TTFF vs rebuffer ratio, one point per arm) -->
+<p align="center">
+  <img src="docs/images/dashboard-tradeoff.png" alt="Startup vs. smoothness: p90 time-to-first-frame against rebuffer ratio, one point per experiment arm, over 18 device runs on a 2 Mbps profile" width="340">
+</p>
+
+**The whole project in one chart.** Each dot is a preload strategy, measured over 18 runs on a real
+device under a 2 Mbps link. Bottom-left wins on both axes; everywhere else is a tradeoff, not a
+winner. `baseline` (blue, far right) never stalls — because it barely ever starts playing. `window`
+(red, top left) starts in 72 ms and stalls the most, because it is the arm actually keeping video on
+screen.
 
 ## Why this exists
 
@@ -203,8 +211,14 @@ Metric definitions — what counts as a stall, when the TTFF clock starts, why a
 
 ## Screenshots
 
-<!-- M6: capture on device, light + dark. Store in docs/images/ -->
-<!-- feed.png · hud.png · dashboard-ttff.png · dashboard-memory.png · instruments-signposts.png -->
+All captured on the iPhone 12 Pro by a UI test (`FeedLabRunner/ScreenshotRun.swift`), so they are
+reproducible rather than hand-taken — and so the figures in them are device figures, never a
+simulator's.
+
+| The feed | The live HUD | Memory by arm |
+|---|---|---|
+| <img src="docs/images/feed.png" width="220"> | <img src="docs/images/hud.png" width="220"> | <img src="docs/images/dashboard-memory.png" width="220"> |
+| Full-screen paging. The coloured bars are per-item placeholder tint showing through — test streams are 16:9 in a 9:16 frame, and the layer uses `.resizeAspect` rather than cropping a real user's video. | Arm name always visible, so any screenshot is self-documenting. Bitrate reads observed / indicated. Updated by 4 Hz sampling, not by subscribing to the event stream. | Six arms, six identical bars. `pool-unbounded` included. This is the null result from the tables, drawn: on this corpus nothing we do to pool size or buffers moves footprint. |
 
 ## Running it
 

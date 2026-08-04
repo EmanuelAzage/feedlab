@@ -40,10 +40,11 @@ struct StartupVsSmoothnessChart: View {
                 )
                 .symbolSize(160)
                 .foregroundStyle(by: .value("Arm", point.arm))
-                .annotation(position: .top, spacing: 4) {
-                    Text(point.arm).font(.caption2).foregroundStyle(.secondary)
-                }
             }
+            // No per-point label. Arms cluster tightly whenever a strategy works — which is the
+            // expected result, not an edge case — and the labels then overlap into an unreadable
+            // smear ("wipreloaBd3adBaudtcapped" was a real render). The colour legend below already
+            // names every arm, so the annotation was redundant even when it was legible.
             .chartXAxisLabel("p90 time to first frame (ms) — lower is better")
             .chartYAxisLabel("Rebuffer ratio — lower is better")
             .frame(height: 240)

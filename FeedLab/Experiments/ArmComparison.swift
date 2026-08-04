@@ -69,7 +69,12 @@ enum ArmComparison {
             itemCount: summaries.reduce(0) { $0 + $1.records.count },
             medianP90TimeToFirstFrame: median(perRunP90),
             medianRebufferRatio: median(perRunRatio),
-            medianPeakMemoryBytes: median(perRunPeak.map(Double.init)).map { UInt64($0) },
+            // `map(Double.init)` here resolved to `Double.init(bitPattern:)`, not the numeric
+            // conversion — 16 MB became 7.9e-317. The dashboard's memory chart then drew bars of
+            // zero height beside a correctly-labelled axis, which reads as "this arm used no
+            // memory" rather than as a broken conversion. Spelled out so the compiler cannot pick
+            // the reinterpreting initializer again.
+            medianPeakMemoryBytes: median(perRunPeak.map { Double($0) }).map { UInt64($0) },
             timeToFirstFrameSamples: summaries.flatMap { $0.records.compactMap(\.timeToFirstFrame) },
             p90Range: perRunP90.isEmpty ? nil : (perRunP90.min() ?? 0)...(perRunP90.max() ?? 0)
         )

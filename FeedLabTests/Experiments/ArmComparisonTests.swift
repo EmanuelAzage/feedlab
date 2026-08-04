@@ -34,6 +34,34 @@ struct ArmComparisonTests {
         )
     }
 
+    @Test("Peak memory survives the round trip from stored session to arm result")
+    func peakMemoryReachesTheArmResult() throws {
+        // Untested until the memory chart rendered empty against real runs whose files plainly
+        // contained the figure. Every other chart shared the same `results` array and drew fine, so
+        // the fault had to be on this field's path specifically — and nothing asserted it.
+        let runs = [
+            session(arm: "window", ttffs: [0.1, 0.2, 0.3], peak: 16_000_000),
+            session(arm: "window", ttffs: [0.1, 0.2, 0.3], peak: 17_000_000),
+            session(arm: "window", ttffs: [0.1, 0.2, 0.3], peak: 18_000_000)
+        ]
+
+        let result = try #require(ArmComparison.results(from: runs).first)
+        let peak = try #require(result.medianPeakMemoryBytes, "the chart draws nothing when this is nil")
+
+        #expect(peak == 17_000_000, "nearest-rank median of three runs is the middle observed run")
+    }
+
+    @Test("A session encoded and decoded still carries its peak memory")
+    func peakMemorySurvivesCoding() throws {
+        // The dashboard reads sessions off disk rather than from memory, so the figure has to
+        // survive Codable — a detail the in-memory tests above cannot see.
+        let original = session(arm: "window", ttffs: [0.1], peak: 16_500_000)
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(StoredSession.self, from: data)
+
+        #expect(decoded.summary.peakMemoryBytes == 16_500_000)
+    }
+
     // MARK: - Aggregation across runs
 
     @Test("An arm's headline figure is the median of its runs, not the pooled percentile")
