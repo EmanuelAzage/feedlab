@@ -141,13 +141,22 @@ def load(directory, subset, hls, order):
 def spread(values, fmt):
     """A median with its observed range. The honesty rules require the spread beside every
     figure — two arms whose ranges overlap are indistinguishable, and the table has to show that
-    rather than let a median imply a winner."""
-    if not values or values[0] is None:
+    rather than let a median imply a winner.
+
+    Runs contributing no sample are dropped and the survivor count is shown, because under a
+    constrained profile a run can legitimately produce *no* measurement — an arm whose backward
+    transitions never reached a first frame has nothing to report there, and that is a result. It
+    must not be silently averaged out of existence, nor allowed to read as a measured figure with
+    the same confidence as one backed by every run.
+    """
+    measured = [v for v in values if v is not None]
+    if not measured:
         return "—"
-    low, high = min(values), max(values)
-    if len(values) == 1:
-        return fmt(values[0])
-    return f"{fmt(median(values))} <sub>{fmt(low)}–{fmt(high)}</sub>"
+    body = fmt(measured[0]) if len(measured) == 1 else (
+        f"{fmt(median(measured))} <sub>{fmt(min(measured))}–{fmt(max(measured))}</sub>"
+    )
+    missing = len(values) - len(measured)
+    return body if not missing else f"{body} <sub>·{len(measured)}/{len(values)} runs</sub>"
 
 
 def total(values):

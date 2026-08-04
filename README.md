@@ -44,7 +44,59 @@ iPhone 12 Pro · iOS 26.5.2 · `Measure` build · 7-item HLS corpus · 3 runs pe
 | `window` | 3 | 781 <sub>665–1791</sub> | 89 <sub>88–89</sub> | 91 <sub>88–91</sub> | 89 <sub>89–89</sub> | 0.000 <sub>0.000–0.008</sub> | 16.1 <sub>16.1–16.3</sub> | 6 |
 | `pool-unbounded` | 3 | 1575 <sub>1435–2639</sub> | 639 <sub>570–721</sub> | 115 <sub>108–125</sub> | 1071 <sub>720–1075</sub> | 0.000 <sub>0.000–0.003</sub> | 16.1 <sub>16.0–16.2</sub> | 0 |
 
-<!-- 3G profile table to follow -->
+**HLS items** · DSL 2 Mbps (Network Link Conditioner) · 10 s dwell
+
+| Arm | Runs | Views | p90 TTFF (ms) | Median TTFF (ms) | ↓ forward | ↑ backward | Rebuffer ratio | Peak memory (MB) | Frozen |
+|---|---|---|---|---|---|---|---|---|---|
+| `baseline` | 3 | 16 | 29774 <sub>8900–62482</sub> | 8690 <sub>5156–9383</sub> | 8690 <sub>5867–9383</sub> | 5113 <sub>5113–5650</sub> <sub>·2/3 runs</sub> | 0.000 <sub>0.000–0.000</sub> | 15.7 <sub>15.6–15.8</sub> | 10 |
+| `preload1` | 3 | 24 | 6825 <sub>2919–8429</sub> | 2776 <sub>94–3098</sub> | 89 <sub>26–102</sub> | 3302 <sub>2655–5272</sub> | 0.000 <sub>0.000–0.007</sub> | 15.7 <sub>15.5–15.9</sub> | 10 |
+| `preload3-capped` | 3 | 24 | 6386 <sub>5729–7641</sub> | 107 <sub>99–111</sub> | 89 <sub>89–100</sub> | 6079 <sub>5729–7497</sub> | 0.003 <sub>0.000–0.024</sub> | 15.8 <sub>15.7–16.0</sub> | 19 |
+| `preload3-uncapped` | 3 | 24 | 6152 <sub>3714–6424</sub> | 88 <sub>80–93</sub> | 77 <sub>75–93</sub> | 6152 <sub>3714–6424</sub> | 0.008 <sub>0.000–0.024</sub> | 15.7 <sub>15.6–15.7</sub> | 15 |
+| `window` | 3 | 24 | 2401 <sub>1589–3552</sub> | 72 <sub>61–85</sub> | 81 <sub>60–86</sub> | 98 <sub>45–103</sub> | 0.025 <sub>0.000–0.038</sub> | 15.8 <sub>15.8–15.8</sub> | 14 |
+| `pool-unbounded` | 3 | 24 | 7365 <sub>5987–9583</sub> | 106 <sub>92–6502</sub> | 76 <sub>45–89</sub> | 4891 <sub>4189–8844</sub> | 0.000 <sub>0.000–0.006</sub> | 15.8 <sub>15.7–15.8</sub> | 18 |
+
+The dwell is 10 s here rather than 5 s: at 5 s under this profile most items were scrolled past before
+they ever became current, leaving no record at all. Arms are only compared within a profile, so the
+difference is legitimate, but rebuffer ratio's denominator moves with dwell and the two profiles'
+ratios are not comparable to each other.
+
+### What the constrained profile changes
+
+**A rebuffer ratio of 0.000 is not always smoothness — sometimes it is silence.** `baseline`,
+`preload1` and `pool-unbounded` all post 0.000, and `window` posts the worst ratio in the table at
+0.025. `window` is not the least smooth arm; it is the arm that actually *played*. The others avoided
+stalling by never starting. Read the `Views` and `Frozen` columns alongside the ratio or the table
+inverts its own meaning — which is precisely the failure mode the frozen-view metric was added to
+catch, now visible in the headline pair itself.
+
+**`baseline` is flattered by its own omissions.** It recorded **16 views where every other arm
+recorded 24**. Those eight missing views are not zeros to be averaged in: they are items scrolled past
+before they ever became current, so they left no record. The views it *did* manage are its best ones,
+and its already-poor 8690 ms forward startup and 29.8 s p90 are therefore optimistic. The true gap is
+wider than the table shows.
+
+**Preload is worth ~100× on a constrained link.** Forward startup goes from **8690 ms to 76–89 ms**.
+On unthrottled Wi-Fi the same comparison was 1023 ms against ~110 ms — a 9× win. The technique that
+looks like a nice-to-have on office Wi-Fi is the difference between a usable feed and an unusable one
+on a bad connection, which is the condition that actually matters.
+
+**Depth helps forward and hurts backward, because bandwidth is finite.** `preload1` and `preload3-*`
+are the same forward (~89 ms). Backward, `preload1` costs 3302 ms while `preload3-capped` costs
+**6079 ms** — preloading three items ahead consumes the bandwidth the item behind you needs. On
+unthrottled Wi-Fi this was invisible; depth simply cost a pool slot and changed nothing. Under
+constraint, depth is actively harmful in the direction it does not prepare.
+
+**`window` is the only arm that holds up, and it pays for it.** 81 ms forward, 98 ms backward, a p90
+of 2401 ms against 6152–29774 ms for everything else — and the highest rebuffer ratio, 0.025, because
+it is the one keeping video on screen to stall in the first place. That is the startup-vs-smoothness
+tradeoff in one row. Its advantage is still partly a property of a run script that spends half its
+transitions going backward; the honest claim is that **backward preparation is cheap insurance on a
+slow link and near-worthless on a fast one**.
+
+**Memory still refuses to differentiate.** 15.5–16.0 MB across every arm, `pool-unbounded` included,
+under both profiles. Neither negative control lost the way it was designed to. On a corpus of short
+HLS test streams at these bitrates, footprint is dominated by something other than pool size or
+buffer configuration, and no amount of re-running changed that.
 
 ### What the numbers say
 
@@ -82,7 +134,7 @@ either, memory on short HLS test streams at these bitrates is evidently dominate
 than the levers this rig pulls. That is a real result and it is reported as one.
 
 **Unthrottled Wi-Fi cannot separate the arms on smoothness** — every rebuffer ratio is 0.000. That is
-what the constrained profile is for.
+what the constrained profile below is for, and it changes several of these conclusions.
 
 ## How the numbers were produced
 
