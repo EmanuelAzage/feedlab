@@ -61,8 +61,14 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
   - *Not numbers:* single unthrottled simulator runs with a warm CDN cache. They demonstrate the arms differ; the magnitudes are M6's job on a device.
 
 ## M6 — Dashboard, measurement runs, publication
-- [ ] Swift Charts dashboard (all charts in `observability.md`), CSV/JSON export, `os_signpost` intervals.
+- [x] Swift Charts dashboard (all charts in `observability.md`), CSV/JSON export, `os_signpost` intervals.
+  - *Signposts verified 2026-08-03:* the signposted first-frame interval and the computed `timeToFirstFrame` both read **492 ms** on the same run — two independent paths agreeing, which is the whole reason to emit them.
+  - *Dashboard reports the median of per-run p90s*, not the pooled percentile, per the run protocol; a test pins the distinction. Arms with no runs are absent rather than zero-height.
 - [ ] Measurement runs per `testing.md`: every arm × 2 network profiles × ≥3 runs, on a physical device.
+  - *Done 2026-08-03:* `preload3-capped` and `preload3-uncapped`, unthrottled Wi-Fi, n=3 each, alternating, matched pace. Settled M4's memory question (see above).
+  - *Device pipeline established:* `Measure` build installs via `devicectl`, arm chosen by `-arm <name>` launch argument for a genuine cold start per run, sessions pulled back over USB with `devicectl device copy from --domain-type appDataContainer`. A run is now ~60 s of scrolling plus one command each side.
+  - **Remaining:** `baseline`, `preload1`, `window`, `pool-unbounded` × 3 runs; then every arm under one constrained Network Link Conditioner profile; then the HUD-perturbation pair (same arm, HUD on vs off).
+  - **Report arm comparisons over the HLS subset** with full-corpus figures alongside (`decisions.md`) — 27% of progressive item views never reach playback, and they would move p90 startup more than any strategy does.
 - [ ] Screenshots per the screenshot plan, including an Instruments trace.
 - [ ] README: what/why, architecture diagram, results table generated from the CSV export, methodology and its limits, content attribution.
 - **Accept:** a reader can see the startup-vs-smoothness tradeoff from the README alone; every published number traces to an exported run; the honesty rules in `experiment-harness.md` are satisfied.
