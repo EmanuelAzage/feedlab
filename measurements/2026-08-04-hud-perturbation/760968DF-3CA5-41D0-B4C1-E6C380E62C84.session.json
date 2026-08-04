@@ -1,0 +1,1987 @@
+{
+  "id" : "760968DF-3CA5-41D0-B4C1-E6C380E62C84",
+  "summary" : {
+    "arm" : "window",
+    "endedAt" : "2026-08-04T22:18:48Z",
+    "peakMemoryBytes" : 19646464,
+    "records" : [
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 0,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 1030138,
+        "itemID" : "apple-bipbop-16x9",
+        "mediaStackStartupTime" : 2.8686540126800537,
+        "observedBitrate" : 1655351,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.7246100839693099,
+        "totalStallDuration" : 0,
+        "watchDuration" : 8.470506542013027
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 1,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 232370,
+        "itemID" : "apple-bipbop-4x3",
+        "mediaStackStartupTime" : 4.241153001785278,
+        "observedBitrate" : 803259,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.04997754201758653,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.949087999993935
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 0,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 1268994,
+        "itemID" : "apple-bipbop-fmp4",
+        "mediaStackStartupTime" : 0.030044078826904297,
+        "observedBitrate" : 1140877,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.07840654201572761,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.132753791986033
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 3,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 676900,
+        "itemID" : "apple-adv-dv-atmos",
+        "mediaStackStartupTime" : 4.738767027854919,
+        "observedBitrate" : 807050,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 1.4362679590121843,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.899345292011276
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "mux-test-asset",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.1142532909871079,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.96540600003209
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "tos-unified-streaming",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.250025665969588
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "tos-mux-ismc",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.06912162498338148,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.715095166990068
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "tos-unified-streaming",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.000197542016394
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "mux-test-asset",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.10527562501374632,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.016467334004119
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 1,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 951412,
+        "itemID" : "apple-adv-dv-atmos",
+        "mediaStackStartupTime" : 0.03471708297729492,
+        "observedBitrate" : 1666119,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.09361741703469306,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.1837215420091525
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 0,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 902298,
+        "itemID" : "apple-bipbop-fmp4",
+        "mediaStackStartupTime" : 0.030604958534240723,
+        "observedBitrate" : 1844388,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.0965972919948399,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.7314466669922695
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 0,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 649879,
+        "itemID" : "apple-bipbop-4x3",
+        "mediaStackStartupTime" : 0.028539061546325684,
+        "observedBitrate" : 1270817,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.07807524997042492,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.99964654201176
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "apple-bipbop-16x9",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.11390058300457895,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.965876875037793
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 0,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 232370,
+        "itemID" : "apple-bipbop-4x3",
+        "mediaStackStartupTime" : 0.028539061546325684,
+        "observedBitrate" : 1031697,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 3.044700416037813,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.033654875005595
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 0,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 1268994,
+        "itemID" : "apple-bipbop-fmp4",
+        "mediaStackStartupTime" : 0.03533506393432617,
+        "observedBitrate" : 1722852,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.07868133299052715,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.966532040969469
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 1,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 951412,
+        "itemID" : "apple-adv-dv-atmos",
+        "mediaStackStartupTime" : 0.03249704837799072,
+        "observedBitrate" : 1755489,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.09064983401913196,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.999131459044293
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "mux-test-asset",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.09744924999540672,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.999392458004877
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "tos-unified-streaming",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.982573584013153
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : false,
+        "errors" : [
+
+        ],
+        "itemID" : "tos-mux-ismc",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.08132408303208649,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.982672375044785
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "tos-unified-streaming",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.149798874976113
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "mux-test-asset",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.09021737502189353,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.049441083043348
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 1,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 951412,
+        "itemID" : "apple-adv-dv-atmos",
+        "mediaStackStartupTime" : 0.041986942291259766,
+        "observedBitrate" : 2361968,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.10934420803096145,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.865905000013299
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 2,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 902298,
+        "itemID" : "apple-bipbop-fmp4",
+        "mediaStackStartupTime" : 2.6185600757598877,
+        "observedBitrate" : 2539416,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 0.427758666977752,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.86563891696278
+      },
+      {
+        "arm" : "window",
+        "didStartPlayback" : true,
+        "errors" : [
+
+        ],
+        "itemID" : "apple-bipbop-4x3",
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "totalStallDuration" : 0,
+        "watchDuration" : 5.0157989579602145
+      },
+      {
+        "arm" : "window",
+        "bitrateSwitchCount" : 1,
+        "didStartPlayback" : true,
+        "droppedFrames" : 0,
+        "errors" : [
+
+        ],
+        "indicatedBitrate" : 1030138,
+        "itemID" : "apple-bipbop-16x9",
+        "mediaStackStartupTime" : 1.0582300424575806,
+        "observedBitrate" : 2417038,
+        "playerWaitDuration" : 0,
+        "stallCount" : 0,
+        "timeToFirstFrame" : 3.5022568330168724,
+        "totalStallDuration" : 0,
+        "watchDuration" : 4.587352000002284
+      }
+    ],
+    "startedAt" : "2026-08-04T22:16:39Z"
+  },
+  "views" : [
+    [
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293921.794923041
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 293922.099327708
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293922.519533125
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 293925.048207041
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293925.048207041
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 1030138,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1655351,
+              "startupTime" : 2.8686540126800537
+            }
+          }
+        },
+        "timestamp" : 293928.032859833
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293930.265429583
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293930.282048458
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293930.332026
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 649879,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 862250,
+              "startupTime" : 4.241153001785278
+            }
+          }
+        },
+        "timestamp" : 293930.345715625
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 293930.360588458
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 649879,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 816446,
+              "startupTime" : 4.241153001785278
+            }
+          }
+        },
+        "timestamp" : 293931.622191958
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 293933.426379416
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293933.426379416
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 232370,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 803259,
+              "startupTime" : 2.170225977897644
+            }
+          }
+        },
+        "timestamp" : 293935.154755041
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293935.231136458
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293935.247952958
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293935.3263595
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293935.385031416
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 1268994,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1140877,
+              "startupTime" : 0.030044078826904297
+            }
+          }
+        },
+        "timestamp" : 293936.448122958
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293940.38070675
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293940.397149791
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 964756,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 762205,
+              "startupTime" : 4.738767027854919
+            }
+          }
+        },
+        "timestamp" : 293940.484027125
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 964756,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 762205,
+              "startupTime" : 4.738767027854919
+            }
+          }
+        },
+        "timestamp" : 293940.498506125
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 293940.502600333
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 951412,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 762205,
+              "startupTime" : 4.738767027854919
+            }
+          }
+        },
+        "timestamp" : 293940.658162083
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 432092,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 701130,
+              "startupTime" : 4.738767027854919
+            }
+          }
+        },
+        "timestamp" : 293941.400700958
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293941.83341775
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 293942.598068208
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293942.598068208
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 676900,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 807050,
+              "startupTime" : 1.1712989807128906
+            }
+          }
+        },
+        "timestamp" : 293944.057057
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293945.296495083
+      }
+    ],
+    [
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293945.312927
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293945.427180291
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 293945.455013958
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 293945.455506375
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293945.455506375
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293950.278333
+      }
+    ],
+    [
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293950.294968375
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293950.403781041
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293955.544994041
+      }
+    ],
+    [
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293955.561213458
+      },
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293955.630335083
+      },
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293955.672505041
+      },
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293960.276308625
+      }
+    ],
+    [
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293960.292685708
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293960.36644475
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293965.29288325
+      }
+    ],
+    [
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293965.308889041
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293965.414164666
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 293965.442608166
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 293965.443502791
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293965.443502791
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293970.325356375
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293970.341866166
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293970.435483583
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 432092,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1911759,
+              "startupTime" : 0.03471708297729492
+            }
+          }
+        },
+        "timestamp" : 293970.469482791
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 293970.479515375
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 432092,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1897526,
+              "startupTime" : 0.03471708297729492
+            }
+          }
+        },
+        "timestamp" : 293970.596494708
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 293971.544959791
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293971.544959791
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 951412,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1666119,
+              "startupTime" : 0.04177403450012207
+            }
+          }
+        },
+        "timestamp" : 293972.05966375
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293975.525587708
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293975.542659791
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293975.639257083
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293975.682441625
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 902298,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1844388,
+              "startupTime" : 0.030604958534240723
+            }
+          }
+        },
+        "timestamp" : 293976.141567958
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293980.274106458
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293980.290595791
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293980.368671041
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293980.420060041
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 649879,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1270817,
+              "startupTime" : 0.028539061546325684
+            }
+          }
+        },
+        "timestamp" : 293982.767922375
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293985.290242333
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293985.306516375
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293985.420416958
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 293985.455809541
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 293985.456180666
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293985.456180666
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293990.27239325
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293990.28909075
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 232370,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1061768,
+              "startupTime" : 0.028539061546325684
+            }
+          }
+        },
+        "timestamp" : 293990.389200958
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 293990.403011083
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293993.333791166
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 293993.774272875
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293993.774272875
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 232370,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1031697,
+              "startupTime" : 1.8242729902267456
+            }
+          }
+        },
+        "timestamp" : 293993.916189958
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 293995.322745625
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 293995.339191375
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 293995.417872708
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 293995.457985166
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 1268994,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1722852,
+              "startupTime" : 0.03533506393432617
+            }
+          }
+        },
+        "timestamp" : 293998.136010875
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294000.305723416
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 294000.322227916
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 294000.41287775
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 432092,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1801540,
+              "startupTime" : 0.03249704837799072
+            }
+          }
+        },
+        "timestamp" : 294000.447996333
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 294000.457936208
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 432092,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1783376,
+              "startupTime" : 0.03249704837799072
+            }
+          }
+        },
+        "timestamp" : 294000.617439833
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 294001.688122541
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 294001.688122541
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 951412,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1755489,
+              "startupTime" : 0.041531920433044434
+            }
+          }
+        },
+        "timestamp" : 294001.947886583
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294005.321359375
+      }
+    ],
+    [
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 294005.337903083
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 294005.435352333
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 294005.464578333
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 294005.464991875
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 294005.464991875
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294010.337295541
+      }
+    ],
+    [
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 294010.353892166
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 294010.455797041
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294015.33646575
+      }
+    ],
+    [
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 294015.353054125
+      },
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 294015.434378208
+      },
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 294015.458156791
+      },
+      {
+        "itemID" : "tos-mux-ismc",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294020.3357265
+      }
+    ],
+    [
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 294020.352242583
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 294020.397116166
+      },
+      {
+        "itemID" : "tos-unified-streaming",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294025.502041458
+      }
+    ],
+    [
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 294025.518549083
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 294025.608766458
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 294025.643878791
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 294025.644491291
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 294025.644491291
+      },
+      {
+        "itemID" : "mux-test-asset",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294030.567990166
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 294030.584553958
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 294030.693898166
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 432092,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2877554,
+              "startupTime" : 0.041986942291259766
+            }
+          }
+        },
+        "timestamp" : 294030.717853208
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 294030.729586541
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 432092,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2815529,
+              "startupTime" : 0.041986942291259766
+            }
+          }
+        },
+        "timestamp" : 294030.90699525
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 294031.062675833
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 294031.062675833
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 951412,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2361968,
+              "startupTime" : 0.04312002658843994
+            }
+          }
+        },
+        "timestamp" : 294033.360224916
+      },
+      {
+        "itemID" : "apple-adv-dv-atmos",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294035.450458958
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 294035.466992416
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 902298,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2118705,
+              "startupTime" : 2.6185600757598877
+            }
+          }
+        },
+        "timestamp" : 294035.542802916
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "stallBegan" : {
+
+          }
+        },
+        "timestamp" : 294035.554602708
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 902298,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2087196,
+              "startupTime" : 2.6185600757598877
+            }
+          }
+        },
+        "timestamp" : 294035.76834025
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 294035.894751083
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "stallEnded" : {
+
+          }
+        },
+        "timestamp" : 294036.078342166
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 294036.078342166
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 541052,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2176784,
+              "startupTime" : 0.179534912109375
+            }
+          }
+        },
+        "timestamp" : 294036.252585625
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 902298,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2539416,
+              "startupTime" : 0.179534912109375
+            }
+          }
+        },
+        "timestamp" : 294037.393298125
+      },
+      {
+        "itemID" : "apple-bipbop-fmp4",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294040.332631333
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 294040.349083458
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 294040.451539833
+      },
+      {
+        "itemID" : "apple-bipbop-4x3",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294045.364882416
+      }
+    ],
+    [
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "itemBecameCurrent" : {
+
+          }
+        },
+        "timestamp" : 294045.381455208
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "playbackStarted" : {
+
+          }
+        },
+        "timestamp" : 294045.507547541
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 41457,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 1016393,
+              "startupTime" : 1.0582300424575806
+            }
+          }
+        },
+        "timestamp" : 294046.048273083
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "readyForDisplay" : {
+
+          }
+        },
+        "timestamp" : 294048.883712041
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "accessLogEntry" : {
+            "_0" : {
+              "indicatedBitrate" : 1030138,
+              "numberOfDroppedVideoFrames" : 0,
+              "numberOfStalls" : 0,
+              "observedBitrate" : 2417038,
+              "startupTime" : 1.0582300424575806
+            }
+          }
+        },
+        "timestamp" : 294049.623958833
+      },
+      {
+        "itemID" : "apple-bipbop-16x9",
+        "kind" : {
+          "itemReleased" : {
+
+          }
+        },
+        "timestamp" : 294049.968807208
+      }
+    ]
+  ]
+}
