@@ -91,10 +91,12 @@ final class FeedViewController: UIViewController {
     #endif
 
     private func configureCoordinator() {
-        let recorder = SessionRecorder(arm: Self.defaultArm)
+        let arm = self.arm
+        let recorder = SessionRecorder(arm: arm.name)
         coordinator = FeedCoordinator(
             manifest: manifest,
-            pool: PlayerPool(capacity: .bounded(Self.poolCapacity)),
+            arm: arm,
+            pool: PlayerPool(capacity: arm.poolCapacity),
             recorder: recorder
         ) { [weak self] index in
             self?.collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? FeedCell
@@ -109,13 +111,12 @@ final class FeedViewController: UIViewController {
         #endif
     }
 
-    /// Until `ArmRegistry` exists (M5) every session is the control arm, which is what the current
-    /// behaviour actually is: current item only, no preload.
-    private static let defaultArm = "baseline"
-
-    /// Default from `docs/playback-engine.md`: current, next, previous. Becomes an experiment
-    /// variable once `ArmRegistry` exists (M5).
-    private static let poolCapacity = 3
+    /// The experimental condition. Strategy *and* pool capacity both come from here, which is what
+    /// makes an arm a single choice rather than two settings that could drift apart.
+    ///
+    /// Starts at the control, so a launch with nothing selected measures the same thing the engine
+    /// did before arms existed. Selection from the debug menu arrives in the next change.
+    private(set) var arm: Arm = ArmRegistry.control
 
     // MARK: - Layout
 

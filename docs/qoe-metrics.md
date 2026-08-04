@@ -4,7 +4,7 @@ title: QoE Metrics — Definitions and Measurement
 description: What each quality-of-experience metric means and exactly how FeedLab measures it from AVFoundation
 status: living
 tags: [qoe, metrics, avfoundation, measurement]
-timestamp: 2026-08-03T01:16:46Z
+timestamp: 2026-08-04T00:35:00Z
 related: [playback-engine.md, observability.md, experiment-harness.md]
 ---
 
@@ -106,6 +106,26 @@ Two consequences:
 - Per item: one `PlaybackRecord`.
 - Per session: mean and **p90** TTFF (p90 matters more than mean — startup latency is long-tailed), aggregate rebuffer ratio (total stall ÷ total watch, not the mean of per-item ratios), total stalls, mean switch count, peak memory.
 - Items with zero watch duration (scrolled past instantly) are excluded from ratio aggregates but counted in a `skipped` tally — a strategy that looks great because the user never lingered is not actually great.
+
+## What preload does and does not enter into a record
+
+A record covers one **item view**: from playback intent to teardown. Preload happens before intent
+exists, so a preloaded item is deliberately **not observed** — `PlaybackObserver` is installed when
+the item is promoted to current, not when a player adopts it. A stall suffered while buffering
+off-screen is not one the user experienced, and folding it in would put time nobody sat through into
+the numerator of rebuffer ratio.
+
+One asymmetry falls out of this and must be read carefully rather than engineered away:
+
+- **Our TTFF is honest under preload.** `t0` is stamped at settle, before anything is consulted, so a
+  preloaded item is fast because it really is ready — not because the clock started late.
+- **`mediaStackStartupTime` is not.** The access log is *cumulative on the item*, so when observation
+  begins at promotion it already contains entries from the preload period. For a preloaded item the
+  media stack's startup figure therefore describes work done before the user arrived.
+
+That is arguably the point — the delta between the two is exactly what preload *moves* — but it means
+the two startup figures are not comparable across arms in the same way. Bitrate switch counts carry
+the same caveat: switches during preload are included. State this wherever the pair is charted.
 
 ## Sources of truth and their quirks
 

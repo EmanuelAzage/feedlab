@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		018F899DDB0B418C4F9F6CBC /* FeedCoordinator+Preparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B142B0B34D1A5E0AC5E33C04 /* FeedCoordinator+Preparation.swift */; };
 		0214C86C799E3ED73FAEAD64 /* PlayerRenderTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25894674E81297F1F81C4BE8 /* PlayerRenderTarget.swift */; };
 		065F4D87A03A6D31C37FAEB5 /* MemorySampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA88634B5DFF5552595FB2D /* MemorySampler.swift */; };
 		0C859E363D84E4109C782917 /* HUDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F801017EEAC7C6351703EF /* HUDController.swift */; };
@@ -113,6 +114,7 @@
 		A327E69BFC82A76B0F645ACD /* AVFoundationAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVFoundationAdapters.swift; sourceTree = "<group>"; };
 		AACCA71D457BA3598DE1ED18 /* FeedViewController+Gestures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedViewController+Gestures.swift"; sourceTree = "<group>"; };
 		B03DAF750F6F11D6C2E485A1 /* PlaybackEventPipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackEventPipe.swift; sourceTree = "<group>"; };
+		B142B0B34D1A5E0AC5E33C04 /* FeedCoordinator+Preparation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedCoordinator+Preparation.swift"; sourceTree = "<group>"; };
 		B54BFF866EB77A3FF110D9D0 /* SessionSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionSummary.swift; sourceTree = "<group>"; };
 		C04A05CFAEC8C20B8892E1CF /* PreloadStrategy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreloadStrategy.swift; sourceTree = "<group>"; };
 		C199E322193E213C7440D2CA /* PlaceholderPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderPalette.swift; sourceTree = "<group>"; };
@@ -246,6 +248,7 @@
 			children = (
 				39F432DCABEF16D4FF63F9CB /* FeedCell.swift */,
 				1F0792F54CA34E863CD110A8 /* FeedCoordinator.swift */,
+				B142B0B34D1A5E0AC5E33C04 /* FeedCoordinator+Preparation.swift */,
 				9091FF0FDC5F59EE0F6BFC11 /* FeedViewController.swift */,
 				AACCA71D457BA3598DE1ED18 /* FeedViewController+Gestures.swift */,
 				C199E322193E213C7440D2CA /* PlaceholderPalette.swift */,
@@ -433,6 +436,7 @@
 				260773A02575D57D00B99D60 /* ContentSource.swift in Sources */,
 				7C483DC035CBF0F7DEB7F97F /* DebugMenuView.swift in Sources */,
 				74B55F9B2ED5FBF564F8E3D4 /* FeedCell.swift in Sources */,
+				018F899DDB0B418C4F9F6CBC /* FeedCoordinator+Preparation.swift in Sources */,
 				756132C87B2BF46E1A7D4915 /* FeedCoordinator.swift in Sources */,
 				3F3C57325209955CC5FDFB4F /* FeedItem.swift in Sources */,
 				DBE409941F30FCC5EB765CAA /* FeedViewController+DebugMenu.swift in Sources */,

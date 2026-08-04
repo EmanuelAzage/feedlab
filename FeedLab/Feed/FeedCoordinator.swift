@@ -1,21 +1,43 @@
 import AVFoundation
 import Foundation
 
-/// Turns visibility into playback intent.
+/// Turns visibility into playback intent, and the arm's strategy into prepared items.
 ///
 /// The seam between the feed surface and the playback engine. It owns the pool, decides which
 /// index should be playing, and is the only thing that attaches or detaches players.
 ///
-/// M2 scope: the current item only. Preparing items *ahead* is a `PreloadStrategy` decision
-/// (M5); this type deliberately does not guess at one, so the baseline it establishes is
-/// genuinely "no preload" rather than an accidental policy.
+/// The state machine that does the preparing lives in `FeedCoordinator+Preparation.swift`; this
+/// file is what the feed surface asks for. Members shared across the two are internal rather than
+/// private because `private` is file-scoped in Swift — FeedLab is a single module, so this is a
+/// readability split, not a boundary.
 @MainActor
 final class FeedCoordinator {
-    /// Everything owed back when an index stops being current. Grouped so teardown cannot
-    /// forget a piece — a leaked notification token on a recycled player is the classic bug.
-    private struct Attachment {
-        let pooled: PooledPlayer
+    /// How far one index has been prepared.
+    ///
+    /// Three states, expressed as two optionals rather than an enum so a transition can add or drop
+    /// one facet without rebuilding the others:
+    ///
+    /// | State | `pooled` | `live` | Meaning |
+    /// |---|---|---|---|
+    /// | **warm** (tier 1) | nil | nil | asset loaded, item built — **not buffering** |
+    /// | **backed** (tier 2) | set | nil | a player has adopted the item: buffering, paused, unobserved |
+    /// | **current** | set | set | rendering into a cell, observed, playing |
+    ///
+    /// The tiers are not a taxonomy invented here — they are the two-tier preparation model in
+    /// `docs/playback-engine.md`, which exists because an `AVPlayerItem` does not buffer until a
+    /// player adopts it. `live` implies `pooled`: only a backed item can be promoted.
+    struct Preparation {
         let item: AVPlayerItemAdapter
+        var pooled: PooledPlayer?
+        var live: LiveRegistrations?
+    }
+
+    /// The registrations that exist only while an index is *the current item*.
+    ///
+    /// Grouped so demotion cannot forget a piece — a leaked notification token on a recycled player
+    /// is the classic bug. Deliberately absent while an item is merely preloaded: a preloaded item
+    /// is not observed, because a stall it suffers off-screen is not one the user experienced.
+    struct LiveRegistrations {
         let endOfItemToken: NSObjectProtocol
         let observer: PlaybackObserver
         /// Periodic time observer driving the scrubber. Another registration that must come off
@@ -23,29 +45,39 @@ final class FeedCoordinator {
         var timeObserverToken: Any?
     }
 
-    private let manifest: Manifest
+    /// How far the plan wants a given index prepared.
+    enum Tier {
+        case warm
+        case backed
+        case current
+    }
+
+    let manifest: Manifest
+    /// The experimental condition in force: strategy plus pool size. Swapping it is what makes the
+    /// arms differ in behaviour rather than only in label.
+    private(set) var arm: Arm
     let pool: PlayerPool
     /// Session-level, so it belongs beside the recorder rather than inside the HUD: peak memory is
     /// attributed to the arm and must be tracked whether or not anyone is looking at it.
     let memoryTracker = MemoryPeakTracker()
     private var memorySamplingTask: Task<Void, Never>?
-    private let preparer = ItemPreparer()
-    private let clock: any TimestampSource
+    let preparer = ItemPreparer()
+    let clock: any TimestampSource
     private let pipe = PlaybackEventPipe()
     private var forwardingTask: Task<Void, Never>?
     let recorder: SessionRecorder
     /// Resolves an index to its on-screen cell, or nil if it is not currently displayed.
-    private let renderTarget: @MainActor (Int) -> (any PlayerRenderTarget)?
+    let renderTarget: @MainActor (Int) -> (any PlayerRenderTarget)?
 
-    private var currentIndex: Int?
-    private var attachments: [Int: Attachment] = [:]
-    private var preparationTasks: [Int: Task<Void, Never>] = [:]
+    var currentIndex: Int?
+    var preparations: [Int: Preparation] = [:]
+    var preparationTasks: [Int: Task<Void, Never>] = [:]
 
     /// Whether the user has deliberately paused the current item.
     ///
     /// Tracked here rather than read from `timeControlStatus`, because the player is also `.paused`
-    /// while buffering and during teardown. Only the coordinator knows a pause was *intended*, and
-    /// that distinction is the whole basis for excluding it from rebuffer ratio.
+    /// while buffering, while preloaded, and during teardown. Only the coordinator knows a pause was
+    /// *intended*, and that distinction is the whole basis for excluding it from rebuffer ratio.
     private(set) var isCurrentItemPaused = false
 
     /// Reports playback progress for the scrubber: index, elapsed, and duration when known.
@@ -56,12 +88,14 @@ final class FeedCoordinator {
 
     init(
         manifest: Manifest,
+        arm: Arm,
         pool: PlayerPool,
         recorder: SessionRecorder,
         clock: any TimestampSource = MonotonicTimestampSource(),
         renderTarget: @escaping @MainActor (Int) -> (any PlayerRenderTarget)?
     ) {
         self.manifest = manifest
+        self.arm = arm
         self.pool = pool
         self.recorder = recorder
         self.clock = clock
@@ -95,37 +129,58 @@ final class FeedCoordinator {
 
     /// Hands an event to the ordered pipe. Synchronous and thread-safe; the forwarding task drains
     /// it into the recorder in order.
-    private nonisolated func emit(_ event: PlaybackEvent, to recorder: SessionRecorder) {
+    nonisolated func emit(_ event: PlaybackEvent) {
         pipe.send(event)
+    }
+
+    /// Emits for an index, which is the common case — every event the coordinator itself raises is
+    /// about the item at some index.
+    func emit(_ kind: PlaybackEvent.Kind, at index: Int) {
+        guard manifest.items.indices.contains(index) else { return }
+        emit(PlaybackEvent(itemID: manifest.items[index].id, timestamp: clock.now(), kind: kind))
+    }
+
+    /// Builds the `PlaybackObserver` for a promoted item. Here rather than in the extension so the
+    /// pipe stays private to this file.
+    func makeObserver(for itemID: String, player: any PlayerProviding, item: AVPlayerItemAdapter,
+                      layer: AVPlayerLayer?) -> PlaybackObserver {
+        PlaybackObserver(
+            itemID: itemID,
+            player: (player as? AVPlayerAdapter)?.player ?? AVPlayer(),
+            item: item.item,
+            layer: layer,
+            clock: clock,
+            emit: { [pipe] event in pipe.send(event) }
+        )
     }
 
     // MARK: - Intent
 
     /// Called when a page **settles**, not while scrolling.
     ///
-    /// Intent on settle rather than on every rounding boundary is what makes a fast scroll
-    /// cheap: nothing is prepared for items the user is merely passing over. It also gives
+    /// Intent on settle rather than on every rounding boundary is what makes a fast scroll cheap:
+    /// nothing is prepared for items the user is merely passing over. It also gives
     /// time-to-first-frame an unambiguous `t0` — see `docs/qoe-metrics.md`.
     func settled(on index: Int) {
         guard index != currentIndex else { return }
         guard manifest.items.indices.contains(index) else { return }
 
         if let previous = currentIndex {
-            teardown(index: previous)
+            // Demote, not release: the outgoing item may still be in the incoming plan, and
+            // reconciliation below decides that. What must stop now is the playing.
+            demote(index: previous)
         }
         currentIndex = index
         // A new item always starts playing; pause does not carry across items.
         isCurrentItemPaused = false
 
-        // `t0` for time-to-first-frame: stamped the moment intent exists, *before* any asset work
-        // begins. Stamping after the load would measure only the tail of startup and would make
-        // preload strategies look better than they are, since preparation is exactly what they
-        // move out of this interval.
-        emit(
-            PlaybackEvent(itemID: manifest.items[index].id, timestamp: clock.now(), kind: .itemBecameCurrent),
-            to: recorder
-        )
-        beginPlayback(at: index)
+        // `t0` for time-to-first-frame: stamped the moment intent exists, *before* any preparation
+        // is consulted. Stamping later would measure only the tail of startup and would make
+        // preload strategies look better than they are, since preparation is exactly what they move
+        // out of this interval. A preloaded item is fast here because it really is ready, not
+        // because the clock started late.
+        emit(.itemBecameCurrent, at: index)
+        reconcile()
     }
 
     // MARK: - User intent
@@ -137,19 +192,17 @@ final class FeedCoordinator {
     /// Returns the resulting paused state so the caller can update its affordance.
     @discardableResult
     func toggleUserPause() -> Bool {
-        guard let index = currentIndex, let attachment = attachments[index] else {
+        guard let index = currentIndex, let player = preparations[index]?.pooled?.player else {
             return isCurrentItemPaused
         }
-        let itemID = manifest.items[index].id
-        let now = clock.now()
 
         if isCurrentItemPaused {
-            attachment.pooled.player.play()
-            emit(PlaybackEvent(itemID: itemID, timestamp: now, kind: .userResumed), to: recorder)
+            player.play()
+            emit(.userResumed, at: index)
             isCurrentItemPaused = false
         } else {
-            attachment.pooled.player.pause()
-            emit(PlaybackEvent(itemID: itemID, timestamp: now, kind: .userPaused), to: recorder)
+            player.pause()
+            emit(.userPaused, at: index)
             isCurrentItemPaused = true
         }
         return isCurrentItemPaused
@@ -160,10 +213,10 @@ final class FeedCoordinator {
     /// Emits nothing: watch duration is wall-clock from intent to teardown, so replaying does not
     /// change how long the user watched. Seeking is a navigation action, not a measurement event.
     func seekCurrentItemToStart() {
-        guard let index = currentIndex, let attachment = attachments[index] else { return }
-        attachment.pooled.player.seekToStart()
+        guard let index = currentIndex, let player = preparations[index]?.pooled?.player else { return }
+        player.seekToStart()
         if !isCurrentItemPaused {
-            attachment.pooled.player.play()
+            player.play()
         }
     }
 
@@ -172,23 +225,31 @@ final class FeedCoordinator {
         currentIndex.flatMap { manifest.items.indices.contains($0) ? manifest.items[$0] : nil }
     }
 
-    /// A cell became visible. Re-binds the layer if this index already holds a player, which
-    /// happens when a cell is recycled back onto the current item.
+    // MARK: - Cell lifecycle
+
+    /// A cell became visible. Re-binds the layer if this index is the current item, which happens
+    /// when a cell is recycled back onto it.
     func cellWillDisplay(at index: Int) {
-        guard index == currentIndex, let attachment = attachments[index] else { return }
-        renderTarget(index)?.attachPlayer(attachment.pooled.player)
+        guard index == currentIndex,
+              let preparation = preparations[index],
+              preparation.live != nil,
+              let pooled = preparation.pooled else { return }
+        renderTarget(index)?.attachPlayer(pooled.player)
     }
 
-    /// A cell scrolled out of the visible set. Reclaim its player.
+    /// A cell scrolled out of the visible set.
     ///
-    /// Torn down **unconditionally**, including when it is the current index. `product-spec.md`:
-    /// "Items leaving the screen pause and release their player back to the pool." An earlier
-    /// version skipped teardown for the current index, so during a long drag the departed item
-    /// kept playing — audible over cells the user had already scrolled to, and worse, still
-    /// accumulating watch duration. Watch duration is the denominator of rebuffer ratio, so
-    /// that would have quietly flattered the smoothness of any item the user scrolled away from.
+    /// **Demotes rather than releases**, and that is a correction to the shape of the M2 fix rather
+    /// than a reversal of it. The bug then was that a departed item kept *playing* — audible over
+    /// cells the user had already scrolled to, and still accruing watch duration, which is the
+    /// denominator of rebuffer ratio. The remedy chosen was full teardown, which happened to be
+    /// equivalent because nothing else could hold a player.
+    ///
+    /// With preload that equivalence breaks: an item legitimately holds a player while off-screen.
+    /// So the two concerns come apart — demotion stops the playing and closes the record, and the
+    /// *plan*, not cell visibility, decides whether the player goes back.
     func cellDidEndDisplaying(at index: Int) {
-        teardown(index: index)
+        demote(index: index)
         if currentIndex == index {
             // Clear it, or settling back on this index would be treated as "already current"
             // and never restart playback.
@@ -196,210 +257,57 @@ final class FeedCoordinator {
         }
     }
 
-    /// Releases everything. Called when the feed leaves the screen so a backgrounded rig does
-    /// not sit on decode resources.
+    /// Releases everything. Called when the feed leaves the screen so a backgrounded rig does not
+    /// sit on decode resources.
     func teardownAll() {
-        for index in attachments.keys {
-            teardown(index: index)
+        for index in Array(preparations.keys) {
+            release(index: index)
         }
-        for (_, task) in preparationTasks {
-            task.cancel()
+        for index in Array(preparationTasks.keys) {
+            cancelPreparation(at: index)
         }
-        preparationTasks.removeAll()
         currentIndex = nil
     }
 
-    // MARK: - Preparation
+    // MARK: - Planning
 
-    private func beginPlayback(at index: Int) {
-        preparationTasks[index]?.cancel()
-        let feedItem = manifest.items[index]
-
-        preparationTasks[index] = Task { [weak self, preparer] in
-            guard let self else { return }
-            defer { self.preparationTasks[index] = nil }
-
-            let item: AVPlayerItemAdapter
-            do {
-                // `prepare` is nonisolated async, so this hops off the main actor. Doing the
-                // work inline here would inherit main-actor isolation — see `ItemPreparer`.
-                item = try await preparer.prepare(url: feedItem.url)
-            } catch {
-                Log.playback.debug("Asset load cancelled or failed for \(feedItem.id, privacy: .public)")
-                return
-            }
-
-            do {
-                let pooled = try await self.pool.acquire()
-                // The scroll may have moved on while we waited for a player. If so the player
-                // must go straight back, or occupancy climbs by one for every skipped item.
-                guard !Task.isCancelled, self.currentIndex == index else {
-                    await self.pool.release(pooled)
-                    return
-                }
-                self.recordPoolWait(pooled, itemID: feedItem.id)
-                self.attach(pooled: pooled, item: item, at: index)
-            } catch {
-                Log.playback.debug("Player acquire cancelled for \(feedItem.id, privacy: .public)")
-            }
-        }
+    /// The arm's intent for the current index, resolved against pool capacity.
+    var plan: PreparationPlan? {
+        guard let currentIndex else { return nil }
+        return PreparationPlanner.plan(
+            currentIndex: currentIndex,
+            totalCount: manifest.items.count,
+            strategy: arm.strategy,
+            capacity: pool.capacity
+        )
     }
 
-    /// Emits the wait bracket only when the acquire actually blocked.
+    /// Brings the prepared set in line with the plan.
     ///
-    /// The bracket is reconstructed from the pool's own measurement rather than timed around the
-    /// call, because timing the call would include `AVPlayer` instantiation — which is a cost of
-    /// the player, not of contention, and counting it would penalise the `pool-unbounded` arm that
-    /// instantiates on nearly every acquire. See `docs/qoe-metrics.md`.
-    private func recordPoolWait(_ pooled: PooledPlayer, itemID: String) {
-        guard pooled.waitDuration > 0 else { return }
-        let ended = clock.now()
-        let began = ended - pooled.waitDuration
-        emit(PlaybackEvent(itemID: itemID, timestamp: began, kind: .playerWaitBegan), to: recorder)
-        emit(PlaybackEvent(itemID: itemID, timestamp: ended, kind: .playerWaitEnded), to: recorder)
-    }
+    /// Re-derives from the plan rather than patching incrementally, and is called again whenever an
+    /// asynchronous step lands, so the engine converges on the plan from any intermediate state
+    /// instead of depending on the order things completed in. Affordable because a plan is at most
+    /// four indices.
+    func reconcile() {
+        guard let currentIndex, let plan else { return }
 
-    private func attach(pooled: PooledPlayer, item: AVPlayerItemAdapter, at index: Int) {
-        let feedItem = manifest.items[index]
-
-        // Looping by seek-to-zero rather than AVPlayerLooper, which would require an
-        // AVQueuePlayer and fragment the item's access log — see `docs/decisions.md`.
-        let token = NotificationCenter.default.addObserver(
-            forName: AVPlayerItem.didPlayToEndTimeNotification,
-            object: item.item,
-            queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated {
-                self?.loop(index: index)
-            }
+        // Release strays *first*, so slots the plan no longer wants are back before anything asks
+        // for one. This is what makes the current item's blocking acquire safe: `PreparationPlanner`
+        // guarantees `playerBacked.count ≤ capacity`, so once the strays are gone there is room.
+        let planned = Set(plan.allPrepared)
+        for index in Array(preparations.keys) where !planned.contains(index) {
+            release(index: index)
+        }
+        for index in Array(preparationTasks.keys) where !planned.contains(index) {
+            cancelPreparation(at: index)
         }
 
-        pooled.player.replaceCurrentItem(with: item)
-
-        let target = renderTarget(index)
-        // Attach the layer *before* observing it, so `isReadyForDisplay` is observed on the layer
-        // that will actually render this item.
-        target?.attachPlayer(pooled.player)
-
-        let observer = PlaybackObserver(
-            itemID: feedItem.id,
-            player: (pooled.player as? AVPlayerAdapter)?.player ?? AVPlayer(),
-            item: item.item,
-            layer: target?.readinessLayer,
-            clock: clock,
-            emit: { [pipe] event in pipe.send(event) }
-        )
-
-        attachments[index] = Attachment(
-            pooled: pooled,
-            item: item,
-            endOfItemToken: token,
-            observer: observer
-        )
-        installProgressObserver(for: pooled, at: index)
-
-        pooled.player.play()
-
-        Log.playback.info(
-            """
-            Playing index \(index, privacy: .public) \
-            (pool wait \(pooled.waitDuration * 1000, format: .fixed(precision: 1), privacy: .public) ms)
-            """
-        )
-    }
-
-    /// Drives the scrubber at 4 Hz.
-    ///
-    /// The interval is the same budget the HUD gets (`docs/observability.md`): fast enough to look
-    /// continuous, slow enough not to become a load source. Note this cost is present in *every*
-    /// arm, so it shifts absolute numbers without biasing the comparison between them — but it is
-    /// still real, and it is the reason the interval is a stated choice rather than a default.
-    private func installProgressObserver(for pooled: PooledPlayer, at index: Int) {
-        guard let avPlayer = (pooled.player as? AVPlayerAdapter)?.player else { return }
-        let interval = CMTime(seconds: 0.25, preferredTimescale: 600)
-        let token = avPlayer.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-            MainActor.assumeIsolated {
-                self?.reportProgress(at: index, elapsed: time.seconds)
-            }
+        // Current item first: it is the only one allowed to block for a player.
+        for index in plan.playerBacked {
+            advance(index: index, tier: index == currentIndex ? .current : .backed)
         }
-        attachments[index]?.timeObserverToken = token
-    }
-
-    private func reportProgress(at index: Int, elapsed: TimeInterval) {
-        guard let attachment = attachments[index] else { return }
-        let duration = attachment.item.item.duration
-        onProgress?(index, elapsed, duration.isNumeric ? duration.seconds : nil)
-    }
-
-    /// Reports the folded record once the item view closes.
-    ///
-    /// Temporary until the HUD (M4) and dashboard (M6) surface these properly, but useful now: it
-    /// is the first point at which the whole chain — observation, stamping, ordered delivery, and
-    /// the pure fold — can be seen producing a number end to end.
-    private nonisolated static func logRecord(for itemID: String, from recorder: SessionRecorder) async {
-        guard let record = await recorder.records.last(where: { $0.itemID == itemID }) else { return }
-        let ttff = record.timeToFirstFrame.map { String(format: "%.0f ms", $0 * 1000) } ?? "never rendered"
-        let switches = record.bitrateSwitchCount.map(String.init) ?? "n/a"
-        Log.metrics.info(
-            """
-            \(itemID, privacy: .public): ttff \(ttff, privacy: .public), \
-            watch \(record.watchDuration, format: .fixed(precision: 2), privacy: .public)s, \
-            stalls \(record.stallCount, privacy: .public) \
-            (\(record.totalStallDuration, format: .fixed(precision: 2), privacy: .public)s, \
-            ratio \(record.rebufferRatio, format: .fixed(precision: 3), privacy: .public)), \
-            switches \(switches, privacy: .public), \
-            wait \(record.playerWaitDuration * 1000, format: .fixed(precision: 1), privacy: .public) ms
-            """
-        )
-    }
-
-    private func loop(index: Int) {
-        guard let attachment = attachments[index] else { return }
-        attachment.pooled.player.seekToStart()
-        attachment.pooled.player.play()
-    }
-
-    // MARK: - Teardown
-
-    private func teardown(index: Int) {
-        preparationTasks[index]?.cancel()
-        preparationTasks[index] = nil
-
-        guard let attachment = attachments.removeValue(forKey: index) else { return }
-
-        // Closes watch accounting, and closes any stall still open at this moment — an item the
-        // user scrolled away from while it was still spinning really did stall for that long.
-        emit(
-            PlaybackEvent(itemID: manifest.items[index].id, timestamp: clock.now(), kind: .itemReleased),
-            to: recorder
-        )
-
-        // Order matters and is the subject of `PlayerRenderTarget`'s ordering rule: unbind the
-        // layer first, then drop every observation, then hand the player back. Releasing first
-        // would let the next cell adopt a player the old layer still references, and a surviving
-        // KVO registration would attribute the next item's events to this one.
-        renderTarget(index)?.attachPlayer(nil)
-        attachment.observer.invalidate()
-        NotificationCenter.default.removeObserver(attachment.endOfItemToken)
-        if let token = attachment.timeObserverToken,
-           let avPlayer = (attachment.pooled.player as? AVPlayerAdapter)?.player {
-            avPlayer.removeTimeObserver(token)
-        }
-
-        let itemID = manifest.items[index].id
-        Task { [pool, recorder] in
-            await pool.release(attachment.pooled)
-            // Logged so the M2 acceptance criterion — occupancy returns to zero when idle —
-            // is observable rather than inferred from playback appearing to work.
-            let occupancy = await pool.occupancy
-            let free = await pool.freeCount
-            Log.playback.info(
-                """
-                Released index \(index, privacy: .public) — \
-                occupancy \(occupancy, privacy: .public), free \(free, privacy: .public)
-                """
-            )
-            await Self.logRecord(for: itemID, from: recorder)
+        for index in plan.warmOnly {
+            advance(index: index, tier: .warm)
         }
     }
 }

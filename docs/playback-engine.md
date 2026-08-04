@@ -4,7 +4,7 @@ title: Playback Engine — Player Pool and Preload Strategies
 description: Bounded AVPlayer pooling, item lifecycle, and the swappable preload strategies the experiments compare
 status: living
 tags: [avfoundation, player-pool, preload, performance]
-timestamp: 2026-08-03T23:47:00Z
+timestamp: 2026-08-04T00:35:00Z
 related: [architecture.md, qoe-metrics.md, experiment-harness.md]
 ---
 
@@ -191,6 +191,50 @@ Three consequences:
 
 Caveat: run on macOS. (1) and (2) are API contract and carry over. The buffer *magnitude* in (3) is
 memory-dependent and must be re-measured on device before any number derived from it is published.
+
+## The tier state machine — implemented M5
+
+Each index sits in one of three states, and the plan decides which. `FeedCoordinator` owns the
+transitions (`FeedCoordinator+Preparation.swift`).
+
+| State | Player | Layer | Observed | Playing | Buffering |
+|---|---|---|---|---|---|
+| **warm** (tier 1) | — | — | — | — | **no** |
+| **backed** (tier 2) | ✓ | — | — | — | ✓ |
+| **current** | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+Transitions worth naming:
+
+- **backed → current is synchronous.** No asset load, no acquire — the item is already buffering, so
+  becoming current is layer attach, observer, play. This is the entire preload payoff, and it is why
+  the path has no `await` in it.
+- **current → backed is a *demotion*, not a teardown.** This restates the M2 correction rather than
+  reversing it. The bug then was that a departed item kept *playing* and kept accruing watch
+  duration; full teardown was the remedy chosen, and it was equivalent only because nothing else
+  could hold a player. Preload breaks that equivalence — an item legitimately holds a player while
+  off-screen — so the concerns separate: demotion stops the playing and closes the record, and the
+  **plan**, not cell visibility, decides whether the player goes back.
+- **backed → warm** hands the player back but keeps the loaded item, so an arm that asks for more
+  than capacity degrades measurably. No declared arm does; `ArmRegistry` asserts it.
+
+**Preloaded items are not observed.** `PlaybackObserver` is installed on promotion, not on backing.
+A stall an item suffers while preloading off-screen is not one the user experienced, and folding it
+into that item's record would corrupt rebuffer ratio with time nobody sat through. Consequence to
+know when reading a chart: the *access log* is cumulative on the item, so a preloaded item's
+`mediaStackStartupTime` and switch count still include preload activity — see `qoe-metrics.md`.
+
+**Reconciliation re-derives, it does not patch.** Every completed asynchronous step calls
+`reconcile()` again, so the engine converges on the plan from any intermediate state rather than
+depending on what finished first. A plan is at most four indices, which is what makes that
+affordable.
+
+### Verified 2026-08-03 (simulator, `preload3-capped`)
+
+Wiring only — not a measurement. Launch prepared index 0 and preloaded 1, 2, 3 to tier 2. Scrolling
+promoted index 1 with `pool wait 0.0 ms` and no acquire, released index 0, and preloaded index 4.
+Live players stayed at 4 (`occupancy 3, free 1`) against capacity 4. The first cold item reported
+`ttff 428 ms`; the first *preloaded* item reported `ttff 68 ms`. Single unthrottled simulator run
+with a warm CDN cache — it demonstrates the mechanism works, and is not a number.
 
 ## Arbitrating strategy against capacity
 

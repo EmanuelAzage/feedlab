@@ -4,7 +4,7 @@ title: FeedLab Architecture
 description: Layers, module boundaries, threading model, state, and project structure
 status: living
 tags: [architecture, structure, threading]
-timestamp: 2026-08-02T23:11:54Z
+timestamp: 2026-08-04T00:35:00Z
 related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
 ---
 
@@ -50,6 +50,7 @@ and which are incidental. Each is chosen to serve measurability, not for its own
 | **Fold over an event log** | `MetricsEngine`: `[PlaybackEvent] → PlaybackRecord` | Events are the source of truth; records are derived projections. Recomputing a metric after a definition change is a re-fold, not a re-run — and a disputed number can be traced to the events that produced it. |
 | **Observer, normalised** | `PlaybackObserver` over KVO + `NotificationCenter` | AVFoundation reports through several mechanisms on unspecified queues. Collapsing them into one typed vocabulary on one queue is what makes the fold above possible. |
 | **Coordinator** | `FeedCoordinator` (visibility → playback intent) | The seam where a second feed surface plugs in (see the SwiftUI-arm stretch item in `build-plan.md`). |
+| **Reconciliation loop** | `FeedCoordinator.reconcile()` against a `PreparationPlan` | Preparation is asynchronous and the scroll does not wait for it. Re-deriving the whole (≤4 index) plan after every completed step means the engine converges from any intermediate state, instead of carrying a correct-transition-per-event burden that fast scroll would eventually violate. |
 | **Registry** | `ArmRegistry` | The set under test is legible in one file. |
 | **Policy object** | `PreparationPlanner` | Resolves strategy intent against pool capacity without either side knowing the other. See `playback-engine.md`. |
 | **DTO** | `ManifestDTO` / `ItemDTO` | Wire format kept separate from the domain model so "field absent" becomes a validation error we phrase, not a `DecodingError`. |
