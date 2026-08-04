@@ -86,6 +86,7 @@ enum MetricsEngine {
             switch event.kind {
             case .playbackStarted:
                 hasStartedPlaying = true
+                record.didStartPlayback = true
             case .stallBegan:
                 // Before first playback this is startup buffering, not a rebuffer.
                 guard hasStartedPlaying else { break }

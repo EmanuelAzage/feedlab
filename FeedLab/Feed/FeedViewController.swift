@@ -53,6 +53,10 @@ final class FeedViewController: UIViewController {
         view.backgroundColor = .black
         configureCollectionView()
         applySnapshot()
+        #if FEEDLAB_TOOLS
+        // Or the picker would show the control while the engine runs the launch-argument arm.
+        toolsSettings.selectedArmName = arm.name
+        #endif
         configureCoordinator()
         observeAppLifecycle()
         installPlaybackGestures()
@@ -172,7 +176,35 @@ final class FeedViewController: UIViewController {
     ///
     /// Starts at the control, so a launch with nothing selected measures the same thing the engine
     /// did before arms existed.
-    private(set) var arm: Arm = ArmRegistry.control
+    private(set) var arm: Arm = FeedViewController.launchArm ?? ArmRegistry.control
+
+    /// The arm named by a launch argument, if any: `-arm preload3-capped`.
+    ///
+    /// The run protocol requires a **cold start before each arm** (`docs/testing.md`), and selecting
+    /// from the debug menu after launch is not one — the app has already run under the previous arm,
+    /// warming the CDN cache and the process's footprint. That matters most for peak memory, which
+    /// is exactly the figure M4 is trying to settle.
+    ///
+    /// `UserDefaults` picks up `-key value` launch arguments for free, so this needs no parsing and
+    /// makes a run scriptable end to end:
+    /// `devicectl device process launch ... -- -arm preload3-uncapped`.
+    ///
+    /// Tools-only: a launch argument that changes what is measured has no business in `Release`.
+    private static var launchArm: Arm? {
+        #if FEEDLAB_TOOLS
+        guard let name = UserDefaults.standard.string(forKey: "arm") else { return nil }
+        guard let arm = ArmRegistry.arm(named: name) else {
+            // Loud rather than silently falling back: a typo'd arm name that quietly ran the control
+            // would put a whole run under the wrong label.
+            Log.feed.error("Unknown arm '\(name, privacy: .public)' in launch arguments — using the control")
+            return nil
+        }
+        Log.feed.info("Arm from launch argument: \(name, privacy: .public)")
+        return arm
+        #else
+        return nil
+        #endif
+    }
 
     #if FEEDLAB_TOOLS
     /// Switches arm, resets the session, and returns to the first item.

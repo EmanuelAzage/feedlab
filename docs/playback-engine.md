@@ -4,7 +4,7 @@ title: Playback Engine — Player Pool and Preload Strategies
 description: Bounded AVPlayer pooling, item lifecycle, and the swappable preload strategies the experiments compare
 status: living
 tags: [avfoundation, player-pool, preload, performance]
-timestamp: 2026-08-04T00:35:00Z
+timestamp: 2026-08-04T04:30:00Z
 related: [architecture.md, qoe-metrics.md, experiment-harness.md]
 ---
 
@@ -122,7 +122,38 @@ Consequences for arm design:
 - Progressive MP4 items have no segments and ignore this lever differently again — another reason
   `Manifest.hlsItems` exists.
 
-### Why capping matters at all — measured 2026-08-02
+### The cap does not reduce peak memory on device — measured 2026-08-03
+
+**This revises the claim below, and M4's acceptance criterion anticipated it**
+("confirmed on device *or the strategy table is revised*").
+
+iPhone 12 Pro, iOS 26.5.2, `Measure` configuration, unthrottled Wi-Fi, 6 runs (3 per arm,
+alternating), warm-up item discarded, matched scroll pace and matched session length (55 s vs 54 s
+median wall time):
+
+| Arm | Peak memory (median of 3) | Range | Median TTFF | p90 TTFF |
+|---|---|---|---|---|
+| `preload3-capped` | **14.1 MB** | 14.1–14.2 | 115 ms | 223 ms |
+| `preload3-uncapped` | **14.1 MB** | 14.1–14.2 | 111 ms | 363 ms |
+
+The two arms differ **only** in buffer configuration — identical prepared sets, identical pool
+capacity, asserted by unit test. Their peak-memory ranges are identical and fully overlapping. On
+this corpus and this device, **capping the forward buffer bought nothing measurable.**
+
+The macOS probe below predicted roughly 60× (+90.9 MB uncapped vs +1.5 MB capped). Nothing close to
+that appeared: an uncapped run with a 131 s dwell on one item peaked at 15.5 MB *total footprint*.
+The probe's absolute magnitudes do not transfer to iOS, and neither does its ratio.
+
+**What this does not establish.** One network profile; n=3 is the protocol minimum; and 27% of
+progressive item views never reached playback at all (`qoe-metrics.md`), so those items may never
+have buffered deeply enough to exercise the cap. The honest statement is that the cap's *memory*
+justification is unsupported on iOS — not that `preferredForwardBufferDuration` does nothing.
+
+Consequence for the arm table: `PreloadNext3Capped`'s hypothesis is **not** confirmed. The cap is
+retained as an experiment variable, not as a recommendation, and `preload3-uncapped` stays in the
+registry as its control.
+
+### Why capping matters at all — measured 2026-08-02 (macOS, superseded on device)
 
 Buffering is **resident memory**, not disk-backed cache. Attached-but-never-played items, macOS,
 `phys_footprint` delta:

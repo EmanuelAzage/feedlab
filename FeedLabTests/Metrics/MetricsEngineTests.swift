@@ -406,4 +406,60 @@ struct MetricsEngineTests {
         // No clock is read inside the engine, so a stored session re-derives identically.
         #expect(fold(events) == fold(events))
     }
+
+    // MARK: - The frozen-frame case (measured on device, M6)
+
+    @Test("An item that renders but never plays is flagged, not scored as flawless")
+    func renderedButNeverPlayed() {
+        // Measured on device: 27% of progressive item views did exactly this — a first frame, then
+        // a frozen picture until the user scrolled away. Before `isFrozen` existed each one scored
+        // a good TTFF, zero stalls and a 0.000 rebuffer ratio, because a stall only counts after
+        // playback begins and playback never began. The worst experience the rig can produce was
+        // indistinguishable from the best.
+        let events: [PlaybackEvent] = [
+            PlaybackEvent(itemID: "frozen", timestamp: 0, kind: .itemBecameCurrent),
+            PlaybackEvent(itemID: "frozen", timestamp: 6.05, kind: .readyForDisplay),
+            PlaybackEvent(itemID: "frozen", timestamp: 6.06, kind: .stallBegan),
+            PlaybackEvent(itemID: "frozen", timestamp: 8.74, kind: .itemReleased)
+        ]
+
+        let record = MetricsEngine.record(from: events, itemID: "frozen", arm: "test")
+
+        #expect(record.didStartPlayback == false)
+        #expect(record.isFrozen, "rendered, watched, and never played is the frozen case")
+        #expect(record.timeToFirstFrame == 6.05, "it did render — TTFF is real and stays reported")
+        #expect(record.stallCount == 0, "the pre-playback stall rule still holds; this is why it needed a flag")
+        #expect(record.rebufferRatio == 0, "and this is the number that made it invisible")
+    }
+
+    @Test("Normal playback is not flagged as frozen")
+    func healthyPlaybackIsNotFrozen() {
+        let events: [PlaybackEvent] = [
+            PlaybackEvent(itemID: "ok", timestamp: 0, kind: .itemBecameCurrent),
+            PlaybackEvent(itemID: "ok", timestamp: 0.12, kind: .readyForDisplay),
+            PlaybackEvent(itemID: "ok", timestamp: 0.13, kind: .playbackStarted),
+            PlaybackEvent(itemID: "ok", timestamp: 5.0, kind: .itemReleased)
+        ]
+
+        let record = MetricsEngine.record(from: events, itemID: "ok", arm: "test")
+
+        #expect(record.didStartPlayback)
+        #expect(!record.isFrozen)
+    }
+
+    @Test("An item that never rendered at all is not frozen — it is a different failure")
+    func neverRenderedIsNotFrozen() {
+        // Frozen means "showed a frame and stopped". Never rendering is its own outcome and already
+        // has one: a nil TTFF. Collapsing the two would hide which of them happened.
+        let events: [PlaybackEvent] = [
+            PlaybackEvent(itemID: "blank", timestamp: 0, kind: .itemBecameCurrent),
+            PlaybackEvent(itemID: "blank", timestamp: 4.0, kind: .itemReleased)
+        ]
+
+        let record = MetricsEngine.record(from: events, itemID: "blank", arm: "test")
+
+        #expect(record.timeToFirstFrame == nil)
+        #expect(!record.isFrozen)
+    }
+
 }

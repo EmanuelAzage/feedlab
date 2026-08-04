@@ -4,7 +4,7 @@ title: QoE Metrics — Definitions and Measurement
 description: What each quality-of-experience metric means and exactly how FeedLab measures it from AVFoundation
 status: living
 tags: [qoe, metrics, avfoundation, measurement]
-timestamp: 2026-08-04T00:35:00Z
+timestamp: 2026-08-04T04:30:00Z
 related: [playback-engine.md, observability.md, experiment-harness.md]
 ---
 
@@ -34,6 +34,26 @@ one: it survives averaging, moves every arm the same way, and looks like a real 
 Observed in M3 before the guard existed: **every item reported exactly one stall**, of 0.4–0.65 s. With
 the rule corrected, clean playback of the same items reports zero. The engine therefore ignores any
 `stallBegan` preceding the first `playbackStarted` for that item view.
+
+### Frozen item views *(FeedLab-specific, added M6)*
+Item views that **rendered a first frame and then never played**. `timeControlStatus` never reached
+`.playing`; the picture froze until the user scrolled away.
+
+**Measured as:** `timeToFirstFrame != nil && !didStartPlayback && !isSkipped`. Reported as its own
+population beside the ratios, never folded into them — the time was not *rebuffering*, because the
+player never got far enough to rebuffer, and putting it in that numerator would misname it.
+
+**This exists because the rig found a hole in its own definitions.** The rule above — a stall counts
+only after playback begins — is correct, and it fixed a real double-count in M3. But an item that
+*never* begins playback can never accrue a stall, so the worst outcome the app can produce scored
+identically to the best: a good time-to-first-frame, zero stalls, rebuffer ratio 0.000.
+
+On device (iPhone 12 Pro, `Measure`, 6 runs, unthrottled Wi-Fi): **27% of progressive MP4 item views
+(9 of 33) never played, against 0 of 42 HLS item views.** The corpus is 15 progressive to 7 HLS, so
+this was a quarter of the majority format scoring as flawless. Confirmed independently by the
+operator watching the screen before the metric existed.
+
+A session with a non-zero frozen count has not had a good run, whatever its ratios say.
 
 ### Stall count
 Number of rebuffering interruptions. Distinct from ratio: one 4-second stall and eight 0.5-second stalls score the same ratio but feel very different.

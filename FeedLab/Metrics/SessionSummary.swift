@@ -37,6 +37,16 @@ struct SessionSummary: Equatable, Sendable, Codable {
         records.count - watchedRecords.count
     }
 
+    /// Item views that rendered a frame and then never played — the frozen-frame case.
+    ///
+    /// Its own population, reported beside the ratios rather than inside them. Measured at 27% of
+    /// progressive item views on device (0% of HLS), and before this existed every one of them
+    /// scored a clean time-to-first-frame, zero stalls and a 0.000 rebuffer ratio. A session with a
+    /// non-zero count here has *not* had a good run, however good the ratios look.
+    var frozenCount: Int {
+        records.filter(\.isFrozen).count
+    }
+
     // MARK: - Startup
 
     var meanTimeToFirstFrame: TimeInterval? {
