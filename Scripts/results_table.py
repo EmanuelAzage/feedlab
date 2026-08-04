@@ -166,14 +166,18 @@ def table(runs, profile, subset_label):
     lines = [
         f"**{subset_label}** · {profile} · median of runs, <sub>min–max</sub> beneath.",
         "",
-        "| Arm | Runs | p90 TTFF (ms) | Median TTFF (ms) | ↓ forward | ↑ backward | Rebuffer ratio | Peak memory (MB) | Frozen |",
-        "|---|---|---|---|---|---|---|---|---|",
+        "| Arm | Runs | Views | p90 TTFF (ms) | Median TTFF (ms) | ↓ forward | ↑ backward | Rebuffer ratio | Peak memory (MB) | Frozen |",
+        "|---|---|---|---|---|---|---|---|---|---|",
     ]
     ordered = [a for a in ARM_ORDER if a in runs] + [a for a in sorted(runs) if a not in ARM_ORDER]
     for arm in ordered:
         rows = runs[arm]
         lines.append(
-            f"| `{arm}` | {len(rows)} "
+            # Views is not decoration. Under a constrained profile an item scrolled past before
+            # promotion leaves no record at all, so a low count means the arm failed to start items
+            # — and the views it lost are its *worst* ones. The arm that looks weakest is the one
+            # most flattered by its own omissions, which a reader cannot infer from the medians.
+            f"| `{arm}` | {len(rows)} | {median([r['views'] for r in rows])} "
             f"| {spread([r['p90_ttff'] for r in rows], ms)} "
             f"| {spread([r['median_ttff'] for r in rows], ms)} "
             f"| {spread([r['forward_ttff'] for r in rows], ms)} "
