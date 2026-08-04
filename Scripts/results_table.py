@@ -54,6 +54,27 @@ def median(values):
     return nearest_rank(values, 0.5)
 
 
+def directional_ttff(records, order):
+    """Startup split by scroll direction.
+
+    The aggregate hides the only thing that separates the strategies. Every forward-only arm is
+    fast forward and ~1 s slow backward; `window` is the sole arm that preloads backward and is
+    fast both ways. Since the run script is half backward travel — far more than a real feed — an
+    aggregate median reads as "window wins" when the honest statement is "window wins *on
+    back-scroll*, and its forward figure is indistinguishable from the other preload arms."
+    """
+    forward, backward = [], []
+    previous = None
+    for record in records:
+        position = order.get(record["itemID"])
+        ttff = record.get("timeToFirstFrame")
+        if previous is not None and position is not None and ttff is not None:
+            (forward if position > previous else backward).append(ttff)
+        if position is not None:
+            previous = position
+    return forward, backward
+
+
 def run_stats(records):
     """One run's figures, over whichever subset of records it was handed."""
     watched = [r for r in records if r.get("watchDuration", 0) > 0]
@@ -87,7 +108,13 @@ def run_stats(records):
     }
 
 
-def load(directory, subset, hls):
+def manifest_order(path):
+    """Item id → position, so a record sequence can be read as a scroll direction."""
+    with open(path) as handle:
+        return {item["id"]: index for index, item in enumerate(json.load(handle)["items"])}
+
+
+def load(directory, subset, hls, order):
     """Runs grouped by arm, warm-up discarded, restricted to the requested subset."""
     runs = defaultdict(list)
     for path in sorted(glob.glob(os.path.join(directory, "*.session.json"))):
@@ -104,6 +131,9 @@ def load(directory, subset, hls):
             continue
         stats = run_stats(records)
         stats["peak_mb"] = summary["peakMemoryBytes"] / 1048576
+        forward, backward = directional_ttff(records, order)
+        stats["forward_ttff"] = median(forward)
+        stats["backward_ttff"] = median(backward)
         runs[summary["arm"]].append(stats)
     return runs
 
@@ -136,21 +166,21 @@ def table(runs, profile, subset_label):
     lines = [
         f"**{subset_label}** · {profile} · median of runs, <sub>min–max</sub> beneath.",
         "",
-        "| Arm | Runs | Views/run | p90 TTFF (ms) | Median TTFF (ms) | Rebuffer ratio | Peak memory (MB) | Frozen | Stalls |",
+        "| Arm | Runs | p90 TTFF (ms) | Median TTFF (ms) | ↓ forward | ↑ backward | Rebuffer ratio | Peak memory (MB) | Frozen |",
         "|---|---|---|---|---|---|---|---|---|",
     ]
     ordered = [a for a in ARM_ORDER if a in runs] + [a for a in sorted(runs) if a not in ARM_ORDER]
     for arm in ordered:
         rows = runs[arm]
-        views = median([r["views"] for r in rows])
         lines.append(
-            f"| `{arm}` | {len(rows)} | {views} "
+            f"| `{arm}` | {len(rows)} "
             f"| {spread([r['p90_ttff'] for r in rows], ms)} "
             f"| {spread([r['median_ttff'] for r in rows], ms)} "
+            f"| {spread([r['forward_ttff'] for r in rows], ms)} "
+            f"| {spread([r['backward_ttff'] for r in rows], ms)} "
             f"| {spread([r['rebuffer'] for r in rows], ratio)} "
             f"| {spread([r['peak_mb'] for r in rows], mb)} "
-            f"| {total(r['frozen'] for r in rows)} "
-            f"| {total(r['stalls'] for r in rows)} |"
+            f"| {total(r['frozen'] for r in rows)} |"
         )
     return "\n".join(lines)
 
@@ -160,16 +190,19 @@ def main():
     parser.add_argument("directory", help="directory of pulled *.session.json files")
     parser.add_argument("--profile", required=True, help="network profile, stated with every number")
     parser.add_argument("--subset", choices=["hls", "all", "both"], default="both")
+    parser.add_argument("--manifest", default=MANIFEST,
+                        help="manifest defining item order, for the direction split")
     args = parser.parse_args()
 
+    order = manifest_order(args.manifest)
     hls = hls_item_ids()
     wanted = ["hls", "all"] if args.subset == "both" else [args.subset]
     labels = {
-        "hls": "HLS items only",
+        "hls": "HLS items",
         "all": "Full corpus (HLS + progressive MP4)",
     }
     for index, subset in enumerate(wanted):
-        runs = load(args.directory, subset, hls)
+        runs = load(args.directory, subset, hls, order)
         if not runs:
             print(f"no runs found in {args.directory}", file=sys.stderr)
             return 1

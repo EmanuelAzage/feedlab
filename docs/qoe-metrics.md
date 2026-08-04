@@ -4,7 +4,7 @@ title: QoE Metrics — Definitions and Measurement
 description: What each quality-of-experience metric means and exactly how FeedLab measures it from AVFoundation
 status: living
 tags: [qoe, metrics, avfoundation, measurement]
-timestamp: 2026-08-04T04:30:00Z
+timestamp: 2026-08-04T21:00:00Z
 related: [playback-engine.md, observability.md, experiment-harness.md]
 ---
 
@@ -54,6 +54,30 @@ this was a quarter of the majority format scoring as flawless. Confirmed indepen
 operator watching the screen before the metric existed.
 
 A session with a non-zero frozen count has not had a good run, whatever its ratios say.
+
+**It fires on HLS too, and preload depth is what causes it.** Measured 2026-08-04 (iPhone 12 Pro,
+`Measure`, HLS-only corpus, 3 runs per arm, unthrottled): `tos-mux-ismc` froze in **6 of 6** runs of
+`preload3-capped`, `preload3-uncapped` and `window`, and in **0 of 3** runs of `preload1`. The event
+path is identical every time:
+
+```
+itemBecameCurrent → readyForDisplay (~80 ms) → stallBegan (~100 ms) → [nothing, 6.2 s] → itemReleased
+```
+
+The player renders a frame, enters `.waitingToPlayAtSpecifiedRate`, and does not leave it within the
+5 s dwell. A diagnostic run at 15 s dwell showed the same item on the same arm reaching
+`stallEnded` and playing, so this is a **start slower than the dwell**, not a permanent hang — but at
+a realistic dwell the user watches a still image for the entire view.
+
+Two things make it worth stating plainly:
+
+- **The arms that score best on startup are the ones producing it.** `preload3-*` post the fastest
+  forward first-frame times *and* the frozen views; the frame arrives quickly and playback does not
+  follow. A median TTFF is a report on when the picture appeared, not on whether it moved.
+- **It is still invisible to every ratio.** These views score `rebuffer 0.000` for the same structural
+  reason as the progressive case, and only `frozenCount` distinguishes them. That the metric was
+  built for a progressive-format problem and then caught a *strategy* problem is the argument for
+  keeping it.
 
 ### Stall count
 Number of rebuffering interruptions. Distinct from ratio: one 4-second stall and eight 0.5-second stalls score the same ratio but feel very different.

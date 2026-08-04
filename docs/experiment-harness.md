@@ -4,7 +4,7 @@ title: Experiment Harness
 description: How arms are defined, selected, recorded, and compared so playback strategy choices are data-driven
 status: living
 tags: [experiments, ab-testing, methodology]
-timestamp: 2026-08-04T19:00:00Z
+timestamp: 2026-08-04T21:00:00Z
 related: [playback-engine.md, qoe-metrics.md, observability.md]
 ---
 
@@ -120,6 +120,34 @@ Two consequences worth stating rather than hiding:
 ## Comparison
 
 The dashboard renders arms side by side on the metric set from `qoe-metrics.md`. Report **p90 TTFF and aggregate rebuffer ratio as the headline pair** — startup and smoothness are the two things users feel, and they trade against each other.
+
+### Startup must be reported split by scroll direction
+
+Added M6, because the aggregate actively misleads on this run script. Measured unthrottled, 3 runs
+per arm:
+
+| Arm | ↓ forward | ↑ backward |
+|---|---|---|
+| `baseline` | 1023 ms | 668 ms |
+| `preload1` | 111 ms | 948 ms |
+| `preload3-capped` | 108 ms | 1252 ms |
+| `preload3-uncapped` | 101 ms | 1181 ms |
+| `window` | 91 ms | 89 ms |
+| `pool-unbounded` | 115 ms | 1071 ms |
+
+Every forward-only arm is ~9x faster forward and roughly a second slower backward — **worse than the
+no-preload control**, which at least benefits from the OS cache on an item it played moments ago.
+`window` is the only arm preloading backward and the only one fast in both directions; its forward
+figure is indistinguishable from the other preload arms.
+
+The run script laps the corpus, so **half its transitions are backward** — far more back-scrolling
+than a short-form feed sees. On the aggregate median that makes `window` look 9x better than
+`preload1`. It is not: it is *the same* forward, and it buys its entire advantage on back-scroll, for
+the price of a pool slot. Whether that trade is worth making is a product question about how often
+users scroll back, which this rig can inform but not answer.
+
+`Scripts/results_table.py` emits both columns, so the flattering aggregate cannot be published on its
+own.
 
 Honesty rules for the README:
 - Report n (runs per arm) and the network profile alongside every number.

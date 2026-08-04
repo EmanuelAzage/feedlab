@@ -13,7 +13,12 @@ final class ToolsSettings {
     /// The HUD defaults to **off**. Its own acceptance criterion is that enabling it does not
     /// measurably change time-to-first-frame — which can only be checked by comparing against runs
     /// with it off, so off has to be the baseline.
-    var isHUDVisible = false
+    ///
+    /// `-hud 1` overrides it at launch. The criterion needs a *paired* comparison — same arm, same
+    /// script, HUD on against HUD off — and reaching into the debug menu to flip a switch would make
+    /// exactly one half of that pair hand-driven, which is the variance the runner exists to remove.
+    /// Absent argument reads as `false`, so the default survives untouched.
+    var isHUDVisible = UserDefaults.standard.bool(forKey: "hud")
 
     /// Signposts default **on**: they are what makes an Instruments trace readable, and unlike the
     /// HUD they render nothing and sample nothing. The toggle exists so a run can be made with them

@@ -55,7 +55,11 @@ final class MeasurementRun: XCTestCase {
         let config = try RunConfiguration.fromEnvironment()
 
         let app = XCUIApplication()
-        app.launchArguments = ["-arm", config.arm, "-manifest", config.manifest]
+        app.launchArguments = [
+            "-arm", config.arm,
+            "-manifest", config.manifest,
+            "-hud", config.hud ? "1" : "0"
+        ]
         app.launch()
 
         XCTAssertTrue(
@@ -168,6 +172,9 @@ struct RunConfiguration {
     let forward: Int
     let back: Int
     let laps: Int
+    /// Off unless asked for, matching the app. The HUD-perturbation criterion compares a run with it
+    /// on against one with it off, so it has to be settable per run rather than per build.
+    let hud: Bool
 
     static func fromEnvironment() throws -> RunConfiguration {
         let env = ProcessInfo.processInfo.environment
@@ -184,7 +191,8 @@ struct RunConfiguration {
             dwell: try value(env["FEEDLAB_DWELL"], default: 5, name: "FEEDLAB_DWELL"),
             forward: try value(env["FEEDLAB_FORWARD"], default: 6, name: "FEEDLAB_FORWARD"),
             back: try value(env["FEEDLAB_BACK"], default: 6, name: "FEEDLAB_BACK"),
-            laps: try value(env["FEEDLAB_LAPS"], default: 2, name: "FEEDLAB_LAPS")
+            laps: try value(env["FEEDLAB_LAPS"], default: 2, name: "FEEDLAB_LAPS"),
+            hud: (env["FEEDLAB_HUD"] ?? "0") == "1"
         )
     }
 
