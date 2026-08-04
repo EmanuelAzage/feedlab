@@ -38,6 +38,14 @@ final class MeasurementRun: XCTestCase {
     /// run before that completes would truncate the very file the run exists to produce.
     private static let sealTimeout: TimeInterval = 6
 
+    /// Long enough for the paging animation to land before the index is read back. Charged against
+    /// the dwell budget rather than added to it, so verification does not lengthen the item view.
+    private static let settleAllowance: TimeInterval = 0.6
+
+    private static let pageRetries = 2
+
+    private static let indexPrefix = "feed.index."
+
     override func setUp() {
         super.setUp()
         continueAfterFailure = false
@@ -60,12 +68,18 @@ final class MeasurementRun: XCTestCase {
         wait(config.dwell)
 
         for _ in 0..<config.forward {
-            swipe(app, from: Self.dragFrom, to: Self.dragTo)
-            wait(config.dwell)
+            page(app, from: Self.dragFrom, to: Self.dragTo)
+            // The settle allowance already elapsed on screen with the new item current, so it counts
+            // as dwell. Adding to it instead would make the measured view longer than the protocol
+            // says, and unequally so between a clean flick and a retried one.
+            wait(config.dwell - Self.settleAllowance)
         }
         for _ in 0..<config.back {
-            swipe(app, from: Self.dragTo, to: Self.dragFrom)
-            wait(config.dwell)
+            page(app, from: Self.dragTo, to: Self.dragFrom)
+            // The settle allowance already elapsed on screen with the new item current, so it counts
+            // as dwell. Adding to it instead would make the measured view longer than the protocol
+            // says, and unequally so between a clean flick and a retried one.
+            wait(config.dwell - Self.settleAllowance)
         }
 
         XCUIDevice.shared.press(.home)
@@ -75,6 +89,42 @@ final class MeasurementRun: XCTestCase {
         )
         // Backgrounding starts the seal; the write itself is asynchronous.
         wait(Self.sealTimeout)
+    }
+
+    /// One flick, confirmed to have actually changed the page.
+    ///
+    /// Roughly one synthesized flick in ten was silently dropped — concentrated on the reversal from
+    /// forward to backward scrolling, where a nominal 5-back tail consistently produced 3 views. The
+    /// run then covered a different item set every time, which is precisely what "identical run
+    /// script across arms" exists to prevent, and nothing in the resulting session says so: a run
+    /// short two views looks exactly like a run that was meant to be that long.
+    ///
+    /// Retried rather than asserted, because the goal is a complete run, not a diagnosis. If the
+    /// page still has not moved after `pageRetries` attempts the feed is genuinely at a boundary or
+    /// wedged, and that *is* worth failing on.
+    private func page(_ app: XCUIApplication, from: CGVector, to: CGVector) {
+        let before = currentIndex(app)
+        for attempt in 0...Self.pageRetries {
+            swipe(app, from: from, to: to)
+            // The gesture returns before the paging animation settles; give it a moment before
+            // reading, or a successful flick reads as a failed one and gets flicked again.
+            Thread.sleep(forTimeInterval: Self.settleAllowance)
+            if currentIndex(app) != before { return }
+            if attempt < Self.pageRetries {
+                XCTContext.runActivity(named: "flick dropped at index \(before ?? -1) — retrying") { _ in }
+            }
+        }
+        XCTFail("Feed did not page away from index \(before ?? -1) after \(Self.pageRetries + 1) flicks.")
+    }
+
+    /// The feed publishes its current index as an accessibility identifier. Read from the collection
+    /// view rather than from a cell: cells are recycled and several carry a title at once, so "the
+    /// visible one" is a question with no cheap answer, while the collection view is singular and
+    /// always current.
+    private func currentIndex(_ app: XCUIApplication) -> Int? {
+        let identifier = app.collectionViews.firstMatch.identifier
+        guard identifier.hasPrefix(Self.indexPrefix) else { return nil }
+        return Int(identifier.dropFirst(Self.indexPrefix.count))
     }
 
     private func swipe(_ app: XCUIApplication, from: CGVector, to: CGVector) {
@@ -94,7 +144,7 @@ final class MeasurementRun: XCTestCase {
     /// current. Sleeping the full interval on top of a variable-length drag would make the actual
     /// on-screen time drift with gesture cost.
     private func wait(_ interval: TimeInterval) {
-        Thread.sleep(forTimeInterval: interval)
+        Thread.sleep(forTimeInterval: max(0, interval))
     }
 }
 

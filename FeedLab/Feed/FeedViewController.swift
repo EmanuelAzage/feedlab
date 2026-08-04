@@ -16,6 +16,13 @@ final class FeedViewController: UIViewController {
         didSet {
             guard currentIndex != oldValue else { return }
             Log.feed.debug("Current index → \(self.currentIndex, privacy: .public)")
+            // Published so `FeedLabRunner` can confirm a flick actually paged rather than assume it.
+            // An accessibility *identifier* rather than a value or label: identifiers are not
+            // announced by VoiceOver, so the automation hook cannot degrade the real experience.
+            // Roughly 10% of synthesized flicks were silently dropped, mostly on direction reversal,
+            // which left each run with a slightly different item set — and an item set that varies
+            // by run is the one thing the protocol says must not.
+            collectionView.accessibilityIdentifier = "feed.index.\(currentIndex)"
             onCurrentIndexChanged?(currentIndex)
         }
     }
@@ -246,6 +253,8 @@ final class FeedViewController: UIViewController {
     private func configureCollectionView() {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = .black
+        // `currentIndex`'s observer only fires on change, so index 0 needs stating.
+        collectionView.accessibilityIdentifier = "feed.index.0"
         collectionView.isPagingEnabled = true
         collectionView.showsVerticalScrollIndicator = false
         collectionView.alwaysBounceVertical = true
