@@ -4,13 +4,63 @@ title: FeedLab Decisions
 description: ADR-lite log of technical choices and their rationale
 status: living
 tags: [decisions, adr, dependencies]
-timestamp: 2026-08-02T23:58:21Z
+timestamp: 2026-08-04T02:10:00Z
 related: [architecture.md, playback-engine.md]
 ---
 
 # Decisions
 
 Add a dated entry for every non-obvious choice. Newest first.
+
+## 2026-08-03 — Only the current item may block on the pool
+Preload needs a player only if one is going spare, and `acquire()` is the wrong tool for it. Waiters are
+served FIFO, so a queued preload acquire sits *ahead* of the acquire for whichever item the user scrolls to
+next: the item they are actually waiting on would wait behind speculative work for one they may never reach.
+`acquireIfAvailable()` returns nil instead, leaving the item at tier 1 — a degradation the rig can see rather
+than a latency it cannot.
+
+The bug this prevents would have been **self-concealing**: preload delaying the current item surfaces as
+worse time-to-first-frame *on the preload arms*, which reads as a clean result ("preloading didn't help")
+rather than as a defect in the rig. Same category as the startup-counted-as-a-stall correction below.
+
+## 2026-08-03 — Preloaded items are not observed
+`PlaybackObserver` is installed on promotion to current, not when a player adopts the item. A record covers
+one *item view*, from intent to teardown; a stall suffered while buffering off-screen is not one the user
+experienced, and folding it in would put time nobody sat through into the numerator of rebuffer ratio.
+
+The asymmetry this creates is documented rather than engineered away: our TTFF stays honest under preload
+because `t0` is stamped at settle, but the **access log is cumulative on the item**, so a preloaded item's
+`mediaStackStartupTime` and switch count still include preload activity. The delta between the two startup
+figures is exactly what preload moves, which makes it interesting — but it means they are not comparable
+across arms in the same way. See `qoe-metrics.md`.
+
+## 2026-08-03 — Cell visibility stops playback; the plan decides player retention
+`cellDidEndDisplaying` demotes rather than tears down. This restates the M2 correction rather than reversing
+it. The bug then was a departed item continuing to *play* and to accrue watch duration; full teardown was
+the remedy chosen, and it was equivalent only because nothing else could hold a player. Preload breaks that
+equivalence — an item legitimately holds a player while off-screen — so the two concerns separate.
+
+## 2026-08-03 — Reconciliation re-derives the plan instead of patching state
+Preparation is asynchronous and the scroll does not wait for it, so a per-event transition table would have
+to be correct for every interleaving a fast scroll can produce. `reconcile()` re-derives the whole plan after
+every completed step, converging from any intermediate state. Affordable because a plan is at most four
+indices — the cost is bounded by the thing being measured.
+
+## 2026-08-03 — Sessions persist as one file each, carrying their raw events
+One file per session rather than one file holding an array: a session is immutable once sealed, and a
+truncated file then costs one session rather than the whole study. Re-running an arm on a device is the
+expensive thing here, so `load()` skips what it cannot decode and reports how many rather than failing the
+read.
+
+Each file stores the summary **and the events it was folded from**, which is the persistence half of
+`SessionRecorder`'s reason for archiving them: records are a projection, events are the source of truth, so a
+metric definition can change and be re-derived against runs already performed. A test asserts the invariant
+across the boundary.
+
+Sealing required a `drain()` barrier on the event pipe — events reach the recorder through an `AsyncStream`,
+so reading the summary straight after teardown raced the drain and would have dropped every run's final item
+view. The barrier is a marker yielded into the same stream, relying on the ordering guarantee the pipe
+already exists to provide.
 
 ## 2026-08-02 — Startup buffering is not a stall
 `AVPlayer` enters `.waitingToPlayAtSpecifiedRate` with reason `.toMinimizeStalls` while filling its buffer

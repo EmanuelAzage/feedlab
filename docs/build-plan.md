@@ -4,7 +4,7 @@ title: FeedLab Build Plan
 description: Milestones M1-M6 with acceptance criteria, sized for incremental sessions
 status: living
 tags: [plan, milestones]
-timestamp: 2026-08-03T01:16:46Z
+timestamp: 2026-08-04T02:10:00Z
 related: [playback-engine.md, qoe-metrics.md, observability.md, testing.md]
 ---
 
@@ -48,9 +48,13 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
 - **Accept:** HUD numbers move sensibly under Network Link Conditioner throttling; enabling the HUD doesn't measurably change TTFF (compare a run with it off); the capped-vs-uncapped footprint difference is confirmed on device or the strategy table is revised.
 
 ## M5 — Preload strategies and experiment harness
-- [ ] `PreloadStrategy` protocol + the four strategies + `pool-unbounded` control; `ArmRegistry`; arm selection resets the session.
-- [ ] `SessionStore` persistence; strategy unit tests.
+- [x] `PreloadStrategy` protocol + the four strategies + `pool-unbounded` control; `ArmRegistry`; arm selection resets the session **and returns to the first item** (the run protocol needs the same item order per arm, or the discarded warm-up item is not the same item).
+- [x] Planner wired into `FeedCoordinator` — a three-state machine per index (`warm` → `backed` → `current`) with reconciliation against the plan. `backed → current` is the only synchronous transition, and it is the whole preload payoff.
+- [x] `SessionStore` persistence; strategy unit tests. *(109 tests across 10 suites.)*
 - **Accept:** switching arms visibly changes preparation behavior (observable in signposts/HUD); strategy index math fully unit-tested; sessions survive app relaunch.
+  - *Verified on simulator 2026-08-03, in the HUD as the criterion asks:* under `baseline` the launch prepares index 0 only and the HUD reads `pool 1/3` — identical to pre-arm behaviour, so the control really is the absence of a strategy. Switching to `preload3-capped` reads `ARM PRELOAD3-CAPPED · pool 4/4`, with indices 1–3 preloaded to tier 2 at launch and the next index preloaded on each settle. A promoted (preloaded) item reported `ttff 68 ms` against `428 ms` for a cold first item, and `pool wait 0 ms` — no acquire, because the player was already held.
+  - *Sessions survive relaunch:* asserted by unit test over a second store instance on the same directory, and confirmed on simulator — backgrounding sealed a 3-item session to `Application Support/FeedLab/Sessions/`, records and raw events both.
+  - *Not numbers:* single unthrottled simulator runs with a warm CDN cache. They demonstrate the arms differ; the magnitudes are M6's job on a device.
 
 ## M6 — Dashboard, measurement runs, publication
 - [ ] Swift Charts dashboard (all charts in `observability.md`), CSV/JSON export, `os_signpost` intervals.

@@ -4,7 +4,7 @@ title: iOS Playback Learning Notes
 description: Living doc of AVFoundation and feed-playback internals - seeded with topics, filled in with notes as they come up in practice
 status: living
 tags: [learning, avfoundation, playback, performance]
-timestamp: 2026-08-03T23:58:00Z
+timestamp: 2026-08-04T02:10:00Z
 related: [playback-engine.md, qoe-metrics.md]
 ---
 
@@ -220,6 +220,44 @@ the scarce resource is a player rather than a connection, and here it is also th
 
 Not measured — this is reasoning from the M2 attachment finding, and a unit test pins the ordering
 property. Whether preload actually pays for itself is what the arms are for.
+
+## Preload in practice: what actually has to happen for a first frame to be fast
+
+M5 turned the two-tier model into code, and three AVFoundation details decided the shape of it.
+
+**1. `replaceCurrentItem` is the expensive, irreversible step — so it happens once.** A preloaded item is
+attached to a pooled player and left paused; promoting it to current does *not* re-attach. Re-attaching
+would discard the buffer that preloading exists to build, which would make the arm measure the cost of
+preload with none of its benefit.
+
+**2. Buffer configuration is split across two objects, and the order matters.**
+`preferredForwardBufferDuration` and `preferredPeakBitRate` live on `AVPlayerItem`;
+`automaticallyWaitsToMinimizeStalling` lives on `AVPlayer`. So `player.apply(config)` has to come *after*
+`replaceCurrentItem`, or the item-level half configures nothing — the adapter forwards to whatever item is
+currently attached, and before attachment that is nil. The failure is silent: the code runs, the cap simply
+does not exist.
+
+There is a second application point for the same reason. A preloaded item is configured as a *non-current*
+item — under `PreloadNext3Capped` that means a capped forward buffer and a capped bitrate ladder — so on
+promotion the offset-0 configuration must be re-applied, or the item the user is watching keeps playing
+under the preload cap and the arm measures a throttled current item rather than a preloaded one.
+
+**3. `isReadyForDisplay` is observed with `.initial`, which cuts both ways.** It has to be, or a preloaded
+item that is already ready when its layer attaches would never fire the KVO callback and would report a nil
+TTFF — "never rendered" for precisely the arms that preload best. But the same option means a layer still
+reporting `true` from its *previous* occupant stamps `t1` immediately and reports a near-zero TTFF. Before
+preload that was obviously wrong; now it is exactly what a preload win looks like, so the two are
+indistinguishable by inspection. Hence the assert in `promote`, and hence unbinding the layer during
+demotion rather than only at teardown.
+
+Observed on simulator once wired: a promoted preloaded item reported **68 ms** TTFF against **428 ms** for a
+cold first item under the same arm. Directional only — one unthrottled run with a warm cache — but the
+mechanism is visible.
+
+**Bridge to prior experience:** the same lesson as decode-ahead in an image pipeline, with a sharper edge.
+There, prefetching the wrong thing wastes bandwidth; here, prefetching the wrong thing also *holds a
+decoder*, because the resource that makes a preload real is the same resource the visible item needs. That
+is what turns preload from a caching question into a scheduling one.
 
 ## Where playback CPU actually goes (first device trace)
 36 s Time Profiler on an iPhone 12 Pro under continuous scrolling, one video playing throughout:
