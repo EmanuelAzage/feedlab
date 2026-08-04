@@ -4,7 +4,7 @@ title: Observability — HUD, Dashboard, Signposts, Export
 description: How measurements are surfaced live, charted after the fact, exported, and captured as README screenshots
 status: living
 tags: [observability, hud, charts, signposts, screenshots]
-timestamp: 2026-08-04T02:10:00Z
+timestamp: 2026-08-04T17:00:00Z
 related: [qoe-metrics.md, experiment-harness.md, product-spec.md]
 ---
 
@@ -34,15 +34,14 @@ or it would freeze during a scroll drag and hide the numbers exactly when they c
 is `allowsHitTesting(false)`: it must never intercept the gestures whose effects it is measuring. Gated on
 `FEEDLAB_TOOLS` and verified absent from `Release` by symbol count.
 
-**Known issue for the screenshot plan:** with a fast link the bitrate row truncates — `135844k / 321…` was
-a real reading, because observed throughput reaches six digits of kbps. Before `hud.png` is captured for the
-README the row needs to fit its own numbers, or the screenshot advertises a broken instrument. Fix in M6
-alongside the screenshots, not before: throttled runs are where the row is legible anyway, and that is the
-condition worth photographing.
-
 Reading the bitrate row: it shows **observed / indicated**, and observed is download *throughput*, so on a
 fast link it legitimately reads far above the media rate (66930k / 3216k was a real first reading). The row
 matters when observed falls *below* indicated — see `ios-learning-notes.md`.
+
+**Fixed M6, before the screenshots.** The row used to truncate on a fast link — `135844k / 321…` was a real
+reading — dropping the indicated figure, which is the half that makes the row mean anything. Six digits of
+kbps do not fit, so the formatter now scales past `k`: `135.8M / 3.2M`. Four characters per side holds at any
+throughput, and a screenshot no longer advertises a broken instrument.
 
 ## Dashboard (SwiftUI + Swift Charts)
 

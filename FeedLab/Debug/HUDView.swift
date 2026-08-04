@@ -76,8 +76,8 @@ struct HUDView: View {
     /// Observed over indicated. Observed falling below indicated is the precondition for a
     /// downswitch, so seeing them side by side makes an imminent switch legible.
     private var bitrateText: String {
-        let observed = Format.kilobits(snapshot.current?.observedBitrate)
-        let indicated = Format.kilobits(snapshot.current?.indicatedBitrate)
+        let observed = Format.bitrate(snapshot.current?.observedBitrate)
+        let indicated = Format.bitrate(snapshot.current?.indicatedBitrate)
         return "\(observed) / \(indicated)"
     }
 
@@ -114,9 +114,14 @@ private enum Format {
         value.map(String.init) ?? "n/a"
     }
 
-    static func kilobits(_ value: Double?) -> String {
+    /// Scales past `k` rather than letting the row grow. Observed bitrate is download throughput, so
+    /// on a fast link it reaches six digits of kbps and truncated the row — `135844k / 321…`, which
+    /// loses the indicated figure the row exists to show. Four characters per side fits at any speed.
+    static func bitrate(_ value: Double?) -> String {
         guard let value, value > 0 else { return "—" }
-        return String(format: "%.0fk", value / 1000)
+        let kilobits = value / 1000
+        guard kilobits >= 1000 else { return String(format: "%.0fk", kilobits) }
+        return String(format: "%.1fM", kilobits / 1000)
     }
 
     static func megabytes(_ bytes: UInt64) -> String {
