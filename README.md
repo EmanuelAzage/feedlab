@@ -227,6 +227,23 @@ simulator's.
 | <img src="docs/images/feed.png" width="220"> | <img src="docs/images/hud.png" width="220"> | <img src="docs/images/dashboard-memory.png" width="220"> |
 | Full-screen paging. The coloured bars are per-item placeholder tint showing through — test streams are 16:9 in a 9:16 frame, and the layer uses `.resizeAspect` rather than cropping a real user's video. | Arm name always visible, so any screenshot is self-documenting. Bitrate reads observed / indicated. Updated by 4 Hz sampling, not by subscribing to the event stream. | Six arms, six identical bars. `pool-unbounded` included. This is the null result from the tables, drawn: on this corpus nothing we do to pool size or buffers moves footprint. |
 
+### The engine, in Instruments
+
+<p align="center">
+  <img src="docs/images/instruments-signposts.png" alt="Instruments showing the Points of Interest track with Asset load, Attach, First frame and Player acquire signpost intervals, alongside VM Tracker and Allocations memory tracks" width="820">
+</p>
+
+`os_signpost` intervals on the Points of Interest track, recorded on device while the UI test drove
+the scroll: **45 intervals across 76 seconds**, four per item view — `Asset load` → `Player acquire`
+→ `Attach` → `First frame` — with the VM Tracker and Allocations memory tracks on the same timeline.
+Each interval carries its item id as its message, so a slow startup can be attributed to a specific
+stream rather than guessed at.
+
+It also settles a question the records alone only imply. **`Player acquire` completes in 64–126 µs**
+— microseconds, against asset loads of 250 ms to 3.2 s. Pool contention is not a cost in this
+configuration, which is the same conclusion `playerWaitDuration` reports from an entirely separate
+measurement path. Two independent instruments agreeing is the reason to emit signposts at all.
+
 ## Running it
 
 Requirements: Xcode 16+, iOS 17+ device (the simulator misreports decode and memory — see below).

@@ -4,7 +4,7 @@ title: Observability — HUD, Dashboard, Signposts, Export
 description: How measurements are surfaced live, charted after the fact, exported, and captured as README screenshots
 status: living
 tags: [observability, hud, charts, signposts, screenshots]
-timestamp: 2026-08-05T00:00:00Z
+timestamp: 2026-08-05T01:00:00Z
 related: [qoe-metrics.md, experiment-harness.md, product-spec.md]
 ---
 
@@ -87,6 +87,22 @@ Emit `os_signpost` intervals (`OSSignposter`) around: asset load, item prepare, 
 
 Deliverable: one Instruments screenshot in the README showing the Points of Interest track alongside memory — a native-engineer signal that a pure-Swift portfolio repo usually lacks.
 
+**Captured 2026-08-04.** 45 intervals across 76 s, recorded with `xctrace --attach` while the UI test
+drove the scroll, so the trace is reproducible rather than a hand-scrolled one-off. Four intervals per
+item view (`Asset load` → `Player acquire` → `Attach` → `First frame`), each carrying its item id as
+the signpost message, beside VM Tracker and Allocations on one timeline.
+
+It produced a finding, not just a picture: **`Player acquire` runs 64–126 µs** against asset loads of
+250 ms–3.2 s. Pool contention costs nothing in this configuration — the same conclusion
+`playerWaitDuration` reaches from a completely separate path, which is the point of emitting
+signposts rather than trusting one measurement.
+
+**Profiling needs the USB cable and says otherwise when it doesn't have it.** Over Wi-Fi,
+`xctrace record` fails with "An unknown problem is preventing this device from recording", and
+`--attach <name>` fails with "Cannot find process matching name" *even though the process is running
+and `devicectl` can see it*. Neither message mentions the transport. Both worked immediately once
+wired. `devicectl device info details | grep transportType` is the check — it must say `wired`.
+
 ## Export
 
 Session data exports as JSON (full records) and CSV (flat, per item) via the share sheet. CSV is the
@@ -116,7 +132,7 @@ session numbers, and a simulator capture would put simulator numbers in the READ
       collapses to a line, so the chart whose entire subject is a tradeoff would show none.
 - [x] `dashboard-memory.png` — peak memory by arm, including the unbounded control.
 - [x] `debug-menu.png` — arm selection and build configuration.
-- [ ] `instruments-signposts.png` — Points of Interest trace with memory track.
+- [x] `instruments-signposts.png` — Points of Interest trace with memory track.
 
 Two defects were found by looking at the output rather than by any test, which is the argument for
 capturing screenshots as a routine step rather than once at the end:

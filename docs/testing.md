@@ -4,7 +4,7 @@ title: Testing and Measurement Protocol
 description: Unit test strategy, what must remain testable without a device, and the protocol for producing publishable numbers
 status: living
 tags: [testing, measurement, protocol]
-timestamp: 2026-08-04T19:00:00Z
+timestamp: 2026-08-05T01:00:00Z
 related: [architecture.md, experiment-harness.md, qoe-metrics.md]
 ---
 
@@ -57,11 +57,16 @@ Numbers published in the README come only from runs following this protocol:
 
 Learned the hard way; each of these cost a cycle.
 
-- **Profiling needs a USB cable.** Install, launch and debug all work fine over Wi-Fi, but
-  `xctrace record` against a wirelessly-connected device fails with "An unknown problem is preventing
-  this device from recording" and silently produces a zero-duration trace **targeting the Mac**. Check the
-  exported `--toc`: if `<device>` says `platform="macOS"`, the trace is worthless regardless of what the
-  recording reported.
+- **Profiling needs a USB cable.** Install, launch, XCUITest, and `devicectl` file transfer all work
+  fine over Wi-Fi, but `xctrace record` against a wirelessly-connected device fails with "An unknown
+  problem is preventing this device from recording" and silently produces a zero-duration trace
+  **targeting the Mac**. Check the exported `--toc`: if `<device>` says `platform="macOS"`, the trace
+  is worthless regardless of what the recording reported.
+  - **`--attach` fails the same way and lies differently.** Over Wi-Fi it reports "Cannot find process
+    matching name: FeedLab" while the process is plainly running and `devicectl device info processes`
+    lists it. Nothing in either message mentions the transport, and a device that was wired earlier in
+    a session can quietly fall back to Wi-Fi. Confirm with
+    `devicectl device info details --device <uuid> | grep transportType` — it must say `wired`.
 - **Each tool uses a different device identifier.** `devicectl` uses a UUID, `xcodebuild -destination` and
   `xctrace --device` use the ECID (`00008101-…`). `--device-name` is ambiguous when two devices share a
   name, which is common.

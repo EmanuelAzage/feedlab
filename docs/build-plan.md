@@ -72,7 +72,8 @@ Milestones are ordered but **not time-boxed** — this is built incrementally ac
   - *Done 2026-08-03:* `preload3-capped` and `preload3-uncapped`, unthrottled Wi-Fi, n=3 each, alternating, matched pace. Settled M4's memory question (see above).
   - *Device pipeline established:* `Measure` build installs via `devicectl`, the arm and corpus chosen by launch argument for a genuine cold start per run, sessions pulled back over USB with `devicectl device copy from --domain-type appDataContainer`. A run is one command; a batch of 18 is unattended.
   - *Comparisons are reported over the HLS corpus*, per `decisions.md`. The "full-corpus figures alongside" half of that obligation was dropped when the measurement corpus became HLS-only; the README states the exclusion and cites the measured 27% instead.
-- [ ] Screenshots per the screenshot plan, including an Instruments trace.
+- [x] Screenshots per the screenshot plan, including an Instruments trace.
+  - *Captured 2026-08-04 by `FeedLabRunner/ScreenshotRun.swift` on device, plus one `xctrace` recording. Two chart defects were found by looking at the output and fixed (`decisions.md`).*
 - [x] README: what/why, architecture diagram, results table generated from the runs, methodology and its limits, content attribution.
   - *Done 2026-08-04* apart from images: both results tables, the direction split, the analysis of what the numbers say, and a limits section covering the HLS-only corpus, warm laps, XCUITest overhead, peak-observed memory, and the not-an-A/B-test caveat.
 - **Accept:** a reader can see the startup-vs-smoothness tradeoff from the README alone; every published number traces to an exported run; the honesty rules in `experiment-harness.md` are satisfied.
