@@ -4,7 +4,10 @@ A vertical, full-screen video feed for iOS that **measures its own playback qual
 
 A bounded pool of recycled `AVPlayer`s, swappable preload strategies behind an experiment harness, and a QoE instrumentation layer that reports time-to-first-frame, rebuffer ratio, bitrate behavior, and peak memory — live in a HUD while you scroll, and afterward in a Swift Charts dashboard.
 
-> **Status:** in active development — see [docs/build-plan.md](docs/build-plan.md) for milestone progress.
+> **Status:** complete and measured. Six preload strategies, 42 runs on an iPhone 12 Pro across two
+> network profiles, every published figure generated from the raw runs committed in
+> [`measurements/`](measurements/). Milestones and acceptance criteria in
+> [docs/build-plan.md](docs/build-plan.md); ideas not pursued are listed there as stretch.
 
 <p align="center">
   <img src="docs/images/feed.png" alt="The feed playing a full-screen HLS test stream" width="215">
@@ -50,14 +53,14 @@ iPhone 12 Pro · iOS 26.5.2 · `Measure` build · 7-item HLS corpus · 3 runs pe
 
 **HLS items** · unthrottled Wi-Fi
 
-| Arm | Runs | p90 TTFF (ms) | Median TTFF (ms) | ↓ forward | ↑ backward | Rebuffer ratio | Peak memory (MB) | Frozen |
-|---|---|---|---|---|---|---|---|---|
-| `baseline` | 3 | 3111 <sub>2474–3429</sub> | 850 <sub>663–1023</sub> | 1023 <sub>815–1621</sub> | 668 <sub>615–1078</sub> | 0.000 <sub>0.000–0.000</sub> | 16.0 <sub>15.9–16.1</sub> | 1 |
-| `preload1` | 3 | 1613 <sub>1187–5670</sub> | 795 <sub>568–806</sub> | 111 <sub>107–131</sub> | 948 <sub>926–1188</sub> | 0.000 <sub>0.000–0.012</sub> | 16.1 <sub>16.0–16.2</sub> | 1 |
-| `preload3-capped` | 3 | 1383 <sub>1346–1859</sub> | 500 <sub>342–948</sub> | 108 <sub>97–111</sub> | 1252 <sub>946–1327</sub> | 0.000 <sub>0.000–0.000</sub> | 16.4 <sub>16.3–16.4</sub> | 6 |
-| `preload3-uncapped` | 3 | 1585 <sub>1320–2021</sub> | 723 <sub>507–850</sub> | 101 <sub>98–102</sub> | 1181 <sub>868–1199</sub> | 0.000 <sub>0.000–0.000</sub> | 16.3 <sub>16.3–16.4</sub> | 8 |
-| `window` | 3 | 781 <sub>665–1791</sub> | 89 <sub>88–89</sub> | 91 <sub>88–91</sub> | 89 <sub>89–89</sub> | 0.000 <sub>0.000–0.008</sub> | 16.1 <sub>16.1–16.3</sub> | 6 |
-| `pool-unbounded` | 3 | 1575 <sub>1435–2639</sub> | 639 <sub>570–721</sub> | 115 <sub>108–125</sub> | 1071 <sub>720–1075</sub> | 0.000 <sub>0.000–0.003</sub> | 16.1 <sub>16.0–16.2</sub> | 0 |
+| Arm | Runs | Views | p90 TTFF (ms) | Median TTFF (ms) | ↓ forward | ↑ backward | Rebuffer ratio | Peak memory (MB) | Frozen |
+|---|---|---|---|---|---|---|---|---|---|
+| `baseline` | 3 | 24 | 3111 <sub>2474–3429</sub> | 850 <sub>663–1023</sub> | 1023 <sub>815–1621</sub> | 668 <sub>615–1078</sub> | 0.000 <sub>0.000–0.000</sub> | 16.0 <sub>15.9–16.1</sub> | 1 |
+| `preload1` | 3 | 24 | 1613 <sub>1187–5670</sub> | 795 <sub>568–806</sub> | 111 <sub>107–131</sub> | 948 <sub>926–1188</sub> | 0.000 <sub>0.000–0.012</sub> | 16.1 <sub>16.0–16.2</sub> | 1 |
+| `preload3-capped` | 3 | 24 | 1383 <sub>1346–1859</sub> | 500 <sub>342–948</sub> | 108 <sub>97–111</sub> | 1252 <sub>946–1327</sub> | 0.000 <sub>0.000–0.000</sub> | 16.4 <sub>16.3–16.4</sub> | 6 |
+| `preload3-uncapped` | 3 | 24 | 1585 <sub>1320–2021</sub> | 723 <sub>507–850</sub> | 101 <sub>98–102</sub> | 1181 <sub>868–1199</sub> | 0.000 <sub>0.000–0.000</sub> | 16.3 <sub>16.3–16.4</sub> | 8 |
+| `window` | 3 | 24 | 781 <sub>665–1791</sub> | 89 <sub>88–89</sub> | 91 <sub>88–91</sub> | 89 <sub>89–89</sub> | 0.000 <sub>0.000–0.008</sub> | 16.1 <sub>16.1–16.3</sub> | 6 |
+| `pool-unbounded` | 3 | 24 | 1575 <sub>1435–2639</sub> | 639 <sub>570–721</sub> | 115 <sub>108–125</sub> | 1071 <sub>720–1075</sub> | 0.000 <sub>0.000–0.003</sub> | 16.1 <sub>16.0–16.2</sub> | 0 |
 
 **HLS items** · DSL 2 Mbps (Network Link Conditioner) · 10 s dwell
 
@@ -249,7 +252,7 @@ measurement path. Two independent instruments agreeing is the reason to emit sig
 Requirements: Xcode 16+, iOS 17+ device (the simulator misreports decode and memory — see below).
 
 ```bash
-git clone <repo> && cd FeedLab
+git clone https://github.com/EmanuelAzage/feedlab.git && cd feedlab
 open FeedLab.xcodeproj
 ```
 
@@ -273,9 +276,25 @@ Only the arm is required — it has no default, because a run mislabelled as the
 one that refuses to start. Set Auto-Lock to Never first; a locked device leaves `xcodebuild` waiting
 indefinitely rather than failing.
 
-No API keys, no backend, no setup. Video comes from a manifest of public test streams. The project is
-generated from `project.yml` with [XcodeGen](https://github.com/yonaskolb/XcodeGen); the `.xcodeproj` is
-committed, so you only need XcodeGen if you change the project structure (`xcodegen generate`).
+No API keys and no backend — video comes from a manifest of public test streams. A fresh clone builds
+and runs its 129 tests on the simulator with no configuration at all (verified by cloning into an
+empty directory and running them).
+
+**Building for a device needs one line.** A team id is a personal identifier and this is a public
+repo, so it lives in an untracked file. Create `Signing.local.xcconfig` next to `Signing.xcconfig`:
+
+```
+DEVELOPMENT_TEAM = YOURTEAMID
+```
+
+The include is optional (`#include?`), so its absence costs you nothing until you build for hardware,
+at which point Xcode's own "requires a development team" error says exactly what is missing. Don't set
+it in Xcode's Signing & Capabilities editor — `xcodegen generate` overwrites the project and the
+setting disappears at the next regeneration.
+
+The project is generated from `project.yml` with
+[XcodeGen](https://github.com/yonaskolb/XcodeGen); the `.xcodeproj` is committed, so you only need
+XcodeGen if you change the project structure (`xcodegen generate`).
 
 Three build configurations, because debug tooling and representative performance are independent axes:
 
@@ -287,7 +306,6 @@ Three build configurations, because debug tooling and representative performance
 
 Debug menu (shake or the on-screen button) selects the experiment arm, toggles the HUD, and opens the dashboard. It reports the active configuration and warns when the build is unoptimized, so a run against the wrong binary can't happen quietly.
 
-<!-- M6: verify these steps on a clean machine -->
 
 **On the simulator:** the app runs, but any number it produces is meaningless. Decode is software, memory accounting differs, and there's no thermal behavior. All published figures come from a physical device under a stated network profile.
 
