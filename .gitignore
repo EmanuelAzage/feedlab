@@ -16,3 +16,6 @@ DerivedData/
 
 # Signing: team id is personal, and this is a public repo. See Signing.xcconfig.
 Signing.local.xcconfig
+
+# Instruments traces — hundreds of MB, and re-recordable from the runner (docs/testing.md).
+*.trace

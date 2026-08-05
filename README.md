@@ -7,14 +7,21 @@ A bounded pool of recycled `AVPlayer`s, swappable preload strategies behind an e
 > **Status:** in active development — see [docs/build-plan.md](docs/build-plan.md) for milestone progress.
 
 <p align="center">
-  <img src="docs/images/dashboard-tradeoff.png" alt="Startup vs. smoothness: p90 time-to-first-frame against rebuffer ratio, one point per experiment arm, over 18 device runs on a 2 Mbps profile" width="340">
+  <img src="docs/images/feed.png" alt="The feed playing a full-screen HLS test stream" width="215">
+  <img src="docs/images/hud.png" alt="The live measurement HUD overlaying the feed, showing arm name, time-to-first-frame, stalls, bitrate and pool occupancy" width="215">
+  <img src="docs/images/dashboard-tradeoff.png" alt="Startup vs. smoothness: p90 time-to-first-frame against rebuffer ratio, one point per experiment arm" width="215">
+  <img src="docs/images/dashboard-memory.png" alt="Rebuffer ratio and peak memory by arm" width="215">
+</p>
+<p align="center">
+  <em>The feed · the live HUD · the startup-vs-smoothness tradeoff · rebuffer and memory by arm.<br>
+  All captured on an iPhone 12 Pro by a UI test, so every figure in them is a device figure.</em>
 </p>
 
-**The whole project in one chart.** Each dot is a preload strategy, measured over 18 runs on a real
-device under a 2 Mbps link. Bottom-left wins on both axes; everywhere else is a tradeoff, not a
+**The whole project is the third image.** Each dot is a preload strategy, measured over 18 runs on a
+real device under a 2 Mbps link. Bottom-left wins on both axes; everywhere else is a tradeoff, not a
 winner. `baseline` (blue, far right) never stalls — because it barely ever starts playing. `window`
 (red, top left) starts in 72 ms and stalls the most, because it is the arm actually keeping video on
-screen.
+the screen.
 
 ## Why this exists
 
